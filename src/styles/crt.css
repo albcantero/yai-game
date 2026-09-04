@@ -291,9 +291,9 @@ body{
   display:flex;flex-direction:column;gap:8px;
   width:100%;max-width:680px;margin:0 auto;
   padding:14px 12px 10px;
-  background:#272B2C;                       /* base del teclado */
+  background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja de plástico oscuro */
   border-radius:12px;
-  box-shadow:0 20px 30px -12px rgba(0,0,0,.5);
+  box-shadow:0 20px 30px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
   user-select:none;
 }
 .keyboard .krow{ display:flex;gap:6px;justify-content:center;width:100% }
@@ -301,16 +301,22 @@ body{
   flex:1 1 0;min-width:0;min-height:0;
   padding:10px 0;
   font-size:15px;font-family:'Courier Pixel',"Courier New",monospace;
-  color:#71D4FE;                            /* tecla retroiluminada cian */
-  background:#2F3336;
-  border:0;border-radius:10px;
-  box-shadow:0 3px 3px rgba(0,0,0,.7);
-  text-shadow:0 0 12px #71D4FE, 0 0 28px rgba(113,212,254,.7);
+  color:#20241c;                                        /* letra impresa oscura (como la marca SANTAS OCHOVA) */
+  background:linear-gradient(180deg,#5c6057,#494d44);   /* keycap de plástico, luz arriba */
+  border:0;border-radius:7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),                /* filo de luz arriba */
+    inset 0 -2px 0 rgba(0,0,0,.35),                      /* grosor del keycap */
+    0 2px 2px rgba(0,0,0,.4);                            /* sombra proyectada */
+  text-shadow:0 1px 0 rgba(255,255,255,.14);            /* grabado en plástico, como la marca */
   cursor:pointer;
-  transition:transform .08s ease, text-shadow .2s ease;
+  transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;
 }
-.keyboard button:hover{ text-shadow:0 0 18px #00BCD4, 0 0 42px rgba(0,188,212,.9) }
-.keyboard button:active{ transform:scale(.9) }
+.keyboard button:hover{ filter:brightness(1.06) }
+.keyboard button:active{
+  transform:translateY(1px);
+  box-shadow:inset 0 2px 3px rgba(0,0,0,.5);            /* tecla hundida al pulsar */
+}
 .keyboard button.kwide{ flex:2 }
 .keyboard button.kspace{ flex:5 }
 
