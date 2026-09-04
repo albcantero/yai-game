@@ -294,7 +294,10 @@ body{
   padding:14px 12px 10px;
   background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja de plástico oscuro */
   border-radius:12px;
-  box-shadow:0 20px 30px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.30),   /* filo de luz arriba (volumen, como la carcasa) */
+    inset 0 -3px 0 rgba(0,0,0,0.50),         /* filo de sombra abajo */
+    0 20px 30px -12px rgba(0,0,0,.5);        /* sombra proyectada */
   user-select:none;
 }
 .keyboard .krow{ display:flex;gap:6px;justify-content:center;width:100% }
