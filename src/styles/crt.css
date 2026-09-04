@@ -30,7 +30,7 @@ body{
   position:relative;
   display:flex;flex-direction:column;
   overflow:hidden;
-  padding:22px;                 /* hueco para el bisel del monitor */
+  padding:14px;                 /* margen fino alrededor del tubo */
   background:
     radial-gradient(120% 120% at 50% 0%, #14141a, #0a0a0d 60%, #050506);
 }
@@ -46,14 +46,12 @@ body{
 /* ---------- Área de pantalla (CRT + viñeta) ---------- */
 .screen-area{
   position:relative;flex:1;min-height:0;overflow:hidden;
-  border-radius:18px;
+  border-radius:26px;                       /* esquinas del tubo */
   box-shadow:
-    inset 0 0 0 2px rgba(0,0,0,.9),   /* borde negro de la pantalla */
-    0 0 0 3px #17171b,                /* junta oscura */
-    0 0 0 16px #34343a,               /* marco plástico */
-    0 0 0 17px #55555d,               /* filo claro del marco */
-    0 0 0 20px #0b0b0e,               /* borde exterior */
-    0 26px 60px rgba(0,0,0,.65);      /* sombra proyectada */
+    inset 0 0 0 2px rgba(64,86,70,.55),     /* filo fino verdoso (borde del tubo) */
+    inset 0 0 30px rgba(0,0,0,.85),         /* oscurece los bordes hacia dentro */
+    0 0 0 1px rgba(18,28,22,.7),            /* filo exterior sutil */
+    0 14px 48px rgba(0,0,0,.6);             /* sombra suave proyectada */
 }
 
 .crt{
