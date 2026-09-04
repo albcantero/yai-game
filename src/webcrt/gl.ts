@@ -26,6 +26,10 @@ uniform float uMask;     // fuerza de máscara de subpíxel 0..1
 uniform float uAber;     // aberración cromática (uv)
 uniform float uVign;     // viñeta 0..1
 uniform float uFlicker;  // amplitud de flicker 0..1
+uniform float uScanCount;   // nº de scanlines
+uniform float uBloom;       // intensidad de bloom/halación
+uniform float uBloomThresh; // umbral de brillo para el bloom
+uniform float uBloomSize;   // radio del bloom (en texels)
 
 vec2 warp(vec2 uv){
   uv = uv * 2.0 - 1.0;
@@ -48,8 +52,23 @@ void main(){
   float b = texture2D(uTex, uv - vec2(uAber, 0.0)).b;
   vec3 col = vec3(r, g, b);
 
-  // scanlines: una banda por fila de la textura fuente (rejilla nativa)
-  float beam = sin(uv.y * uTexRes.y * 3.14159265);
+  // bloom / halación de fósforo: desenfoque de las zonas brillantes alrededor
+  vec2 px = uBloomSize / uTexRes;
+  vec3 glow = vec3(0.0);
+  float tot = 0.0;
+  for (int i = -2; i <= 2; i++) {
+    for (int j = -2; j <= 2; j++) {
+      vec3 s = texture2D(uTex, uv + vec2(float(i), float(j)) * px).rgb;
+      s = max(s - uBloomThresh, 0.0);
+      float w = 1.0 / (1.0 + float(i * i + j * j));
+      glow += s * w;
+      tot += w;
+    }
+  }
+  col += (glow / tot) * uBloom;
+
+  // scanlines (nº de líneas ajustable)
+  float beam = sin(uv.y * uScanCount * 3.14159265);
   beam = beam * 0.5 + 0.5;
   col *= mix(1.0, beam, uScan);
 
@@ -77,19 +96,27 @@ void main(){
 export interface CRTParams {
   curve: [number, number];
   scan: number;
+  scanCount: number;
   mask: number;
   aber: number;
   vign: number;
   flicker: number;
+  bloom: number;
+  bloomThresh: number;
+  bloomSize: number;
 }
 
 export const DEFAULT_PARAMS: CRTParams = {
   curve: [0.06, 0.1],
-  scan: 0.26,
-  mask: 0.2,
+  scan: 0.22,
+  scanCount: 300,
+  mask: 0.18,
   aber: 0.0016,
   vign: 0.26,
   flicker: 0.05,
+  bloom: 0.9,
+  bloomThresh: 0.25,
+  bloomSize: 1.6,
 };
 
 function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader {
@@ -139,7 +166,7 @@ export class CRTRenderer {
     gl.enableVertexAttribArray(aPos);
     gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-    for (const name of ["uTex", "uTexRes", "uTime", "uCurve", "uScan", "uMask", "uAber", "uVign", "uFlicker"]) {
+    for (const name of ["uTex", "uTexRes", "uTime", "uCurve", "uScan", "uScanCount", "uMask", "uAber", "uVign", "uFlicker", "uBloom", "uBloomThresh", "uBloomSize"]) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
 
@@ -188,6 +215,10 @@ export class CRTRenderer {
     gl.uniform1f(this.u.uAber, p.aber);
     gl.uniform1f(this.u.uVign, p.vign);
     gl.uniform1f(this.u.uFlicker, p.flicker);
+    gl.uniform1f(this.u.uScanCount, p.scanCount);
+    gl.uniform1f(this.u.uBloom, p.bloom);
+    gl.uniform1f(this.u.uBloomThresh, p.bloomThresh);
+    gl.uniform1f(this.u.uBloomSize, p.bloomSize);
 
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
