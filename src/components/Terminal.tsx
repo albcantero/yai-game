@@ -564,8 +564,8 @@ export default function Terminal() {
           </button>
         </div>
         <div className="krow">
-          <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(true); }}>123</button>
+          <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
         </div>
         </>
