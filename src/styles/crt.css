@@ -40,6 +40,7 @@ body{
 .win-header .title-bar-text{ flex:1;font-size:16px;padding-left:2px }
 .win98 .win-cog{ min-width:38px;height:32px;padding:0;font-size:19px;line-height:1;margin-right:6px }
 .win98 .title-bar-controls button{ width:36px;height:32px }
+.win98 .title-bar-controls button[aria-label="Close"]{ background-position:center;background-size:14px }
 
 /* ---------- Área de pantalla (CRT + viñeta) ---------- */
 .screen-area{ position:relative;flex:1;min-height:0;overflow:hidden }
@@ -66,8 +67,8 @@ body{
   scrollbar-width:thin;scrollbar-color:#1c6b3f transparent;
 }
 .content>*{ width:100%;max-width:760px }
-/* abombado 3D en toda la pantalla (como antes) */
-.crt.warp{ filter:url(#barrel) }
+/* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
+.crt.warp{ filter:url(#barrel);transform:scale(1.06) }
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
