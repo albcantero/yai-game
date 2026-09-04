@@ -35,7 +35,7 @@ body{
   position:relative;
   display:flex;flex-direction:column;
   overflow:hidden;
-  padding:calc(env(safe-area-inset-top, 0px) + 28px) 14px calc(env(safe-area-inset-bottom, 0px) + 12px);  /* espacio superior + notch */
+  padding:env(safe-area-inset-top, 0px) 14px calc(env(safe-area-inset-bottom, 0px) + 12px);  /* solo el notch arriba, sin margen extra */
   background:
     radial-gradient(120% 120% at 50% 0%, #14141a, #0a0a0d 60%, #050506);
 }
@@ -290,7 +290,7 @@ body{
 .keyboard{
   flex:none;
   display:flex;flex-direction:column;gap:8px;
-  width:100%;max-width:680px;margin:2px auto 0;   /* 2px de aire entre pantalla y teclado */
+  width:100%;max-width:680px;margin:4px auto 0;   /* 4px de aire entre pantalla y teclado */
   padding:14px 12px 10px;
   background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja de plástico oscuro */
   border-radius:12px;
