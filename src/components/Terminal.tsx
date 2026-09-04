@@ -376,7 +376,7 @@ export default function Terminal() {
           <div className="win98 win-header">
             <div className="title-bar">
               <img className="title-icon" src="/icons/term.png" alt="" />
-              <div className="title-bar-text">lib-santasochova-term.exe</div>
+              <div className="title-bar-text">santasochova-term.exe</div>
               <div className="title-bar-controls">
                 <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>⚙</button>
                 <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
