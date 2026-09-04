@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
@@ -258,7 +258,8 @@ export default function Terminal() {
     }
   };
 
-  const onScreenPointerDown = () => {
+  const onScreenPointerDown = (e: ReactPointerEvent) => {
+    if ((e.target as HTMLElement).closest(".win98")) return; // clics en header/menú: los gestiona el chrome
     if (menuOpen) {
       setMenuOpen(false);
       return;
@@ -286,23 +287,23 @@ export default function Terminal() {
         </filter>
       </svg>
 
-      <div className="win98 win-header">
-        <div className="title-bar">
-          <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>
-            ⚙
-          </button>
-          <div className="title-bar-text">Librería Manto Rochoa</div>
-          <div className="title-bar-controls">
-            <button type="button" aria-label="Close" onClick={closeAttempt}></button>
-          </div>
-        </div>
-      </div>
-
       <div className="screen-area">
         <div
           className={"crt curved" + (warpReady ? " warp" : "") + (focused ? "" : " idle")}
           onPointerDown={onScreenPointerDown}
         >
+          <div className="win98 win-header">
+            <div className="title-bar">
+              <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>
+                ⚙
+              </button>
+              <div className="title-bar-text">Librería Manto Rochoa</div>
+              <div className="title-bar-controls">
+                <button type="button" aria-label="Close" onClick={closeAttempt}></button>
+              </div>
+            </div>
+          </div>
+          <div className="crt-body">
           <div className="content" ref={scrollRef}>
             <div className="banner-wrap">
               <pre className="banner" ref={bannerRef}></pre>
@@ -346,27 +347,29 @@ export default function Terminal() {
               </div>
             )}
           </div>
+          {menuOpen && (
+            <aside className="win98 win-sidebar">
+              <div className="window">
+                <div className="title-bar">
+                  <div className="title-bar-text">Menú</div>
+                  <div className="title-bar-controls">
+                    <button type="button" aria-label="Close" onClick={() => setMenuOpen(false)}></button>
+                  </div>
+                </div>
+                <div className="window-body">
+                  <p>Acciones rápidas:</p>
+                  <button type="button" onClick={() => runFromMenu("/help")}>Ayuda</button>
+                  <button type="button" onClick={() => runFromMenu("/catalogo")}>Catálogo</button>
+                  <button type="button" onClick={() => runFromMenu("/contacto")}>Último mensaje</button>
+                  <button type="button" onClick={() => runFromMenu("/limpiar")}>Limpiar pantalla</button>
+                </div>
+              </div>
+            </aside>
+          )}
+          </div>
         </div>
         <div className="curve-overlay"></div>
       </div>
-
-      <aside className={"win98 win-sidebar" + (menuOpen ? " open" : "")} aria-hidden={!menuOpen}>
-        <div className="window">
-          <div className="title-bar">
-            <div className="title-bar-text">Menú</div>
-            <div className="title-bar-controls">
-              <button type="button" aria-label="Close" onClick={() => setMenuOpen(false)}></button>
-            </div>
-          </div>
-          <div className="window-body">
-            <p>Acciones rápidas:</p>
-            <button type="button" onClick={() => runFromMenu("/help")}>Ayuda</button>
-            <button type="button" onClick={() => runFromMenu("/catalogo")}>Catálogo</button>
-            <button type="button" onClick={() => runFromMenu("/contacto")}>Último mensaje</button>
-            <button type="button" onClick={() => runFromMenu("/limpiar")}>Limpiar pantalla</button>
-          </div>
-        </div>
-      </aside>
     </>
   );
 }
