@@ -221,7 +221,7 @@ body{
     inset 0 0 30px 6px rgba(0,0,0,.9);
 }
 
-.row{ white-space:pre-wrap;word-break:break-word;min-height:1em }
+.row{ white-space:pre-wrap;word-break:break-word;min-height:1em;padding-left:2ch;text-indent:-2ch }  /* sangrado francés: las líneas partidas se alinean tras el "* " */
 .b{ color:#b8ffd6 }
 .muted{ color:#1f9e5e }
 .d{ color:#ff5f5f }
