@@ -440,12 +440,16 @@ export default function Terminal() {
           <span className="monitor-brand">SANTAS OCHOVA</span>
           <button
             type="button"
-            className="monitor-btn"
+            className="kbd-toggle"
             aria-pressed={showKeyboard}
             title={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
             onClick={() => setShowKeyboard((v) => !v)}
           >
-            ⌨ {showKeyboard ? "OCULTAR" : "TECLADO"}
+            <span className="button-outer">
+              <span className="button-inner">
+                <span>⌨ TECLADO</span>
+              </span>
+            </span>
           </button>
           <span className="monitor-led" aria-hidden="true"></span>
         </div>
