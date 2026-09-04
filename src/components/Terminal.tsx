@@ -150,12 +150,17 @@ export default function Terminal() {
   const fitBanner = () => {
     const b = bannerRef.current;
     if (!b) return;
-    b.style.transform = "none";
     const wrap = b.parentElement;
     if (!wrap) return;
+    // Escalar por FONT-SIZE (no transform): así el banner es un elemento normal que
+    // scrollea con el resto. Con transform creaba una capa de composición que en móvil
+    // no se repinta al hacer scroll y "se quedaba fija".
+    b.style.transform = "none";
+    b.style.fontSize = ""; // vuelve a la base del CSS para medir
+    const base = parseFloat(getComputedStyle(b).fontSize) || 11;
     const s = Math.min(1, (wrap.clientWidth || 1) / (b.scrollWidth || 1));
-    b.style.transform = `scale(${s})`;
-    wrap.style.height = Math.ceil(b.getBoundingClientRect().height) + "px";
+    b.style.fontSize = base * s + "px";
+    wrap.style.height = ""; // altura natural
   };
 
   const waitForAdvance = () =>
