@@ -12,27 +12,44 @@ import "../styles/home.css";
   </head>
   <body>
     <main class="home">
-      <div class="home__bg"></div>
+      <img class="home__bg" src="/title-background.svg" alt="" />
       <div class="home__content">
         <a class="home__btn" href="/terminal">Terminal</a>
       </div>
       <button class="home__sound" id="sound" type="button" aria-label="Sonido">🔊</button>
-      <audio id="bgm" src="/audio/pop-melodic-98.mp3" loop preload="auto"></audio>
     </main>
 
     <script>
-      const bgm = document.getElementById("bgm");
+      // Loop sin corte con Web Audio API (AudioBufferSourceNode.loop = sample-accurate,
+      // sin el hueco que deja <audio loop>).
       const soundBtn = document.getElementById("sound");
-      let on = true;
+      const SRC = "/audio/pop-melodic-98.mp3";
+      const AC = window.AudioContext || window.webkitAudioContext;
+      let ctx, gain, buffer, source, loading, on = true;
 
-      const tryPlay = () => {
-        if (on) bgm.play().catch(() => {});
-      };
+      async function ensureBuffer() {
+        if (buffer || !AC) return;
+        if (!ctx) { ctx = new AC(); gain = ctx.createGain(); gain.connect(ctx.destination); }
+        if (!loading) {
+          loading = fetch(SRC).then((r) => r.arrayBuffer()).then((a) => ctx.decodeAudioData(a)).then((b) => { buffer = b; });
+        }
+        await loading;
+      }
+      async function play() {
+        if (!on) return;
+        await ensureBuffer();
+        if (!buffer || source) return;
+        if (ctx.state === "suspended") await ctx.resume();
+        source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.connect(gain);
+        source.start(0);
+      }
 
-      // Intento de autoplay; si el navegador lo bloquea, arranca en la primera interacción.
-      tryPlay();
+      // Política de autoplay: arranca en la primera interacción.
       const kick = () => {
-        tryPlay();
+        play();
         window.removeEventListener("pointerdown", kick);
         window.removeEventListener("keydown", kick);
       };
@@ -42,14 +59,9 @@ import "../styles/home.css";
       soundBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         on = !on;
-        if (on) {
-          bgm.muted = false;
-          tryPlay();
-          soundBtn.textContent = "🔊";
-        } else {
-          bgm.pause();
-          soundBtn.textContent = "🔇";
-        }
+        if (gain) gain.gain.value = on ? 1 : 0;
+        soundBtn.textContent = on ? "🔊" : "🔇";
+        if (on) play();
       });
     </script>
   </body>
