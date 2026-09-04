@@ -14,11 +14,6 @@
   src:url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
   font-display:swap;
 }
-@font-face{
-  font-family:'SSURIFE Pixel';
-  src:url('/fonts/ssurife-pixel.woff2') format('woff2');
-  font-display:swap;
-}
 
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
@@ -56,13 +51,12 @@ body{
   background:#050805;color:#37f07d;
   font-family:'Courier Pixel',"Courier New",ui-monospace,monospace;
   font-size:11px;line-height:1.4;
-  border-radius:10px;
   animation:textShadow 4s infinite;
 }
 .crt-body{ position:relative;flex:1;min-height:0 }
-.win98{ font-family:"Pixelated MS Sans Serif",'SSURIFE Pixel',Tahoma,sans-serif }  /* 98.css primaria; SSURIFE (misma familia Win98) solo para los acentos que la de 98.css no trae */
+.win98{ font-family:"Pixelated MS Sans Serif",Tahoma,sans-serif }  /* nativa de 98.css (sin acentos, por decisión) */
 /* sobrescribe la font-family que 98.css fija en cada componente (su MS Sans pixelada no tiene acentos) */
-.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:"Pixelated MS Sans Serif",'SSURIFE Pixel',Tahoma,Arial,sans-serif;font-size:16px }
+.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif;font-size:16px }
 
 .content{
   position:relative;z-index:1;
@@ -95,7 +89,6 @@ body{
 /* curvatura fingida (cristal de tubo): viñeta + brillo + bisel interior, capa plana por encima */
 .curve-overlay{
   position:absolute;inset:0;z-index:6;pointer-events:none;
-  border-radius:10px;
   background:
     radial-gradient(120% 80% at 30% -5%, rgba(255,255,255,.06), transparent 55%),
     radial-gradient(120% 120% at 50% 50%, transparent 58%, rgba(0,0,0,.5) 100%);
