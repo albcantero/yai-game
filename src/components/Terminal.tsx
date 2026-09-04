@@ -292,6 +292,11 @@ export default function Terminal() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
+  // Auto-enfocar el input cuando aparece (PC/ratón); en móvil se enfoca al tocar.
+  useEffect(() => {
+    if (booted && !dialog && finePointer()) inputRef.current?.focus();
+  }, [booted, dialog]);
+
   useEffect(() => {
     if (!dialog) return;
     const onKey = (e: KeyboardEvent) => {
