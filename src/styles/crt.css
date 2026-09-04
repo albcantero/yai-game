@@ -62,7 +62,7 @@ body{
 .win98{ font-family:'MS Sans',"Segoe UI",Tahoma,sans-serif }  /* Microsoft Sans Serif (micross) subseteada: aire Win98 + acentos */
 /* sobrescribe la font-family que 98.css fija en cada componente (su MS Sans pixelada no tiene acentos) */
 .win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'MS Sans',"Segoe UI",Tahoma,Arial,sans-serif }
-.crt.warp{ filter:url(#barrel);transform:scale(1.06) }
+.crt.warp{ filter:url(#barrel) }
 
 .content{
   position:relative;z-index:1;
