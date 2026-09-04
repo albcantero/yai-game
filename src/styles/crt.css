@@ -66,6 +66,8 @@ body{
   scrollbar-width:thin;scrollbar-color:#1c6b3f transparent;
 }
 .content>*{ width:100%;max-width:760px }
+/* abombado 3D SOLO en el contenido (texto/banner): header y menú quedan fuera → clicables */
+.crt.warp .content{ filter:url(#barrel) }
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
