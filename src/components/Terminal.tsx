@@ -51,6 +51,7 @@ export default function Terminal() {
   const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
+  const keyBuffersRef = useRef<AudioBuffer[]>([]);
 
   const lookup = useMemo(() => {
     const m = new Map<string, Command>();
@@ -73,26 +74,20 @@ export default function Terminal() {
   };
   const clear = () => setLines([]);
 
-  // Tic de tecleo corto (sintetizado, sin archivo).
+  // Tic de tecleo: reproduce uno de los 4 samples mp3 reales al azar.
   const keyTick = () => {
     try {
-      const AC = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AC) return;
-      if (!acRef.current) acRef.current = new AC();
       const ac = acRef.current;
+      const bufs = keyBuffersRef.current;
+      if (!ac || bufs.length === 0) return;
       if (ac.state === "suspended") ac.resume();
-      const t = ac.currentTime;
-      const o = ac.createOscillator();
+      const src = ac.createBufferSource();
+      src.buffer = bufs[Math.floor(Math.random() * bufs.length)];
       const g = ac.createGain();
-      o.type = "square";
-      o.frequency.value = 300 + Math.random() * 160;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.05, t + 0.002);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-      o.connect(g);
+      g.gain.value = 0.55;
+      src.connect(g);
       g.connect(ac.destination);
-      o.start(t);
-      o.stop(t + 0.035);
+      src.start(0);
     } catch {
       /* sin audio */
     }
@@ -220,6 +215,28 @@ export default function Terminal() {
       }
     } catch {
       /* navegador sin soporte: se queda plano */
+    }
+
+    // Precarga los samples de tecleo (mp3 reales) en buffers.
+    try {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      if (AC) {
+        if (!acRef.current) acRef.current = new AC();
+        const ac = acRef.current;
+        Promise.all(
+          [1, 2, 3, 4].map((n) =>
+            fetch(`/audio/key${n}.mp3`)
+              .then((r) => r.arrayBuffer())
+              .then((a) => ac.decodeAudioData(a)),
+          ),
+        )
+          .then((bufs) => {
+            keyBuffersRef.current = bufs;
+          })
+          .catch(() => {});
+      }
+    } catch {
+      /* sin audio */
     }
 
     if (bannerRef.current) {
