@@ -89,7 +89,7 @@ body{
   padding:6px;                                            /* grosor del marco gris (más evidente) */
   font-family:'Courier Pixel',"Courier New",ui-monospace,monospace;
   font-size:11px;line-height:1.4;
-  animation:textShadow 4s infinite;
+  animation:textShadow 1.6s infinite;   /* aleclownes estándar */
 }
 .crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
 .win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* Determination Sans: proporcional y con acentos */
@@ -120,11 +120,11 @@ body{
   background-size:100% 2px, 3px 100%;
 }
 /* flicker (aleclownes ::after) */
-/* flicker de "fogonazo": casi siempre a 0 y un parpadeo breve cada 6s (idea de la demo; menos cansino que el constante) */
+/* flicker aleclownes estándar */
 .crt::after{
   content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
-  background:rgba(0,0,0,.5);opacity:0;
-  animation:flicker 6s ease-in-out infinite;
+  background:rgba(18,16,16,var(--flicker-alpha));opacity:0;
+  animation:flicker .15s infinite;
 }
 
 /* viñeta/marco: capa hermana por encima del abombado (queda plana) */
@@ -165,10 +165,11 @@ body{
 @keyframes bob{ from{transform:translateY(0)} to{transform:translateY(6px)} }
 
 @keyframes flicker{
-  0%,96%,100%{opacity:0}
-  97%{opacity:.28}
-  98%{opacity:.06}
-  99%{opacity:.2}
+  0%{opacity:.27861}5%{opacity:.34769}10%{opacity:.23604}15%{opacity:.90626}
+  20%{opacity:.18128}25%{opacity:.83891}30%{opacity:.65583}35%{opacity:.67807}
+  40%{opacity:.26559}45%{opacity:.84693}50%{opacity:.96019}55%{opacity:.08594}
+  60%{opacity:.20313}65%{opacity:.71988}70%{opacity:.53455}75%{opacity:.37288}
+  80%{opacity:.71428}85%{opacity:.70419}90%{opacity:.7003}95%{opacity:.36108}100%{opacity:.24387}
 }
 @keyframes textShadow{
   0%  {text-shadow:.44px 0 1px rgba(0,30,255,.5),-.44px 0 1px rgba(255,0,80,.3),0 0 3px}
