@@ -238,12 +238,7 @@ export default function Terminal() {
       }
     } else if (k.length === 1) {
       keyTick();
-      const ch = shiftRef.current ? k.toUpperCase() : k;
-      setLine(curRef.current + ch);
-      if (shiftRef.current) {
-        shiftRef.current = false;
-        setShift(false);
-      }
+      setLine(curRef.current + (shiftRef.current ? k.toUpperCase() : k));
     }
   };
   handleKeyRef.current = handleKey;
