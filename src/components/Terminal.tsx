@@ -286,13 +286,15 @@ export default function Terminal() {
         </filter>
       </svg>
 
-      <div className="title-bar win-header">
-        <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>
-          ⚙
-        </button>
-        <div className="title-bar-text">Librería Manto Rochoa</div>
-        <div className="title-bar-controls">
-          <button type="button" aria-label="Close" onClick={closeAttempt}></button>
+      <div className="win98 win-header">
+        <div className="title-bar">
+          <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>
+            ⚙
+          </button>
+          <div className="title-bar-text">Librería Manto Rochoa</div>
+          <div className="title-bar-controls">
+            <button type="button" aria-label="Close" onClick={closeAttempt}></button>
+          </div>
         </div>
       </div>
 
@@ -348,19 +350,21 @@ export default function Terminal() {
         <div className="curve-overlay"></div>
       </div>
 
-      <aside className={"window win-sidebar" + (menuOpen ? " open" : "")} aria-hidden={!menuOpen}>
-        <div className="title-bar">
-          <div className="title-bar-text">Menú</div>
-          <div className="title-bar-controls">
-            <button type="button" aria-label="Close" onClick={() => setMenuOpen(false)}></button>
+      <aside className={"win98 win-sidebar" + (menuOpen ? " open" : "")} aria-hidden={!menuOpen}>
+        <div className="window">
+          <div className="title-bar">
+            <div className="title-bar-text">Menú</div>
+            <div className="title-bar-controls">
+              <button type="button" aria-label="Close" onClick={() => setMenuOpen(false)}></button>
+            </div>
           </div>
-        </div>
-        <div className="window-body">
-          <p>Acciones rápidas:</p>
-          <button type="button" onClick={() => runFromMenu("/help")}>Ayuda</button>
-          <button type="button" onClick={() => runFromMenu("/catalogo")}>Catálogo</button>
-          <button type="button" onClick={() => runFromMenu("/contacto")}>Último mensaje</button>
-          <button type="button" onClick={() => runFromMenu("/limpiar")}>Limpiar pantalla</button>
+          <div className="window-body">
+            <p>Acciones rápidas:</p>
+            <button type="button" onClick={() => runFromMenu("/help")}>Ayuda</button>
+            <button type="button" onClick={() => runFromMenu("/catalogo")}>Catálogo</button>
+            <button type="button" onClick={() => runFromMenu("/contacto")}>Último mensaje</button>
+            <button type="button" onClick={() => runFromMenu("/limpiar")}>Limpiar pantalla</button>
+          </div>
         </div>
       </aside>
     </>
