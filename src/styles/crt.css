@@ -21,7 +21,7 @@ body{
 }
 
 .stage{
-  min-height:100vh;min-height:100dvh;
+  height:100vh;height:100dvh;   /* altura DEFINIDA: la cadena height:100% resuelve y el .crt no crece con el contenido */
   position:relative;
   display:flex;flex-direction:column;
   overflow:hidden;
