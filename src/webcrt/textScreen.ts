@@ -5,12 +5,14 @@ export interface LineModel {
   text: string;
   cls: string; // "", "b", "muted", "d"
   mark: string; // "*", ">", ""
+  center?: boolean; // línea sin wrap, centrada (para el banner ASCII)
 }
 export interface ScreenModel {
   lines: LineModel[];
   input: string;
   showInput: boolean;
   cursorOn: boolean;
+  banner?: string[]; // arte ASCII del logo (se dibuja escalado al ancho, arriba)
 }
 
 const BG = "#050805";
@@ -44,12 +46,15 @@ export class TextScreen {
     this.cellW = w > 0 ? w : fontPx * 0.5;
   }
 
-  /** Ajusta la rejilla a la proporción de la pantalla (ancho/alto en px de pantalla). */
-  layout(aspect: number): void {
-    this.rows = 32;
-    const h = this.rows * this.cellH;
-    const w = Math.max(this.cellW * 12, Math.round(h * aspect));
-    this.cols = Math.max(12, Math.floor(w / this.cellW));
+  /** Ajusta la rejilla al tamaño real de la pantalla (px de salida). Responsive. */
+  layout(pxW: number, pxH: number): void {
+    // Celda de salida ~22px de alto (texto grande, legible) manteniendo la proporción 8:16
+    // de la fuente. La fuente se pinta a 8x16 (menor res) para que crt-geom marque scanlines
+    // al reescalar. cols/rows se ajustan al tamaño real -> llena y reflowa al redimensionar.
+    const targetCellH = 22;
+    const targetCellW = targetCellH * (this.cellW / this.cellH);
+    this.rows = Math.max(10, Math.round(pxH / targetCellH));
+    this.cols = Math.max(20, Math.round(pxW / targetCellW));
     this.canvas.width = Math.round(this.cols * this.cellW);
     this.canvas.height = Math.round(this.rows * this.cellH);
     // el contexto se resetea al cambiar el tamaño del canvas
@@ -57,11 +62,15 @@ export class TextScreen {
     this.ctx.textBaseline = "top";
   }
 
-  private wrap(model: ScreenModel): { text: string; color: string; markLen: number; markColor: string }[] {
-    const out: { text: string; color: string; markLen: number; markColor: string }[] = [];
+  private wrap(model: ScreenModel): { text: string; color: string; markLen: number; markColor: string; center?: boolean }[] {
+    const out: { text: string; color: string; markLen: number; markColor: string; center?: boolean }[] = [];
     const push = (l: LineModel) => {
       const color = COLORS[l.cls] ?? COLORS[""];
       const markColor = l.cls === "d" ? COLORS.d : PROMPT;
+      if (l.center) {
+        out.push({ text: l.text, color, markLen: 0, markColor, center: true });
+        return;
+      }
       const prefix = l.mark ? l.mark + " " : "";
       const indent = prefix.length; // 0 o 2 (sangrado francés)
       const avail = Math.max(1, Math.min(this.cols, this.maxCols) - indent);
@@ -86,17 +95,39 @@ export class TextScreen {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    const all = this.wrap(model);
-    const visible = all.slice(Math.max(0, all.length - this.rows));
+    let topOffset = Math.round(this.cellH * 0.5); // margen superior
 
-    // columna de texto centrada (máx. maxCols) + pequeño margen superior
+    // banner ASCII escalado para caber en el ancho (equivalente al fitBanner de main)
+    if (model.banner && model.banner.length) {
+      let bw = 1;
+      for (const l of model.banner) if (l.length > bw) bw = l.length;
+      const wScale = (this.canvas.width * 0.85) / (bw * this.cellW);
+      const hScale = (this.canvas.height * 0.4) / (model.banner.length * this.cellH);
+      const scale = Math.min(1, wScale, hScale);
+      const lineH = this.cellH * scale;
+      const charW = this.cellW * scale;
+      ctx.font = `${this.fontPx * scale}px "IBM VGA","Courier New",monospace`;
+      ctx.fillStyle = COLORS.b;
+      for (let i = 0; i < model.banner.length; i++) {
+        const line = model.banner[i];
+        const x = Math.max(0, (this.canvas.width - line.length * charW) / 2);
+        ctx.fillText(line, x, topOffset + i * lineH);
+      }
+      topOffset += model.banner.length * lineH + this.cellH * 0.5;
+      ctx.font = `${this.fontPx}px "IBM VGA","Courier New",monospace`;
+    }
+
+    // columna de texto centrada (máx. maxCols)
     const effCols = Math.min(this.cols, this.maxCols);
     const xoff = Math.floor((this.cols - effCols) / 2) * this.cellW;
-    const yoff = Math.round(this.cellH * 0.5);
+
+    const all = this.wrap(model);
+    const availRows = Math.max(1, Math.floor((this.canvas.height - topOffset) / this.cellH));
+    const visible = all.slice(Math.max(0, all.length - availRows));
 
     for (let i = 0; i < visible.length; i++) {
       const row = visible[i];
-      const y = i * this.cellH + yoff;
+      const y = topOffset + i * this.cellH;
       if (row.markLen > 0) {
         ctx.fillStyle = row.markColor;
         ctx.fillText(row.text.slice(0, row.markLen), xoff, y);
@@ -110,7 +141,7 @@ export class TextScreen {
 
     // cursor de bloque al final de la línea de input
     if (model.showInput && model.cursorOn) {
-      const lastY = (visible.length - 1) * this.cellH + yoff;
+      const lastY = topOffset + (visible.length - 1) * this.cellH;
       const col = (2 + model.input.length) % effCols;
       const extraRows = Math.floor((2 + model.input.length) / effCols);
       ctx.fillStyle = COLORS[""];
