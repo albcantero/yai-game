@@ -422,7 +422,6 @@ export default function Terminal() {
                   </div>
                 </div>
                 <div className="window-body">
-                  <p>Acciones rápidas:</p>
                   <button type="button" onClick={() => runFromMenu("/help")}>Ayuda</button>
                   <button type="button" onClick={() => runFromMenu("/catalogo")}>Catálogo</button>
                   <button type="button" onClick={() => runFromMenu("/contacto")}>Último mensaje</button>

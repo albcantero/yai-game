@@ -44,11 +44,9 @@ body{
 .win-header{ flex:none;user-select:none }  /* sin z-index: es flex item y el z-index lo pondria por encima de las scanlines */
 .win-header .title-bar{ min-height:38px }
 .win-header .title-bar-text{ flex:1;font-size:16px;padding-left:2px }
-/* overrides de tamaño comentados: volvemos a los botones nativos de 98.css (para comparar) */
-/* .win98 .win-cog{ min-width:38px;height:32px;padding:0;font-size:19px;line-height:1;margin-right:6px } */
-.win98 .win-cog{ font-size:14px }  /* solo el glifo del engranaje, el resto nativo */
-/* .win98 .title-bar-controls button{ width:36px;height:32px } */
-/* .win98 .title-bar-controls button[aria-label="Close"]{ background-position:center;background-size:14px } */
+/* controles del header cuadrados y consistentes (cog + X del mismo tamaño), con el bisel nativo de 98.css */
+.win98 .title-bar-controls button{ width:26px;height:26px;min-width:0;min-height:0;padding:0;background-position:center;background-repeat:no-repeat }
+.win98 .win-cog{ width:26px;height:26px;font-size:15px;line-height:1;padding:0;margin-right:4px }
 
 /* ---------- Área de pantalla (CRT + viñeta) ---------- */
 /* carcasa del monitor (plástico con 3D) + mentón grueso abajo */
@@ -97,6 +95,7 @@ body{
 .win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* Determination Sans: proporcional y con acentos */
 /* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Sans, con acentos) */
 .win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif }  /* solo la fuente (acentos); tamaño NATIVO de 98.css (quitado el 16px forzado) */
+.win98 .title-bar-text{ letter-spacing:.5px }  /* Determination en negrita sintética queda muy junta; la soltamos un poco */
 
 .content{
   position:relative;z-index:1;
@@ -119,15 +118,6 @@ body{
     linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,.25) 50%),
     linear-gradient(90deg, rgba(255,0,0,.06), rgba(0,255,0,.02), rgba(0,0,255,.06));
   background-size:100% 2px, 3px 100%;
-}
-/* en pantallas de alta densidad (móvil/retina) la scanline dura de 2px tiembla: la suavizamos (idea de la demo) */
-@media (min-resolution:1.5dppx){
-  .crt::before{
-    background:
-      repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,.20) 1.5px, rgba(0,0,0,0) 3px),
-      linear-gradient(90deg, rgba(255,0,0,.06), rgba(0,255,0,.02), rgba(0,0,255,.06));
-    background-size:100% 3px, 3px 100%;
-  }
 }
 /* flicker (aleclownes ::after) */
 /* flicker de "fogonazo": casi siempre a 0 y un parpadeo breve cada 6s (idea de la demo; menos cansino que el constante) */
@@ -196,17 +186,15 @@ body{
 
 /* ---------- Sidebar Windows 98 ---------- */
 .win-sidebar{
-  position:absolute;top:0;left:0;bottom:0;
-  width:min(320px,86%);
+  position:absolute;top:10px;left:10px;   /* ventana flotante arriba-izquierda, NO a toda la altura (más fiel a Win98) */
+  width:min(240px,80%);
   margin:0;z-index:1;
-  display:flex;flex-direction:column;
-  box-shadow:6px 0 20px rgba(0,0,0,.45);
+  box-shadow:4px 4px 14px rgba(0,0,0,.5);
 }
-.win-sidebar .window{ height:100%;margin:0;display:flex;flex-direction:column }
-.win-sidebar .title-bar{ min-height:38px }
+.win-sidebar .window{ margin:0 }   /* altura según contenido, no 100% */
+.win-sidebar .title-bar{ min-height:30px }
 .win-sidebar .title-bar-text{ font-size:15px }
-.win-sidebar .window-body{ flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin:10px }
-.win-sidebar .window-body p{ margin:0 0 2px;font-size:14px }
+.win-sidebar .window-body{ display:flex;flex-direction:column;gap:6px;margin:8px }  /* a contenido: sin flex:1 ni overflow */
 /* .win-sidebar .window-body button{ width:100%;padding:12px;text-align:left;font-size:16px } */  /* botones del menú nativos de 98.css */
 
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
@@ -222,12 +210,12 @@ body{
 /* ---------- Teclado Windows 98 en pantalla ---------- */
 .keyboard{
   flex:none;
-  display:flex;flex-direction:column;gap:6px;align-items:center;
-  padding:10px 8px 4px;
+  display:flex;flex-direction:column;gap:5px;align-items:center;
+  padding:6px 6px 4px;
   user-select:none;
 }
-.keyboard .krow{ display:flex;gap:6px;justify-content:center;width:100%;max-width:680px }
-.keyboard button{ flex:1 1 0;min-width:0;padding:12px 0;font-size:15px;font-family:'Courier Pixel',"Courier New",monospace }
+.keyboard .krow{ display:flex;gap:5px;justify-content:center;width:100%;max-width:680px }
+.keyboard button{ flex:1 1 0;min-width:0;min-height:0;padding:7px 0;font-size:14px;font-family:'Courier Pixel',"Courier New",monospace }
 .keyboard button.kwide{ flex:2 }
 .keyboard button.kspace{ flex:5 }
 
