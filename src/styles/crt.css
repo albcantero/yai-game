@@ -163,6 +163,14 @@ body{
 .win-sidebar .window-body p{ margin:0 0 2px;font-size:14px }
 .win-sidebar .window-body button{ width:100%;padding:12px;text-align:left;font-size:16px }
 
+/* ---------- Diálogo de confirmación Windows 98 ---------- */
+.confirm-overlay{ position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }
+.confirm-dialog{ min-width:260px;max-width:90vw;margin:0 }
+.confirm-dialog .window-body{ margin:12px 14px 14px }
+.confirm-dialog .window-body p{ margin:0 0 16px }
+.confirm-buttons{ display:flex;gap:10px;justify-content:center }
+.confirm-buttons button{ min-width:84px;padding:6px 14px }
+
 /* ---------- Teclado Windows 98 en pantalla ---------- */
 .keyboard{
   flex:none;

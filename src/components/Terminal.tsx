@@ -38,6 +38,7 @@ export default function Terminal() {
   const [dialog, setDialog] = useState(false);
   const [warpReady, setWarpReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -373,12 +374,10 @@ export default function Terminal() {
         >
           <div className="win98 win-header">
             <div className="title-bar">
-              <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>
-                ⚙
-              </button>
               <div className="title-bar-text">Librería Manto Rochoa</div>
               <div className="title-bar-controls">
-                <button type="button" aria-label="Close" onClick={closeAttempt}></button>
+                <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>⚙</button>
+                <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
               </div>
             </div>
           </div>
@@ -457,6 +456,26 @@ export default function Terminal() {
           <button type="button" className="kwide" onClick={() => handleKey("Enter")}>Enter ↵</button>
         </div>
       </div>
+
+      {confirmClose && (
+        <div className="win98 confirm-overlay">
+          <div className="window confirm-dialog">
+            <div className="title-bar">
+              <div className="title-bar-text">Cerrar sesión</div>
+              <div className="title-bar-controls">
+                <button type="button" aria-label="Close" onClick={() => setConfirmClose(false)}></button>
+              </div>
+            </div>
+            <div className="window-body">
+              <p>¿Seguro que quieres salir del sistema?</p>
+              <div className="confirm-buttons">
+                <button type="button" onClick={closeAttempt}>Sí</button>
+                <button type="button" onClick={() => setConfirmClose(false)}>No</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
