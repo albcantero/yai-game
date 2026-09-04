@@ -19,6 +19,13 @@
   src:url('/fonts/determination-sans.woff2') format('woff2');
   font-display:swap;
 }
+/* IBM VGA 8x16 (Int10h, DOS auténtica con acentos+box-drawing). Disponible para reprobar:
+   basta poner 'IBM VGA' delante en la font-family de .crt (mejor a font-size 16px). */
+@font-face{
+  font-family:'IBM VGA';
+  src:url('/fonts/ibm-vga-8x16.woff2') format('woff2');
+  font-display:swap;
+}
 
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
