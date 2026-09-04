@@ -69,71 +69,66 @@ body{
 }
 .monitor-brand{ font-family:'Courier Pixel',"Courier New",monospace;font-size:13px;letter-spacing:2px;color:#22261f;text-shadow:0 1px 0 rgba(255,255,255,.14) }
 .monitor-led{ width:9px;height:9px;border-radius:50%;background:#37f07d;box-shadow:0 0 8px #37f07d, inset 0 0 2px rgba(255,255,255,.7) }
-/* botón 3D del teclado en el mentón del monitor (pulsado = teclado en pantalla) */
+/* botón glow on/off del teclado en el mentón (encendido = teclado en pantalla). Glow verde fósforo */
 .kbd-toggle{
-  all:unset;
-  cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0);
-  position:relative;font-size:12px;
-  border-radius:999vw;
-  background-color:rgba(0,0,0,0.75);
-  box-shadow:-0.15em -0.15em 0.15em -0.075em rgba(5,5,5,0.25), 0.0375em 0.0375em 0.0675em 0 rgba(5,5,5,0.1);
-}
-.kbd-toggle::after{
-  content:"";position:absolute;z-index:0;
-  width:calc(100% + 0.3em);height:calc(100% + 0.3em);
-  top:-0.15em;left:-0.15em;border-radius:inherit;
-  background:linear-gradient(-135deg, rgba(5,5,5,0.5), transparent 20%, transparent 100%);
-  filter:blur(0.0125em);opacity:0.25;mix-blend-mode:multiply;
-}
-.kbd-toggle .button-outer{
-  position:relative;z-index:1;display:block;border-radius:inherit;
-  transition:box-shadow 300ms ease;will-change:box-shadow;
-  box-shadow:0 0.05em 0.05em -0.01em rgba(5,5,5,1), 0 0.01em 0.01em -0.01em rgba(5,5,5,0.5), 0.15em 0.3em 0.1em -0.01em rgba(5,5,5,0.25);
-}
-.kbd-toggle .button-inner{
-  position:relative;z-index:1;display:block;border-radius:inherit;
-  padding:0.5em 1em;
-  background-image:linear-gradient(135deg, rgba(230,230,230,1), rgba(180,180,180,1));
-  transition:box-shadow 300ms ease, clip-path 250ms ease, background-image 250ms ease, transform 250ms ease;
-  will-change:box-shadow, clip-path, background-image, transform;
-  overflow:clip;
-  clip-path:inset(0 0 0 0 round 999vw);
+  --hue:150; --sat:5%;
+  --hue2:146; --sat2:84%; --light2:58%;   /* verde fósforo del CRT */
+  --primary:hsl(var(--hue2),var(--sat2),var(--light2));
+  --td:0.3s; --tt:ease-in-out;
+  --tt2:cubic-bezier(0.42,-1.84,0.42,1.84);
+  --tt3:cubic-bezier(0.42,0,0.42,1.84);
+  font-size:4.2px;   /* escala todo el botón: 10em = 42px */
+  position:relative;display:block;margin:0;padding:0;border:0;outline:transparent;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  width:10em;height:10em;border-radius:50%;
+  background-color:transparent;
+  background-image:linear-gradient(hsl(var(--hue),var(--sat),10%),hsl(var(--hue),var(--sat),15%));
   box-shadow:
-    0 0 0 0 inset rgba(5,5,5,0.1),
-    -0.05em -0.05em 0.05em 0 inset rgba(5,5,5,0.25),
-    0 0 0 0 inset rgba(5,5,5,0.1),
-    0 0 0.05em 0.2em inset rgba(255,255,255,0.25),
-    0.025em 0.05em 0.1em 0 inset rgba(255,255,255,1),
-    0.12em 0.12em 0.12em inset rgba(255,255,255,0.25),
-    -0.075em -0.25em 0.25em 0.1em inset rgba(5,5,5,0.25);
+    0 0 0 0.125em hsla(var(--hue2),var(--sat2),50%,0),
+    0 0 0.25em hsl(var(--hue),var(--sat),5%) inset,
+    0 0.125em 0.125em hsl(var(--hue),var(--sat),25%);
+  transition:box-shadow var(--td) var(--tt);
 }
-.kbd-toggle .button-inner span{
-  position:relative;z-index:4;display:block;
-  font-family:'Courier Pixel',"Courier New",monospace;letter-spacing:1px;font-weight:500;
-  color:rgba(0,0,0,0);
-  background-image:linear-gradient(135deg, rgba(25,25,25,1), rgba(75,75,75,1));
-  -webkit-background-clip:text;background-clip:text;
-  transition:transform 250ms ease;will-change:transform;
-  text-shadow:rgba(0,0,0,0.1) 0 0 0.1em;
-  user-select:none;
+.kbd-toggle:before,.kbd-toggle:after{ border-radius:inherit;content:"";display:block;position:absolute }
+.kbd-toggle:before{
+  background-image:linear-gradient(hsl(var(--hue),var(--sat),20%),hsl(var(--hue),var(--sat),10%));
+  box-shadow:0 0.75em 0.75em 0.25em hsla(var(--hue),0%,0%,0.7);
+  top:1.5em;left:1.5em;width:7em;height:7em;
+  transition:box-shadow var(--td) var(--tt2), transform var(--td) var(--tt2);
 }
-/* PULSADO: teclado en pantalla (aria-pressed=true) */
-.kbd-toggle[aria-pressed="true"] .button-outer{
-  box-shadow:0 0 0 0 rgba(5,5,5,1), 0 0 0 0 rgba(5,5,5,0.5), 0 0 0 0 rgba(5,5,5,0.25);
-}
-.kbd-toggle[aria-pressed="true"] .button-inner{
-  clip-path:inset(clamp(1px,0.0625em,2px) clamp(1px,0.0625em,2px) clamp(1px,0.0625em,2px) clamp(1px,0.0625em,2px) round 999vw);
+.kbd-toggle:after{
+  background-color:hsl(var(--hue),var(--sat),10%);
+  background-image:linear-gradient(hsla(var(--hue),var(--sat),20%,0),hsl(var(--hue),var(--sat),20%));
   box-shadow:
-    0.1em 0.15em 0.05em 0 inset rgba(5,5,5,0.75),
-    -0.025em -0.03em 0.05em 0.025em inset rgba(5,5,5,0.5),
-    0.25em 0.25em 0.2em 0 inset rgba(5,5,5,0.5),
-    0 0 0.05em 0.5em inset rgba(255,255,255,0.15),
-    0 0 0 0 inset rgba(255,255,255,1),
-    0.12em 0.12em 0.12em inset rgba(255,255,255,0.25),
-    -0.075em -0.12em 0.2em 0.1em inset rgba(5,5,5,0.25);
+    0 0.0625em 0 hsl(var(--hue),var(--sat),25%) inset,
+    0 -0.0625em 0 hsl(var(--hue),var(--sat),25%) inset,
+    0 0 0 0 hsla(var(--hue2),var(--sat2),var(--light2),0.1) inset;
+  top:3em;left:3em;width:4em;height:4em;
+  transition:background-color var(--td) var(--tt), box-shadow var(--td) var(--tt), transform var(--td) var(--tt2);
 }
-.kbd-toggle[aria-pressed="true"] .button-inner span{ transform:scale(0.975) }
-.kbd-toggle:active .button-inner span{ transform:scale(0.975) }
+.kbd-toggle .btn__icon{
+  display:block;position:absolute;z-index:1;
+  top:calc(50% - 1.8em);left:calc(50% - 1.8em);width:3.6em;height:3.6em;
+  color:hsl(var(--hue),var(--sat),38%);   /* icono apagado: gris tenue (stroke=currentColor) */
+  transition:filter var(--td) var(--tt), color var(--td) var(--tt);
+}
+.kbd-toggle .btn__sr{ position:absolute;width:1px;height:1px;overflow:hidden }
+/* ENCENDIDO = teclado en pantalla */
+.kbd-toggle[aria-pressed="true"]:before,
+.kbd-toggle[aria-pressed="true"]:after,
+.kbd-toggle[aria-pressed="true"] .btn__icon{ transform:scale(0.98) }
+.kbd-toggle[aria-pressed="true"]:before{
+  box-shadow:0 0.375em 0.375em 0 hsla(var(--hue),0%,0%,0.7);
+  transition-timing-function:var(--tt3);
+}
+.kbd-toggle[aria-pressed="true"]:after{
+  background-color:hsl(var(--hue),var(--sat),20%);
+  box-shadow:
+    0 0.0625em 0 hsla(var(--hue2),var(--sat2),var(--light2),0.5) inset,
+    0 -0.0625em 0 hsla(var(--hue2),var(--sat2),var(--light2),0.5) inset,
+    0 0 0.75em 0.25em hsla(var(--hue2),var(--sat2),var(--light2),0.3) inset;
+}
+.kbd-toggle[aria-pressed="true"] .btn__icon{ color:var(--primary);filter:drop-shadow(0 0 0.35em var(--primary)) }
 
 /* pantalla hundida dentro de la carcasa */
 .screen-area{
