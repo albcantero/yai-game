@@ -37,7 +37,6 @@ export default function Terminal() {
   const [booted, setBooted] = useState(false);
   const [dialog, setDialog] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [warpReady, setWarpReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const idRef = useRef(0);
@@ -48,7 +47,6 @@ export default function Terminal() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLPreElement>(null);
-  const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
 
   const lookup = useMemo(() => {
@@ -161,40 +159,6 @@ export default function Terminal() {
     if (didBoot.current) return;
     didBoot.current = true;
 
-    // Mapa de desplazamiento para el abombado 3D (barrel).
-    try {
-      const fe = feImageRef.current;
-      const g = document.createElement("canvas");
-      if (fe && g.getContext) {
-        const size = 96;
-        g.width = g.height = size;
-        const ctx2d = g.getContext("2d");
-        if (ctx2d) {
-          const im = ctx2d.createImageData(size, size);
-          const d = im.data;
-          const strength = 0.4;
-          for (let y = 0; y < size; y++)
-            for (let x = 0; x < size; x++) {
-              const nx = (x / (size - 1)) * 2 - 1;
-              const ny = (y / (size - 1)) * 2 - 1;
-              const f = strength * (nx * nx + ny * ny);
-              const i = (y * size + x) * 4;
-              d[i] = Math.max(0, Math.min(255, 128 - nx * f * 127));
-              d[i + 1] = Math.max(0, Math.min(255, 128 - ny * f * 127));
-              d[i + 2] = 128;
-              d[i + 3] = 255;
-            }
-          ctx2d.putImageData(im, 0, 0);
-          const url = g.toDataURL();
-          fe.setAttribute("href", url);
-          fe.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", url);
-          setWarpReady(true);
-        }
-      }
-    } catch {
-      /* sin abombado (navegador sin soporte): se queda plano */
-    }
-
     if (bannerRef.current) {
       bannerRef.current.textContent = frameArt(BANNER);
       fitBanner();
@@ -280,16 +244,9 @@ export default function Terminal() {
 
   return (
     <>
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
-        <filter id="barrel" x="-15%" y="-15%" width="130%" height="130%" colorInterpolationFilters="sRGB">
-          <feImage ref={feImageRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
-          <feDisplacementMap in="SourceGraphic" in2="map" scale="55" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </svg>
-
       <div className="screen-area">
         <div
-          className={"crt curved" + (warpReady ? " warp" : "") + (focused ? "" : " idle")}
+          className={"crt curved" + (focused ? "" : " idle")}
           onPointerDown={onScreenPointerDown}
         >
           <div className="win98 win-header">
