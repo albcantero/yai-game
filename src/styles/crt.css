@@ -74,7 +74,7 @@ body{
 .screen-area{
   position:relative;flex:1;min-height:0;overflow:hidden;
   border-radius:18px;   /* curvatura fingida: esquinas redondeadas del tubo (idea de la demo) */
-  padding:4px;   /* borde negro del tubo (la curvatura del warp ya añade su propio anillo negro) */
+  padding:0;   /* sin franja negra: la curvatura del warp ya deja su propio anillo en el borde */
   background:radial-gradient(120% 100% at 50% 40%, #0b0d0b 0%, #050605 78%);
   box-shadow: inset 0 0 0 2px #000, inset 0 0 26px 8px rgba(0,0,0,0.8);
 }
