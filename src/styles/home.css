@@ -66,7 +66,7 @@ body{ margin:0; background:#222034; }
   background-color:#6abc3a;
   padding:15px 40px;
   margin:0;
-  font-size:20px;letter-spacing:1px;
+  font-size:20px;letter-spacing:1px;text-transform:uppercase;
   font-family:'Determination Mono',"Courier New",monospace;
   text-decoration:none;text-align:center;line-height:1;
   border:0;
