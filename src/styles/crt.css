@@ -89,7 +89,7 @@ body{
   padding:6px;                                            /* grosor del marco gris (más evidente) */
   font-family:'Courier Pixel',"Courier New",ui-monospace,monospace;
   font-size:11px;line-height:1.4;
-  animation:textShadow 1.6s infinite;   /* aleclownes estándar */
+  animation:textShadow 4s infinite;   /* aberración ralentizada (a Alberto le iba muy rápida a 1.6s) */
 }
 .crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
 .win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* Determination Sans: proporcional y con acentos */
