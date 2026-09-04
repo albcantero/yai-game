@@ -95,39 +95,54 @@ export class TextScreen {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    let topOffset = Math.round(this.cellH * 0.5); // margen superior
+    const topPad = Math.round(this.cellH * 0.5); // margen superior
+    const banner = model.banner && model.banner.length ? model.banner : null;
 
-    // banner ASCII escalado para caber en el ancho (equivalente al fitBanner de main)
-    if (model.banner && model.banner.length) {
+    // medidas del banner escalado (equivalente al fitBanner de main)
+    let bLineH = 0;
+    let bCharW = 0;
+    let bScalePx = this.fontPx;
+    let bannerPxH = 0;
+    if (banner) {
       let bw = 1;
-      for (const l of model.banner) if (l.length > bw) bw = l.length;
+      for (const l of banner) if (l.length > bw) bw = l.length;
       const wScale = (this.canvas.width * 0.85) / (bw * this.cellW);
-      const hScale = (this.canvas.height * 0.4) / (model.banner.length * this.cellH);
+      const hScale = (this.canvas.height * 0.4) / (banner.length * this.cellH);
       const scale = Math.min(1, wScale, hScale);
-      const lineH = this.cellH * scale;
-      const charW = this.cellW * scale;
-      ctx.font = `${this.fontPx * scale}px "IBM VGA","Courier New",monospace`;
-      ctx.fillStyle = COLORS.b;
-      for (let i = 0; i < model.banner.length; i++) {
-        const line = model.banner[i];
-        const x = Math.max(0, (this.canvas.width - line.length * charW) / 2);
-        ctx.fillText(line, x, topOffset + i * lineH);
-      }
-      topOffset += model.banner.length * lineH + this.cellH * 0.5;
-      ctx.font = `${this.fontPx}px "IBM VGA","Courier New",monospace`;
+      bLineH = this.cellH * scale;
+      bCharW = this.cellW * scale;
+      bScalePx = this.fontPx * scale;
+      bannerPxH = banner.length * bLineH;
     }
+    const gap = banner ? Math.round(this.cellH * 0.5) : 0;
 
-    // columna de texto centrada (máx. maxCols)
     const effCols = Math.min(this.cols, this.maxCols);
     const xoff = Math.floor((this.cols - effCols) / 2) * this.cellW;
 
+    // scroll por píxeles: banner + texto en un solo flujo, anclado al fondo
     const all = this.wrap(model);
-    const availRows = Math.max(1, Math.floor((this.canvas.height - topOffset) / this.cellH));
-    const visible = all.slice(Math.max(0, all.length - availRows));
+    const contentH = topPad + bannerPxH + gap + all.length * this.cellH;
+    const scroll = Math.max(0, contentH - this.canvas.height);
 
-    for (let i = 0; i < visible.length; i++) {
-      const row = visible[i];
-      const y = topOffset + i * this.cellH;
+    // banner (se desplaza con el scroll, no es sticky)
+    if (banner) {
+      ctx.font = `${bScalePx}px "IBM VGA","Courier New",monospace`;
+      ctx.fillStyle = COLORS.b;
+      for (let i = 0; i < banner.length; i++) {
+        const y = topPad + i * bLineH - scroll;
+        if (y + bLineH < 0 || y > this.canvas.height) continue;
+        const line = banner[i];
+        const x = Math.max(0, (this.canvas.width - line.length * bCharW) / 2);
+        ctx.fillText(line, x, y);
+      }
+      ctx.font = `${this.fontPx}px "IBM VGA","Courier New",monospace`;
+    }
+
+    const textTop = topPad + bannerPxH + gap - scroll;
+    for (let i = 0; i < all.length; i++) {
+      const row = all[i];
+      const y = textTop + i * this.cellH;
+      if (y + this.cellH < 0 || y > this.canvas.height) continue;
       if (row.markLen > 0) {
         ctx.fillStyle = row.markColor;
         ctx.fillText(row.text.slice(0, row.markLen), xoff, y);
@@ -141,7 +156,7 @@ export class TextScreen {
 
     // cursor de bloque al final de la línea de input
     if (model.showInput && model.cursorOn) {
-      const lastY = topOffset + (visible.length - 1) * this.cellH;
+      const lastY = textTop + (all.length - 1) * this.cellH;
       const col = (2 + model.input.length) % effCols;
       const extraRows = Math.floor((2 + model.input.length) / effCols);
       ctx.fillStyle = COLORS[""];
