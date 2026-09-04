@@ -31,6 +31,9 @@ function frameArt(text: string): string {
   return out + "+" + bar + "+";
 }
 
+const SWITCH_SFX =
+  "data:audio/mpeg;base64,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l66A+sBKsb3MK//SnKSoeEbwjlksu4Y6nUw8//swZPsA8awMWfghSAAAAA0gAAABCB0LYeAwQ4gAADSAAAAElUxBTUUzLjEwMFVVVVVVVVVVVVVVgRCAAnmjmEjpMKT//f6oUrbOjqnbawppb6P//2DCQVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//swZPuA8etCV/kBHWAAAA0gAAABBxBTXeA8YoAAADSAAAAEVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sgZPyA8agY1vgLEKAAAA0gAAABBxDdV+KkToAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7IGT0gPF8JNV4BxHQAAANIAAAAQUcZVOgCSfAAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xBk9wzxTDJTaCASMgAADSAAAAEDIJ9QQAh2gAAANIAAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EGTtjfDOL1IYARUQAAANIAAAAQC4ATIAAAAAAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZN2P8AAAf4AAAAgAAA0gAAABAAAB/gAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=";
+
 export default function Terminal() {
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
@@ -40,6 +43,7 @@ export default function Terminal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
+  const [shift, setShift] = useState(false);
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -54,6 +58,7 @@ export default function Terminal() {
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
+  const shiftRef = useRef(false);
 
   const lookup = useMemo(() => {
     const m = new Map<string, Command>();
@@ -188,13 +193,13 @@ export default function Terminal() {
     const command = lookup.get(cmd);
     if (!command) {
       print("comando no reconocido: " + cmd, "d");
-      print("prueba /help", "muted");
+      print("prueba help", "muted");
       print("");
       return;
     }
     const ctx: Ctx = { print, clear, startDialog: runDialog, arg, raw: line };
     command.run(ctx);
-    if (!command.names.includes("/contacto")) print("");
+    if (!command.names.includes("contacto")) print("");
   };
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
@@ -205,6 +210,12 @@ export default function Terminal() {
       return;
     }
     if (!booted) return;
+    if (k === "Shift") {
+      const n = !shiftRef.current;
+      shiftRef.current = n;
+      setShift(n);
+      return;
+    }
     if (k === "Enter") {
       keyTick();
       const v = curRef.current;
@@ -227,7 +238,12 @@ export default function Terminal() {
       }
     } else if (k.length === 1) {
       keyTick();
-      setLine(curRef.current + k);
+      const ch = shiftRef.current ? k.toUpperCase() : k;
+      setLine(curRef.current + ch);
+      if (shiftRef.current) {
+        shiftRef.current = false;
+        setShift(false);
+      }
     }
   };
   handleKeyRef.current = handleKey;
@@ -313,7 +329,7 @@ export default function Terminal() {
       await typeLine("enlace cifrado ..................... OK", "", 6);
       await typeLine("[AVISO] registro de actividad: OFF", "muted", 8);
       print("");
-      await typeLine("escribe /help y pulsa Enter para empezar.", "", 10);
+      await typeLine("escribe help y pulsa Enter para empezar.", "", 10);
       print("");
       setBooted(true);
     })();
@@ -424,10 +440,10 @@ export default function Terminal() {
                   </div>
                 </div>
                 <div className="window-body">
-                  <button type="button" onClick={() => runFromMenu("/help")}>Ayuda</button>
-                  <button type="button" onClick={() => runFromMenu("/catalogo")}>Catálogo</button>
-                  <button type="button" onClick={() => runFromMenu("/contacto")}>Último mensaje</button>
-                  <button type="button" onClick={() => runFromMenu("/limpiar")}>Limpiar pantalla</button>
+                  <button type="button" onClick={() => runFromMenu("help")}>Ayuda</button>
+                  <button type="button" onClick={() => runFromMenu("catalogo")}>Catálogo</button>
+                  <button type="button" onClick={() => runFromMenu("contacto")}>Último mensaje</button>
+                  <button type="button" onClick={() => runFromMenu("limpiar")}>Limpiar pantalla</button>
                 </div>
               </div>
             </aside>
@@ -446,7 +462,15 @@ export default function Terminal() {
                 role="switch"
                 aria-label="Mostrar u ocultar el teclado en pantalla"
                 checked={showKeyboard}
-                onChange={() => setShowKeyboard((v) => !v)}
+                onChange={() => {
+                  setShowKeyboard((v) => !v);
+                  try {
+                    new Audio(SWITCH_SFX).play().catch(() => {});
+                  } catch {
+                    /* sin audio */
+                  }
+                  if (navigator.vibrate) navigator.vibrate(50);
+                }}
               />
               <span className="switch__lever-shadow"></span>
               <span className="switch__lever">
@@ -463,24 +487,36 @@ export default function Terminal() {
 
       {showKeyboard && (
       <div className="keyboard">
-        {[
-          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-          ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-          ["a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ"],
-          ["z", "x", "c", "v", "b", "n", "m", "/", "-", "."],
-        ].map((row, ri) => (
-          <div className="krow" key={ri}>
-            {row.map((k) => (
-              <button type="button" key={k} onClick={() => handleKey(k)}>
-                {k.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        ))}
         <div className="krow">
-          <button type="button" className="kwide" onClick={() => handleKey("Backspace")}>⌫</button>
+          {["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"].map((k) => (
+            <button type="button" key={k} onClick={() => handleKey(k)}>
+              {shift ? k.toUpperCase() : k}
+            </button>
+          ))}
+        </div>
+        <div className="krow">
+          {["a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ"].map((k) => (
+            <button type="button" key={k} onClick={() => handleKey(k)}>
+              {shift ? k.toUpperCase() : k}
+            </button>
+          ))}
+        </div>
+        <div className="krow">
+          <button type="button" className="kmod" aria-pressed={shift} aria-label="Mayúsculas" onClick={() => handleKey("Shift")}>
+            <svg viewBox="0 0 500 500" aria-hidden="true"><path d="M433.704,237.465c4.456,6.086,7.092,13.539,7.092,21.622c0,20.079-16.266,36.341-36.344,36.341h-36.341c-9.991,0-18.173,8.18-18.173,18.172v109.025c0,20.079-16.262,36.341-36.341,36.341H186.4c-20.079,0-36.34-16.262-36.34-36.341V313.6c0-9.992-8.181-18.172-18.172-18.172H95.547c-20.079,0-36.342-16.262-36.342-36.341c0-8.083,2.635-15.536,7.08-21.622L217.747,54.388c17.807-17.808,46.695-17.808,64.505,0L433.704,237.465z"/></svg>
+          </button>
+          {["z", "x", "c", "v", "b", "n", "m"].map((k) => (
+            <button type="button" key={k} onClick={() => handleKey(k)}>
+              {shift ? k.toUpperCase() : k}
+            </button>
+          ))}
+          <button type="button" className="kmod" aria-label="Borrar" onClick={() => handleKey("Backspace")}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5,5h-10C8.234,5,6.666,5.807,5.93,6.837L3.32,10.49c-0.642,0.898-1.182,1.654-1.199,1.679C2,12.344,1.999,12.661,2.124,12.833c0.023,0.033,0.555,0.777,1.188,1.664l2.619,3.667C6.666,19.193,8.233,20,9.5,20h10c1.379,0,2.5-1.122,2.5-2.5v-10C22,6.122,20.879,5,19.5,5z M17.207,14.793c0.391,0.391,0.391,1.023,0,1.414C17.012,16.402,16.756,16.5,16.5,16.5s-0.512-0.098-0.707-0.293L13.5,13.914l-2.293,2.293C11.012,16.402,10.756,16.5,10.5,16.5s-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l2.293-2.293l-2.293-2.293c-0.391-0.391-0.391-1.023,0-1.414s1.023-0.391,1.414,0l2.293,2.293l2.293-2.293c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414L14.914,12.5L17.207,14.793z"/></svg>
+          </button>
+        </div>
+        <div className="krow">
           <button type="button" className="kspace" onClick={() => handleKey(" ")}>espacio</button>
-          <button type="button" className="kwide" onClick={() => handleKey("Enter")}>Enter ↵</button>
+          <button type="button" className="kreturn" onClick={() => handleKey("Enter")}>Return</button>
         </div>
       </div>
       )}

@@ -2,12 +2,13 @@ import type { Command } from "./types";
 
 /**
  * Registro de comandos de la terminal. Añadir uno nuevo = añadir un objeto aquí.
- * Los que llevan `hidden: true` no salen en /help (comandos secretos por rol).
+ * Los comandos se escriben SIN barra: solo la palabra (help, catalogo, buscar...).
+ * Los que llevan `hidden: true` no salen en la ayuda (comandos secretos por rol).
  */
 export const commands: Command[] = [
   {
-    names: ["/help", "/ayuda"],
-    usage: "/help",
+    names: ["help", "ayuda"],
+    usage: "help",
     desc: "esta ayuda",
     run: ({ print }) => {
       print("comandos disponibles", "b");
@@ -20,8 +21,8 @@ export const commands: Command[] = [
     },
   },
   {
-    names: ["/catalogo", "/catálogo"],
-    usage: "/catalogo",
+    names: ["catalogo", "catálogo"],
+    usage: "catalogo",
     desc: "catálogo público de la librería",
     run: ({ print }) => {
       print("CATÁLOGO PÚBLICO · LIBRERÍA SANTAS OCHOVA", "b");
@@ -32,12 +33,12 @@ export const commands: Command[] = [
     },
   },
   {
-    names: ["/buscar"],
-    usage: "/buscar <isbn>",
+    names: ["buscar"],
+    usage: "buscar <isbn>",
     desc: "localizar un título",
     run: ({ print, arg }) => {
       if (!arg) {
-        print("uso: /buscar <isbn>", "muted");
+        print("uso: buscar <isbn>", "muted");
         return;
       }
       if (/00000000|trastienda/i.test(arg)) {
@@ -49,12 +50,12 @@ export const commands: Command[] = [
     },
   },
   {
-    names: ["/login"],
-    usage: "/login <rol>",
+    names: ["login"],
+    usage: "login <rol>",
     desc: "identificarse en el sistema",
     run: ({ print, arg }) => {
       if (!arg) {
-        print("uso: /login <rol>", "muted");
+        print("uso: login <rol>", "muted");
         print("roles activos: mostrador · archivo · contabilidad");
         print("(necesitas la contraseña de tu carpeta personal)", "muted");
         return;
@@ -64,8 +65,8 @@ export const commands: Command[] = [
     },
   },
   {
-    names: ["/contacto", "/mensaje"],
-    usage: "/contacto",
+    names: ["contacto", "mensaje"],
+    usage: "contacto",
     desc: "reproducir el último mensaje entrante",
     run: ({ startDialog }) =>
       startDialog([
@@ -76,13 +77,13 @@ export const commands: Command[] = [
       ]),
   },
   {
-    names: ["/limpiar", "/clear"],
-    usage: "/limpiar",
+    names: ["limpiar", "clear"],
+    usage: "limpiar",
     desc: "vaciar la pantalla",
     run: ({ clear }) => clear(),
   },
   {
-    names: ["/acceso", "/admin", "/root"],
+    names: ["acceso", "admin", "root"],
     hidden: true,
     run: ({ print }) => {
       print("");
