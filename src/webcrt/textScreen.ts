@@ -30,6 +30,7 @@ export class TextScreen {
   cellH: number;
   cols = 48;
   rows = 30;
+  maxCols = 64; // la columna de texto va centrada, con este ancho máximo (como el max-width de main)
 
   constructor(fontPx = 16, fontFamily = '"IBM VGA","Courier New",monospace') {
     this.fontPx = fontPx;
@@ -63,7 +64,7 @@ export class TextScreen {
       const markColor = l.cls === "d" ? COLORS.d : PROMPT;
       const prefix = l.mark ? l.mark + " " : "";
       const indent = prefix.length; // 0 o 2 (sangrado francés)
-      const avail = Math.max(1, this.cols - indent);
+      const avail = Math.max(1, Math.min(this.cols, this.maxCols) - indent);
       const content = l.text ?? "";
       if (content.length === 0) {
         out.push({ text: prefix, color, markLen: prefix.length, markColor });
@@ -88,27 +89,32 @@ export class TextScreen {
     const all = this.wrap(model);
     const visible = all.slice(Math.max(0, all.length - this.rows));
 
+    // columna de texto centrada (máx. maxCols) + pequeño margen superior
+    const effCols = Math.min(this.cols, this.maxCols);
+    const xoff = Math.floor((this.cols - effCols) / 2) * this.cellW;
+    const yoff = Math.round(this.cellH * 0.5);
+
     for (let i = 0; i < visible.length; i++) {
       const row = visible[i];
-      const y = i * this.cellH;
+      const y = i * this.cellH + yoff;
       if (row.markLen > 0) {
         ctx.fillStyle = row.markColor;
-        ctx.fillText(row.text.slice(0, row.markLen), 0, y);
+        ctx.fillText(row.text.slice(0, row.markLen), xoff, y);
         ctx.fillStyle = row.color;
-        ctx.fillText(row.text.slice(row.markLen), row.markLen * this.cellW, y);
+        ctx.fillText(row.text.slice(row.markLen), xoff + row.markLen * this.cellW, y);
       } else {
         ctx.fillStyle = row.color;
-        ctx.fillText(row.text, 0, y);
+        ctx.fillText(row.text, xoff, y);
       }
     }
 
     // cursor de bloque al final de la línea de input
     if (model.showInput && model.cursorOn) {
-      const lastY = (visible.length - 1) * this.cellH;
-      const col = (2 + model.input.length) % this.cols;
-      const extraRows = Math.floor((2 + model.input.length) / this.cols);
+      const lastY = (visible.length - 1) * this.cellH + yoff;
+      const col = (2 + model.input.length) % effCols;
+      const extraRows = Math.floor((2 + model.input.length) / effCols);
       ctx.fillStyle = COLORS[""];
-      ctx.fillRect(col * this.cellW, lastY + extraRows * this.cellH, this.cellW, this.cellH - 1);
+      ctx.fillRect(xoff + col * this.cellW, lastY + extraRows * this.cellH, this.cellW, this.cellH - 1);
     }
   }
 }
