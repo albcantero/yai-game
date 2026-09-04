@@ -93,6 +93,31 @@ export default function Terminal() {
     }
   };
 
+  // Chip sintetizado para el texto que aparece solo (máquina de escribir).
+  const printTick = () => {
+    try {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AC) return;
+      if (!acRef.current) acRef.current = new AC();
+      const ac = acRef.current;
+      if (ac.state === "suspended") ac.resume();
+      const t = ac.currentTime;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = "square";
+      o.frequency.value = 300 + Math.random() * 160;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.04, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+      o.connect(g);
+      g.connect(ac.destination);
+      o.start(t);
+      o.stop(t + 0.035);
+    } catch {
+      /* sin audio */
+    }
+  };
+
   const typeLine = async (text: string, cls: LineClass = "", step = 9, mark: Mark = "*") => {
     const mk: Mark = text ? mark : "";
     const id = addLine({ text: "", cls, mark: mk });
@@ -103,7 +128,7 @@ export default function Terminal() {
     for (let i = 1; i <= text.length; i++) {
       await sleep(step);
       setText(id, text.slice(0, i));
-      if (text[i - 1] !== " ") keyTick();
+      if (text[i - 1] !== " ") printTick();
     }
   };
 
@@ -317,8 +342,7 @@ export default function Terminal() {
   };
 
   const closeAttempt = () => {
-    print("el sistema no permite cerrar la sesión.", "d");
-    print("");
+    window.location.href = "/";
   };
 
   const showInput = booted && !dialog;
