@@ -300,7 +300,7 @@ body{
 .keyboard button{
   flex:1 1 0;min-width:0;min-height:0;
   padding:10px 0;
-  font-size:18px;font-family:'Determination Sans',"Courier New",monospace;
+  font-size:24px;font-family:'Determination Sans',"Courier New",monospace;
   color:#20241c;                                        /* letra impresa oscura (como la marca SANTAS OCHOVA) */
   background:linear-gradient(180deg,#5c6057,#494d44);   /* keycap de plástico, luz arriba */
   border:0;border-radius:7px;
@@ -311,6 +311,7 @@ body{
   text-shadow:0 1px 0 rgba(255,255,255,.14);            /* grabado en plástico, como la marca */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
+  -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
   touch-action:manipulation;
   transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;
 }
