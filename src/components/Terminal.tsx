@@ -438,37 +438,25 @@ export default function Terminal() {
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
-          <button
-            type="button"
-            className="kbd-toggle"
-            aria-pressed={showKeyboard}
-            title={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
-            onClick={() => setShowKeyboard((v) => !v)}
-          >
-            <svg
-              className="btn__icon"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M10 8h.01" />
-              <path d="M12 12h.01" />
-              <path d="M14 8h.01" />
-              <path d="M16 12h.01" />
-              <path d="M18 8h.01" />
-              <path d="M6 8h.01" />
-              <path d="M7 16h10" />
-              <path d="M8 12h.01" />
-              <rect width="20" height="16" x="2" y="4" rx="2" />
-            </svg>
-            <span className="btn__sr">{showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}</span>
-          </button>
+          <span className="kbd-switch">
+            <label className="switch" title={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}>
+              <input
+                className="switch__input"
+                type="checkbox"
+                role="switch"
+                aria-label="Mostrar u ocultar el teclado en pantalla"
+                checked={showKeyboard}
+                onChange={() => setShowKeyboard((v) => !v)}
+              />
+              <span className="switch__lever-shadow"></span>
+              <span className="switch__lever">
+                <span className="switch__lever-sides"></span>
+                <span className="switch__lever-half-top"></span>
+                <span className="switch__lever-half-bottom"></span>
+              </span>
+              <span className="switch__label">Teclado</span>
+            </label>
+          </span>
           <span className="monitor-led" aria-hidden="true"></span>
         </div>
       </div>
