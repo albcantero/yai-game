@@ -29,10 +29,12 @@ import "../styles/home.css";
         const chars = [];
         lines.forEach((line) => {
           const text = line.textContent || "";
+          line.setAttribute("aria-label", text); // el lector lee "perdido", no "p-e-r-d-i-d-o"
           line.textContent = "";
           for (const c of text) {
             const s = document.createElement("span");
             s.className = "ch";
+            s.setAttribute("aria-hidden", "true");
             s.textContent = c === " " ? " " : c;
             line.appendChild(s);
             chars.push(s);
