@@ -9,6 +9,11 @@
   src:url('/fonts/courier-pixel.woff2') format('woff2');
   font-display:swap;
 }
+@font-face{
+  font-family:'JetBrains Mono';
+  src:url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-display:swap;
+}
 
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
@@ -95,7 +100,7 @@ body{
 .prompt{ color:#1f9e5e }
 
 .banner-wrap{ overflow:hidden;margin:0 0 8px }
-.banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1;color:#b8ffd6;transform-origin:left top;font-family:"Courier New",Courier,monospace }
+.banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px }
 .field{ position:relative;flex:1;min-width:0 }
