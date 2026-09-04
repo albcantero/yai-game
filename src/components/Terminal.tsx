@@ -374,7 +374,7 @@ export default function Terminal() {
         >
           <div className="win98 win-header">
             <div className="title-bar">
-              <div className="title-bar-text">Librería Manto Rochoa</div>
+              <div className="title-bar-text">Librería Santas Ochova</div>
               <div className="title-bar-controls">
                 <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>⚙</button>
                 <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>

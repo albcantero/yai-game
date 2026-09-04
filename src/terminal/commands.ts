@@ -24,7 +24,7 @@ export const commands: Command[] = [
     usage: "/catalogo",
     desc: "catálogo público de la librería",
     run: ({ print }) => {
-      print("CATÁLOGO PÚBLICO · LIBRERÍA MANTO ROCHOA", "b");
+      print("CATÁLOGO PÚBLICO · LIBRERÍA SANTAS OCHOVA", "b");
       print("  978-84-01   Ficciones .......................  12,00 €");
       print("  978-84-02   Cartas a un joven poeta .........   9,50 €");
       print("  978-84-03   El maestro y Margarita ..........  14,00 €");
