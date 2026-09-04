@@ -3,7 +3,7 @@ import { commands } from "../terminal/commands";
 import type { Command, Ctx } from "../terminal/types";
 import { TextScreen } from "../webcrt/textScreen";
 import type { LineModel } from "../webcrt/textScreen";
-import { CRTRenderer } from "../webcrt/gl";
+import { CRTGeomRenderer } from "../webcrt/glGeom";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -145,7 +145,7 @@ export default function TerminalGL() {
     const glCanvas = glRef.current;
     if (!glCanvas) return;
 
-    let renderer: CRTRenderer | null = null;
+    let renderer: CRTGeomRenderer | null = null;
     let screen: TextScreen | null = null;
     let raf = 0;
     let lastBlink = 0;
@@ -191,7 +191,7 @@ export default function TerminalGL() {
       screen = new TextScreen(16);
       relayout();
       try {
-        renderer = new CRTRenderer(glCanvas, screen.canvas);
+        renderer = new CRTGeomRenderer(glCanvas, screen.canvas);
       } catch (e) {
         console.error(e);
         return;
