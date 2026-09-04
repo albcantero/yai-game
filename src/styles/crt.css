@@ -171,7 +171,7 @@ body{
   user-select:none;
 }
 .keyboard .krow{ display:flex;gap:6px;justify-content:center;width:100%;max-width:680px }
-.keyboard button{ flex:1 1 0;min-width:0;padding:12px 0;font-size:15px }
+.keyboard button{ flex:1 1 0;min-width:0;padding:12px 0;font-size:15px;font-family:'Courier Pixel',"Courier New",monospace }
 .keyboard button.kwide{ flex:2 }
 .keyboard button.kspace{ flex:5 }
 
