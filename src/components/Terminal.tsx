@@ -363,7 +363,7 @@ export default function Terminal() {
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <filter id="barrel" x="-12%" y="-12%" width="124%" height="124%" colorInterpolationFilters="sRGB">
           <feImage ref={feImageRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
-          <feDisplacementMap in="SourceGraphic" in2="map" scale="45" xChannelSelector="R" yChannelSelector="G" />
+          <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
 
