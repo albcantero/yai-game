@@ -19,11 +19,6 @@
   src:url('/fonts/determination-sans.woff2') format('woff2');
   font-display:swap;
 }
-@font-face{
-  font-family:'IBM VGA';
-  src:url('/fonts/ibm-vga-8x16.woff2') format('woff2');
-  font-display:swap;
-}
 
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
@@ -169,8 +164,8 @@ body{
     inset -2px -2px #0a0a0a, inset 2px 2px #dfdfdf,
     inset -4px -4px grey,    inset 4px 4px #fff;
   padding:6px;                                            /* grosor del marco gris (más evidente) */
-  font-family:'IBM VGA','Courier Pixel',"Courier New",ui-monospace,monospace;
-  font-size:11px;line-height:1.4;
+  font-family:'Courier Pixel',"Courier New",ui-monospace,monospace;
+  font-size:10px;line-height:1.4;
   animation:textShadow 4s infinite;   /* aberración ralentizada (a Alberto le iba muy rápida a 1.6s) */
 }
 .crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
