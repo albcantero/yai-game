@@ -57,6 +57,7 @@ export default function Terminal() {
   const handleKeyRef = useRef<(k: string) => void>(() => {});
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
+  const feImageGeomRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
@@ -301,36 +302,41 @@ export default function Terminal() {
     if (didBoot.current) return;
     didBoot.current = true;
 
-    // Mapa de desplazamiento para el abombado 3D (convexo). Se aplica SOLO al .content.
-    try {
-      const fe = feImageRef.current;
+    // Mapas de desplazamiento para el abombado 3D. `strength` mayor = curva más esférica/pronunciada.
+    const makeMap = (strength: number): string | null => {
       const g = document.createElement("canvas");
-      if (fe && g.getContext) {
-        const size = 96;
-        g.width = g.height = size;
-        const ctx2d = g.getContext("2d");
-        if (ctx2d) {
-          const im = ctx2d.createImageData(size, size);
-          const d = im.data;
-          const strength = 0.4;
-          for (let y = 0; y < size; y++)
-            for (let x = 0; x < size; x++) {
-              const nx = (x / (size - 1)) * 2 - 1;
-              const ny = (y / (size - 1)) * 2 - 1;
-              const f = strength * (nx * nx + ny * ny);
-              const i = (y * size + x) * 4;
-              d[i] = Math.max(0, Math.min(255, 128 + nx * f * 127));
-              d[i + 1] = Math.max(0, Math.min(255, 128 + ny * f * 127));
-              d[i + 2] = 128;
-              d[i + 3] = 255;
-            }
-          ctx2d.putImageData(im, 0, 0);
-          const url = g.toDataURL();
-          fe.setAttribute("href", url);
-          fe.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", url);
-          setWarpReady(true);
+      if (!g.getContext) return null;
+      const size = 96;
+      g.width = g.height = size;
+      const ctx2d = g.getContext("2d");
+      if (!ctx2d) return null;
+      const im = ctx2d.createImageData(size, size);
+      const d = im.data;
+      for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++) {
+          const nx = (x / (size - 1)) * 2 - 1;
+          const ny = (y / (size - 1)) * 2 - 1;
+          const f = strength * (nx * nx + ny * ny);
+          const i = (y * size + x) * 4;
+          d[i] = Math.max(0, Math.min(255, 128 + nx * f * 127));
+          d[i + 1] = Math.max(0, Math.min(255, 128 + ny * f * 127));
+          d[i + 2] = 128;
+          d[i + 3] = 255;
         }
-      }
+      ctx2d.putImageData(im, 0, 0);
+      return g.toDataURL();
+    };
+    const setHref = (fe: SVGFEImageElement | null, u: string | null) => {
+      if (!fe || !u) return;
+      fe.setAttribute("href", u);
+      fe.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", u);
+    };
+    try {
+      const url = makeMap(0.4); // barril actual
+      const urlGeom = makeMap(0.62); // más esférico (variante crt-geom)
+      setHref(feImageRef.current, url);
+      setHref(feImageGeomRef.current, urlGeom);
+      if (url) setWarpReady(true);
     } catch {
       /* navegador sin soporte: se queda plano */
     }
@@ -425,6 +431,10 @@ export default function Terminal() {
         <filter id="barrel" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feImage ref={feImageRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
           <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="barrel-geom" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feImage ref={feImageGeomRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
+          <feDisplacementMap in="SourceGraphic" in2="map" scale="42" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
 

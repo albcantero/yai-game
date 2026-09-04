@@ -194,6 +194,7 @@ body{
 .content>*{ width:100%;max-width:760px;flex:none }  /* que las filas NO se encojan: desbordan y hacen scroll, no se solapan */
 /* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
 .crt.warp{ filter:url(#barrel) }   /* sin overscan: la franja negra rodea la ventana entera y el filtro no se pinta fuera */
+.crt.geomlike.warp{ filter:url(#barrel-geom) }   /* variante crt-geom: curva más esférica/pronunciada */
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
@@ -236,6 +237,15 @@ body{
   box-shadow:
     inset 0 0 0 2px #06120d,              /* shadowbox (blur contenido de 30px, más denso) */
     inset 0 0 30px 6px rgba(0,0,0,.9);
+}
+/* variante crt-geom: esquinas del tubo más redondeadas (cornersize) + esquinas más negras */
+.screen-area:has(.crt.geomlike){ border-radius:32px }
+.crt.geomlike + .curve-overlay{
+  border-radius:32px;
+  background:
+    radial-gradient(75% 50% at 26% -10%, rgba(200,255,224,.08), rgba(200,255,224,.02) 42%, transparent 62%),
+    linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,0) 18% 82%, rgba(255,255,255,.05)),
+    radial-gradient(118% 108% at 50% 50%, transparent 50%, rgba(0,0,0,.8) 82%, rgba(0,0,0,1) 100%);
 }
 
 .row{ white-space:pre-wrap;word-break:break-word;min-height:1em;padding-left:2ch;text-indent:-2ch }  /* sangrado francés: las líneas partidas se alinean tras el "* " */
