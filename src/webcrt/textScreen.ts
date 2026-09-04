@@ -92,15 +92,84 @@ export class TextScreen {
     return out;
   }
 
+  /** bisel de 1px estilo Win98 (luz arriba-izq / sombra abajo-der; invertido si sunken). */
+  private bevel(x: number, y: number, w: number, h: number, sunken: boolean): void {
+    const ctx = this.ctx;
+    ctx.fillStyle = sunken ? "#808080" : "#ffffff";
+    ctx.fillRect(x, y, w, 1);
+    ctx.fillRect(x, y, 1, h);
+    ctx.fillStyle = sunken ? "#ffffff" : "#0a0a0a";
+    ctx.fillRect(x, y + h - 1, w, 1);
+    ctx.fillRect(x + w - 1, y, 1, h);
+  }
+
   render(model: ScreenModel): void {
     const ctx = this.ctx;
-    ctx.fillStyle = BG;
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const W = this.canvas.width;
+    const H = this.canvas.height;
+    ctx.textBaseline = "top";
 
-    const topPad = Math.round(this.cellH * 0.5); // margen superior
+    // ---- ventana Windows 98 ----
+    ctx.fillStyle = "#c0c0c0";
+    ctx.fillRect(0, 0, W, H);
+    this.bevel(0, 0, W, H, false);
+
+    const pad = 4;
+    const titleH = Math.round(this.cellH * 1.3);
+    // barra de título (degradado azul)
+    const grad = ctx.createLinearGradient(pad, 0, pad + (W - pad * 2), 0);
+    grad.addColorStop(0, "#000080");
+    grad.addColorStop(1, "#1084d0");
+    ctx.fillStyle = grad;
+    ctx.fillRect(pad, pad, W - pad * 2, titleH);
+    const tfont = Math.max(8, Math.round(titleH * 0.6));
+    ctx.font = `${tfont}px "IBM VGA","Courier New",monospace`;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("santasochova-term.exe", pad + 6, pad + Math.round((titleH - tfont) / 2));
+    // botones de control (menú ≡ y X) a la derecha
+    const bs = titleH - 6;
+    const xb = { x: pad + (W - pad * 2) - bs - 2, y: pad + 3 };
+    const mb = { x: xb.x - bs - 2, y: xb.y };
+    for (const b of [mb, xb]) {
+      ctx.fillStyle = "#c0c0c0";
+      ctx.fillRect(b.x, b.y, bs, bs);
+      this.bevel(b.x, b.y, bs, bs, false);
+    }
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = Math.max(1, Math.round(bs * 0.09));
+    const m = bs * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(xb.x + m, xb.y + m);
+    ctx.lineTo(xb.x + bs - m, xb.y + bs - m);
+    ctx.moveTo(xb.x + bs - m, xb.y + m);
+    ctx.lineTo(xb.x + m, xb.y + bs - m);
+    ctx.stroke();
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const yy = Math.round(mb.y + bs * 0.32 + i * bs * 0.2) + 0.5;
+      ctx.moveTo(mb.x + bs * 0.28, yy);
+      ctx.lineTo(mb.x + bs * 0.72, yy);
+    }
+    ctx.stroke();
+
+    // ---- área cliente (pantalla verde) ----
+    const cx = pad;
+    const cy = pad + titleH + 2;
+    const cw = W - pad * 2;
+    const chh = H - cy - pad;
+    ctx.fillStyle = BG;
+    ctx.fillRect(cx, cy, cw, chh);
+    this.bevel(cx, cy, cw, chh, true);
+
+    // ---- contenido (banner + texto), recortado al área cliente ----
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx, cy, cw, chh);
+    ctx.clip();
+
+    const topPad = Math.round(this.cellH * 0.5);
     const banner = model.banner && model.banner.length ? model.banner : null;
 
-    // medidas del banner escalado (equivalente al fitBanner de main)
     let bLineH = 0;
     let bCharW = 0;
     let bScalePx = this.fontPx;
@@ -108,8 +177,8 @@ export class TextScreen {
     if (banner) {
       let bw = 1;
       for (const l of banner) if (l.length > bw) bw = l.length;
-      const wScale = (this.canvas.width * 0.85) / (bw * this.cellW);
-      const hScale = (this.canvas.height * 0.4) / (banner.length * this.cellH);
+      const wScale = (cw * 0.85) / (bw * this.cellW);
+      const hScale = (chh * 0.4) / (banner.length * this.cellH);
       const scale = Math.min(1, wScale, hScale);
       bLineH = this.cellH * scale;
       bCharW = this.cellW * scale;
@@ -119,53 +188,52 @@ export class TextScreen {
     const gap = banner ? Math.round(this.cellH * 0.5) : 0;
 
     const effCols = Math.min(this.cols, this.maxCols);
-    const xoff = Math.floor((this.cols - effCols) / 2) * this.cellW;
+    const colX = cx + Math.max(0, (cw - effCols * this.cellW) / 2);
 
-    // scroll por píxeles: banner + texto en un solo flujo, anclado al fondo
     const all = this.wrap(model);
     const contentH = topPad + bannerPxH + gap + all.length * this.cellH;
-    const total = Math.max(0, contentH - this.canvas.height);
+    const total = Math.max(0, contentH - chh);
     this.maxScroll = total;
     const up = Math.max(0, Math.min(total, model.scrollUp ?? 0));
-    const scroll = total - up; // 0 = arriba del todo; total = fondo
+    const scroll = total - up;
 
-    // banner (se desplaza con el scroll, no es sticky)
     if (banner) {
       ctx.font = `${bScalePx}px "IBM VGA","Courier New",monospace`;
       ctx.fillStyle = COLORS.b;
       for (let i = 0; i < banner.length; i++) {
-        const y = topPad + i * bLineH - scroll;
-        if (y + bLineH < 0 || y > this.canvas.height) continue;
+        const y = cy + topPad + i * bLineH - scroll;
+        if (y + bLineH < cy || y > cy + chh) continue;
         const line = banner[i];
-        const x = Math.max(0, (this.canvas.width - line.length * bCharW) / 2);
+        const x = cx + Math.max(0, (cw - line.length * bCharW) / 2);
         ctx.fillText(line, x, y);
       }
       ctx.font = `${this.fontPx}px "IBM VGA","Courier New",monospace`;
     }
 
-    const textTop = topPad + bannerPxH + gap - scroll;
+    const textTop = cy + topPad + bannerPxH + gap - scroll;
     for (let i = 0; i < all.length; i++) {
       const row = all[i];
       const y = textTop + i * this.cellH;
-      if (y + this.cellH < 0 || y > this.canvas.height) continue;
+      if (y + this.cellH < cy || y > cy + chh) continue;
       if (row.markLen > 0) {
         ctx.fillStyle = row.markColor;
-        ctx.fillText(row.text.slice(0, row.markLen), xoff, y);
+        ctx.fillText(row.text.slice(0, row.markLen), colX, y);
         ctx.fillStyle = row.color;
-        ctx.fillText(row.text.slice(row.markLen), xoff + row.markLen * this.cellW, y);
+        ctx.fillText(row.text.slice(row.markLen), colX + row.markLen * this.cellW, y);
       } else {
         ctx.fillStyle = row.color;
-        ctx.fillText(row.text, xoff, y);
+        ctx.fillText(row.text, colX, y);
       }
     }
 
-    // cursor de bloque al final de la línea de input
     if (model.showInput && model.cursorOn) {
       const lastY = textTop + (all.length - 1) * this.cellH;
       const col = (2 + model.input.length) % effCols;
       const extraRows = Math.floor((2 + model.input.length) / effCols);
       ctx.fillStyle = COLORS[""];
-      ctx.fillRect(xoff + col * this.cellW, lastY + extraRows * this.cellH, this.cellW, this.cellH - 1);
+      ctx.fillRect(colX + col * this.cellW, lastY + extraRows * this.cellH, this.cellW, this.cellH - 1);
     }
+
+    ctx.restore();
   }
 }
