@@ -323,6 +323,7 @@ body{
 }
 .keyboard button svg{ display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
 .keyboard button.kmod{ flex:1.5 }                        /* Mayús / Borrar */
+.keyboard button.knum{ flex:1.5 }                        /* 123 / ABC */
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
 .keyboard button.kmod[aria-pressed="true"]{              /* mayús activo: hundido con su sombra, sin color */
