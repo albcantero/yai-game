@@ -13,6 +13,7 @@ export interface ScreenModel {
   showInput: boolean;
   cursorOn: boolean;
   banner?: string[]; // arte ASCII del logo (se dibuja escalado al ancho, arriba)
+  scrollUp?: number; // px que el usuario ha subido desde el fondo (scrollback)
 }
 
 const BG = "#050805";
@@ -33,6 +34,7 @@ export class TextScreen {
   cols = 48;
   rows = 30;
   maxCols = 64; // la columna de texto va centrada, con este ancho máximo (como el max-width de main)
+  maxScroll = 0; // píxeles scrollables (lo actualiza render; el host lo usa para acotar el scrollback)
 
   constructor(fontPx = 16, fontFamily = '"IBM VGA","Courier New",monospace') {
     this.fontPx = fontPx;
@@ -122,7 +124,10 @@ export class TextScreen {
     // scroll por píxeles: banner + texto en un solo flujo, anclado al fondo
     const all = this.wrap(model);
     const contentH = topPad + bannerPxH + gap + all.length * this.cellH;
-    const scroll = Math.max(0, contentH - this.canvas.height);
+    const total = Math.max(0, contentH - this.canvas.height);
+    this.maxScroll = total;
+    const up = Math.max(0, Math.min(total, model.scrollUp ?? 0));
+    const scroll = total - up; // 0 = arriba del todo; total = fondo
 
     // banner (se desplaza con el scroll, no es sticky)
     if (banner) {

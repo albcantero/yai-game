@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx } from "../terminal/types";
 import { TextScreen } from "../webcrt/textScreen";
@@ -34,6 +35,8 @@ export default function TerminalGL() {
   const shiftRef = useRef(false);
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
+  const scrollUpRef = useRef(0);
+  const dragYRef = useRef<number | null>(null);
 
   const screenRef = useRef<TextScreen | null>(null);
   const rendererRef = useRef<CRTGeomRenderer | CRTRenderer | null>(null);
@@ -190,6 +193,7 @@ export default function TerminalGL() {
     }
     if (k === "Enter") {
       keyTick();
+      scrollUpRef.current = 0; // al enviar, vuelve al fondo
       const v = inputRef.current;
       if (v.trim()) historyRef.current.push(v);
       hposRef.current = historyRef.current.length;
@@ -267,6 +271,29 @@ export default function TerminalGL() {
     buildRenderer();
   };
 
+  // scrollback: rueda y arrastre sobre la pantalla
+  const onScreenWheel = (e: ReactWheelEvent) => {
+    const scr = screenRef.current;
+    if (!scr) return;
+    scrollUpRef.current = Math.max(0, Math.min(scr.maxScroll, scrollUpRef.current - e.deltaY));
+    dirtyRef.current = true;
+  };
+  const onScreenDown = (e: ReactPointerEvent) => {
+    dragYRef.current = e.clientY;
+  };
+  const onScreenMove = (e: ReactPointerEvent) => {
+    if (dragYRef.current == null) return;
+    const scr = screenRef.current;
+    if (!scr) return;
+    const dy = e.clientY - dragYRef.current;
+    dragYRef.current = e.clientY;
+    scrollUpRef.current = Math.max(0, Math.min(scr.maxScroll, scrollUpRef.current + dy));
+    dirtyRef.current = true;
+  };
+  const onScreenUp = () => {
+    dragYRef.current = null;
+  };
+
   useEffect(() => {
     if (didBoot.current) return;
     didBoot.current = true;
@@ -276,6 +303,8 @@ export default function TerminalGL() {
     let screen: TextScreen | null = null;
     let raf = 0;
     let lastBlink = 0;
+    let lastW = 0;
+    let lastH = 0;
     const start = performance.now();
 
     const model = () => ({
@@ -284,6 +313,7 @@ export default function TerminalGL() {
       showInput: bootedRef.current && !dialogRef.current,
       cursorOn: cursorOnRef.current,
       banner: BANNER_LINES,
+      scrollUp: scrollUpRef.current,
     });
 
     const relayout = () => {
@@ -297,6 +327,12 @@ export default function TerminalGL() {
       raf = requestAnimationFrame(loop);
       const renderer = rendererRef.current;
       if (!renderer || !screen) return;
+      // auto-relayout si cambia el tamaño del canvas (p. ej. al mostrar/ocultar teclado)
+      if (glCanvas.clientWidth !== lastW || glCanvas.clientHeight !== lastH) {
+        lastW = glCanvas.clientWidth;
+        lastH = glCanvas.clientHeight;
+        relayout();
+      }
       if (now - lastBlink > 530) {
         lastBlink = now;
         cursorOnRef.current = !cursorOnRef.current;
@@ -380,7 +416,16 @@ export default function TerminalGL() {
     <div className="gl-stage">
       <div className="monitor">
         <div className="gl-screen">
-          <canvas ref={glRef} className="gl-canvas" />
+          <canvas
+            ref={glRef}
+            className="gl-canvas"
+            onWheel={onScreenWheel}
+            onPointerDown={onScreenDown}
+            onPointerMove={onScreenMove}
+            onPointerUp={onScreenUp}
+            onPointerLeave={onScreenUp}
+            onPointerCancel={onScreenUp}
+          />
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
