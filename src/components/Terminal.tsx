@@ -209,11 +209,15 @@ export default function Terminal() {
   const handleKey = (k: string) => {
     if (menuOpen) return;
     if (dialog) {
-      if (k === "Enter" || k === " ") advance();
+      if (k === "Enter" || k === " ") {
+        keyTick();
+        advance();
+      }
       return;
     }
     if (!booted) return;
     if (k === "Shift") {
+      keyTick();
       const n = !shiftRef.current;
       shiftRef.current = n;
       setShift(n);
@@ -230,11 +234,13 @@ export default function Terminal() {
       keyTick();
       setLine(curRef.current.slice(0, -1));
     } else if (k === "ArrowUp") {
+      keyTick();
       if (hposRef.current > 0) {
         hposRef.current--;
         setLine(historyRef.current[hposRef.current] ?? "");
       }
     } else if (k === "ArrowDown") {
+      keyTick();
       if (hposRef.current < historyRef.current.length) {
         hposRef.current++;
         setLine(historyRef.current[hposRef.current] ?? "");
