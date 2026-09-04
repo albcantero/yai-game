@@ -285,6 +285,12 @@ export default function TerminalGL() {
   };
   const onScreenDown = (e: ReactPointerEvent) => {
     dragYRef.current = e.clientY;
+    // captura: el arrastre sigue aunque el dedo/cursor se salga del canvas
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
   const onScreenMove = (e: ReactPointerEvent) => {
     if (dragYRef.current == null) return;
@@ -428,7 +434,6 @@ export default function TerminalGL() {
             onPointerDown={onScreenDown}
             onPointerMove={onScreenMove}
             onPointerUp={onScreenUp}
-            onPointerLeave={onScreenUp}
             onPointerCancel={onScreenUp}
           />
         </div>
