@@ -15,8 +15,8 @@
   font-display:swap;
 }
 @font-face{
-  font-family:'Determination Mono';
-  src:url('/fonts/determination-mono.woff2') format('woff2');
+  font-family:'Determination Sans';
+  src:url('/fonts/determination-sans.woff2') format('woff2');
   font-display:swap;
 }
 
@@ -92,9 +92,9 @@ body{
   animation:textShadow 4s infinite;
 }
 .crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
-.win98{ font-family:'Determination Mono',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* Determination Mono: sí tiene acentos */
-/* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Mono, con acentos) */
-.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Mono',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif;font-size:16px }
+.win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* Determination Sans: proporcional y con acentos */
+/* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Sans, con acentos) */
+.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif;font-size:16px }
 
 .content{
   position:relative;z-index:1;
