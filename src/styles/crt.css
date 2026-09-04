@@ -163,6 +163,18 @@ body{
 .win-sidebar .window-body p{ margin:0 0 2px;font-size:14px }
 .win-sidebar .window-body button{ width:100%;padding:12px;text-align:left;font-size:16px }
 
+/* ---------- Teclado Windows 98 en pantalla ---------- */
+.keyboard{
+  flex:none;
+  display:flex;flex-direction:column;gap:6px;align-items:center;
+  padding:10px 8px 4px;
+  user-select:none;
+}
+.keyboard .krow{ display:flex;gap:6px;justify-content:center;width:100%;max-width:680px }
+.keyboard button{ flex:1 1 0;min-width:0;padding:12px 0;font-size:15px }
+.keyboard button.kwide{ flex:2 }
+.keyboard button.kspace{ flex:5 }
+
 @media (prefers-reduced-motion:reduce){
   .crt{ animation:none;text-shadow:0 0 3px #37f07d }
   .crt::after{ animation:none;opacity:.14 }

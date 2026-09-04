@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
@@ -36,7 +36,6 @@ export default function Terminal() {
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
   const [dialog, setDialog] = useState(false);
-  const [focused, setFocused] = useState(false);
   const [warpReady, setWarpReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -46,7 +45,8 @@ export default function Terminal() {
   const historyRef = useRef<string[]>([]);
   const hposRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const curRef = useRef("");
+  const handleKeyRef = useRef<(k: string) => void>(() => {});
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
@@ -73,6 +73,10 @@ export default function Terminal() {
     addLine({ text, cls: "", mark: ">" });
   };
   const clear = () => setLines([]);
+  const setLine = (v: string) => {
+    curRef.current = v;
+    setInput(v);
+  };
 
   // Tic de tecleo: reproduce uno de los 4 samples mp3 reales al azar.
   const keyTick = () => {
@@ -143,10 +147,6 @@ export default function Terminal() {
     wrap.style.height = Math.ceil(b.getBoundingClientRect().height) + "px";
   };
 
-  const focusInput = () => {
-    if (finePointer()) inputRef.current?.focus();
-  };
-
   const waitForAdvance = () =>
     new Promise<void>((res) => {
       advanceRef.current = res;
@@ -174,7 +174,6 @@ export default function Terminal() {
     }
     setDialog(false);
     print("");
-    focusInput();
   };
 
   const submit = (raw: string) => {
@@ -196,11 +195,45 @@ export default function Terminal() {
     if (!command.names.includes("/contacto")) print("");
   };
 
+  // Manejador único de teclas (teclado en pantalla + teclado físico).
+  const handleKey = (k: string) => {
+    if (menuOpen) return;
+    if (dialog) {
+      if (k === "Enter" || k === " ") advance();
+      return;
+    }
+    if (!booted) return;
+    if (k === "Enter") {
+      keyTick();
+      const v = curRef.current;
+      if (v.trim()) historyRef.current.push(v);
+      hposRef.current = historyRef.current.length;
+      setLine("");
+      submit(v);
+    } else if (k === "Backspace") {
+      keyTick();
+      setLine(curRef.current.slice(0, -1));
+    } else if (k === "ArrowUp") {
+      if (hposRef.current > 0) {
+        hposRef.current--;
+        setLine(historyRef.current[hposRef.current] ?? "");
+      }
+    } else if (k === "ArrowDown") {
+      if (hposRef.current < historyRef.current.length) {
+        hposRef.current++;
+        setLine(historyRef.current[hposRef.current] ?? "");
+      }
+    } else if (k.length === 1) {
+      keyTick();
+      setLine(curRef.current + k);
+    }
+  };
+  handleKeyRef.current = handleKey;
+
   const runFromMenu = (cmd: string) => {
     setMenuOpen(false);
     if (dialog) return;
     submit(cmd);
-    focusInput();
   };
 
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
@@ -281,7 +314,6 @@ export default function Terminal() {
       await typeLine("escribe /help y pulsa Enter para empezar.", "", 10);
       print("");
       setBooted(true);
-      focusInput();
     })();
 
     return () => window.removeEventListener("resize", onResize);
@@ -292,58 +324,31 @@ export default function Terminal() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
-  // Auto-enfocar el input cuando aparece (PC/ratón); en móvil se enfoca al tocar.
+  // Teclado físico (PC): enruta al mismo manejador que el teclado en pantalla.
   useEffect(() => {
-    if (booted && !dialog && finePointer()) inputRef.current?.focus();
-  }, [booted, dialog]);
-
-  useEffect(() => {
-    if (!dialog) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key;
+      if (k === "Enter" || k === "Backspace" || k === "ArrowUp" || k === "ArrowDown") {
         e.preventDefault();
-        advance();
+        handleKeyRef.current(k);
+      } else if (k.length === 1) {
+        handleKeyRef.current(k);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [dialog]);
-
-  const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") keyTick();
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const v = input;
-      if (v.trim()) historyRef.current.push(v);
-      hposRef.current = historyRef.current.length;
-      setInput("");
-      submit(v);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (hposRef.current > 0) {
-        hposRef.current--;
-        setInput(historyRef.current[hposRef.current] ?? "");
-      }
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (hposRef.current < historyRef.current.length) {
-        hposRef.current++;
-        setInput(historyRef.current[hposRef.current] ?? "");
-      }
-    }
-  };
+  }, []);
 
   const onScreenPointerDown = (e: ReactPointerEvent) => {
-    if ((e.target as HTMLElement).closest(".win98")) return; // clics en header/menú: los gestiona el chrome
+    if ((e.target as HTMLElement).closest(".win98")) return; // clics en header/menú/teclado: los gestiona el chrome
     if (menuOpen) {
       setMenuOpen(false);
       return;
     }
     if (dialog) {
       advance();
-      return;
     }
-    if (booted) inputRef.current?.focus();
   };
 
   const closeAttempt = () => {
@@ -363,7 +368,7 @@ export default function Terminal() {
 
       <div className="screen-area">
         <div
-          className={"crt curved" + (warpReady ? " warp" : "") + (focused ? "" : " idle")}
+          className={"crt curved" + (warpReady ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
           <div className="win98 win-header">
@@ -403,20 +408,6 @@ export default function Terminal() {
                 <span className="field">
                   <span className="mirror">{input}</span>
                   <span className="cursor">█</span>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={(e) => { setInput(e.target.value); keyTick(); }}
-                    onKeyDown={onKeyDown}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    autoComplete="off"
-                    autoCapitalize="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    aria-label="Línea de comandos"
-                  />
                 </span>
               </div>
             )}
@@ -443,6 +434,28 @@ export default function Terminal() {
           </div>
         </div>
         <div className="curve-overlay"></div>
+      </div>
+
+      <div className="win98 keyboard">
+        {[
+          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+          ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+          ["a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ"],
+          ["z", "x", "c", "v", "b", "n", "m", "/", "-", "."],
+        ].map((row, ri) => (
+          <div className="krow" key={ri}>
+            {row.map((k) => (
+              <button type="button" key={k} onClick={() => handleKey(k)}>
+                {k.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        ))}
+        <div className="krow">
+          <button type="button" className="kwide" onClick={() => handleKey("Backspace")}>⌫</button>
+          <button type="button" className="kspace" onClick={() => handleKey(" ")}>espacio</button>
+          <button type="button" className="kwide" onClick={() => handleKey("Enter")}>Enter ↵</button>
+        </div>
       </div>
     </>
   );
