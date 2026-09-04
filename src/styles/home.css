@@ -8,6 +8,11 @@
   src:url('/fonts/alagard.woff2') format('woff2');
   font-display:swap;
 }
+@font-face{
+  font-family:'Press Start 2P';
+  src:url('/fonts/press-start-2p.woff2') format('woff2');
+  font-display:swap;
+}
 
 *{ box-sizing:border-box }
 html,body{ height:100% }
@@ -29,7 +34,7 @@ body{ margin:0; background:#222034; }
 
 .home__content{
   position:relative;z-index:1;
-  display:flex;flex-direction:column;align-items:center;gap:18px;
+  display:flex;flex-direction:column;align-items:center;gap:28px;
   padding:24px;
 }
 
@@ -48,19 +53,42 @@ body{ margin:0; background:#222034; }
 .home__title .line--wavy{ margin-top:.06em;transform:translateX(.5em) }
 .home__title .ch{ display:inline-block;will-change:transform }
 
-.home__btn{
-  font-family:'Courier Pixel',"Courier New",monospace;
-  font-size:24px;letter-spacing:1px;
-  color:#eafff3;text-decoration:none;
-  background:rgba(6,16,10,.82);
-  border:2px solid #37f07d;
-  padding:14px 38px;border-radius:6px;
-  box-shadow:0 0 18px rgba(55,240,125,.35), inset 0 0 12px rgba(55,240,125,.15);
-  transition:transform .08s ease, box-shadow .15s ease, background .15s ease;
+/* Menu de botones */
+.home__menu{
+  display:flex;flex-direction:column;align-items:center;gap:22px;
 }
-.home__btn:hover{ background:rgba(10,26,16,.92);box-shadow:0 0 26px rgba(55,240,125,.55) }
-.home__btn:active{ transform:translateY(1px) }
-.home__btn:focus-visible{ outline:2px solid #eafff3;outline-offset:3px }
+
+/* Botones pixel art (box-shadow como borde duro), aplicado por clase para no
+   pisar otros <button> de la pagina. Mismo estilo para <a> y <button>. */
+.pixel-btn{
+  display:inline-block;
+  color:#fff;
+  background-color:#6abc3a;
+  padding:15px 40px;
+  margin:0;
+  font-size:14px;
+  font-family:"Press Start 2P",system-ui,monospace;
+  text-decoration:none;text-align:center;line-height:1;
+  border:0;
+  box-shadow:0px 5px black, 0px -5px black, 5px 0px black, -5px 0px black, 0px 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0px 5px #ffffff36;
+  cursor:pointer;
+}
+.pixel-btn:active{
+  transform:translateY(5px);
+  box-shadow:0px 5px black, 0px -5px black, 5px 0px black, -5px 0px black, inset 0px 5px #00000038;
+}
+.pixel-btn:focus-visible{ outline:3px solid #fff;outline-offset:6px }
+.pixel-btn:disabled,
+.pixel-btn[aria-disabled="true"]{
+  background-color:#8a8a8a;
+  color:#d8d8d8;
+  cursor:not-allowed;
+}
+.pixel-btn:disabled:active,
+.pixel-btn[aria-disabled="true"]:active{
+  transform:none;
+  box-shadow:0px 5px black, 0px -5px black, 5px 0px black, -5px 0px black, 0px 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0px 5px #ffffff36;
+}
 
 .home__sound{
   position:fixed;top:14px;right:14px;z-index:2;

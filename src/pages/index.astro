@@ -15,7 +15,12 @@ import "../styles/home.css";
       <img class="home__bg" src="/title-background.svg" alt="" />
       <div class="home__content">
         <h1 class="home__title"><span class="line">EL libro</span><span class="line line--wavy">PERDIDO</span></h1>
-        <a class="home__btn" href="/terminal">Terminal</a>
+        <nav class="home__menu">
+          <a class="pixel-btn" href="/fases">Fases</a>
+          <a class="pixel-btn" href="/tienda">Tienda</a>
+          <a class="pixel-btn" href="/terminal">Terminal</a>
+          <button class="pixel-btn" type="button" disabled>Final</button>
+        </nav>
       </div>
       <button class="home__sound" id="sound" type="button" aria-label="Sonido">🔊</button>
     </main>
@@ -35,7 +40,7 @@ import "../styles/home.css";
             const s = document.createElement("span");
             s.className = "ch";
             s.setAttribute("aria-hidden", "true");
-            s.textContent = c === " " ? " " : c;
+            s.textContent = c === " " ? " " : c;
             line.appendChild(s);
             chars.push(s);
           }
