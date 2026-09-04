@@ -14,6 +14,11 @@
   src:url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
   font-display:swap;
 }
+@font-face{
+  font-family:'MS Sans';
+  src:url('/fonts/mssans.woff2') format('woff2');
+  font-display:swap;
+}
 
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
@@ -54,7 +59,7 @@ body{
   animation:textShadow 4s infinite;
 }
 .crt-body{ position:relative;flex:1;min-height:0 }
-.win98{ font-family:'Courier Pixel',"Courier New",monospace }  /* la MS Sans Serif de 98.css no tiene acentos; Courier Pixel sí */
+.win98{ font-family:'MS Sans',"Segoe UI",Tahoma,sans-serif }  /* Microsoft Sans Serif (micross) subseteada: aire Win98 + acentos */
 .crt.warp{ filter:url(#barrel);transform:scale(1.06) }
 
 .content{
