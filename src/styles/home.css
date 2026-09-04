@@ -11,7 +11,7 @@
 
 *{ box-sizing:border-box }
 html,body{ height:100% }
-body{ margin:0; background:#05070a; }
+body{ margin:0; background:#222034; }
 
 .home{
   position:relative;
@@ -21,9 +21,9 @@ body{ margin:0; background:#05070a; }
 }
 
 .home__bg{
-  position:absolute;inset:0;z-index:0;
-  width:100%;height:100%;object-fit:cover;   /* llena (prioriza altura), sin huecos */
-  background:#05070a;
+  position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);z-index:0;
+  height:100%;width:auto;max-width:none;   /* llena la altura; NO estira el ancho */
+  background:#222034;   /* morado del cielo del SVG, rellena los laterales */
   image-rendering:pixelated;
 }
 
@@ -41,7 +41,7 @@ body{ margin:0; background:#05070a; }
   line-height:.92;
   text-align:center;
   color:#f2e6c8;
-  text-shadow:0 3px 0 rgba(0,0,0,.55), 0 0 22px rgba(0,0,0,.7);
+  text-shadow:-2px -2px 0 #171225,2px -2px 0 #171225,-2px 2px 0 #171225,2px 2px 0 #171225,-2px 0 0 #171225,2px 0 0 #171225,0 -2px 0 #171225,0 2px 0 #171225,0 8px 0 rgba(0,0,0,.35),0 0 18px rgba(0,0,0,.5);
   letter-spacing:1px;
 }
 .home__title .line{ display:block }
