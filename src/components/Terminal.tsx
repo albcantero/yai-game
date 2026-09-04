@@ -370,7 +370,7 @@ export default function Terminal() {
       <div className="monitor">
         <div className="screen-area">
         <div
-          className={"crt curved" /* 3D DESACTIVADO: reactivar con -> + (warpReady ? " warp" : "") */}
+          className={"crt curved" + (warpReady ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
           <div className="win98 win-header">
