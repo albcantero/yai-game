@@ -26,6 +26,12 @@ import TerminalGL from "../components/TerminalGL.tsx";
         padding: env(safe-area-inset-top, 0px) 10px calc(env(safe-area-inset-bottom, 0px) + 10px);
         background: radial-gradient(120% 120% at 50% 0%, #14141a, #0a0a0d 60%, #050506);
       }
+      /* en desktop, el monitor se limita al mismo ancho que el teclado (680px), centrado */
+      .gl-stage .monitor {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+      }
       .gl-screen {
         flex: 1;
         min-height: 0;

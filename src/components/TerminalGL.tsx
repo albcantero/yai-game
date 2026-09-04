@@ -5,6 +5,7 @@ import type { Command, Ctx } from "../terminal/types";
 import { TextScreen } from "../webcrt/textScreen";
 import type { LineModel } from "../webcrt/textScreen";
 import { CRTGeomRenderer } from "../webcrt/glGeom";
+import { CRTLottesRenderer } from "../webcrt/glLottes";
 import { CRTRenderer } from "../webcrt/gl";
 import BANNER from "../terminal/banner.txt?raw";
 
@@ -39,9 +40,9 @@ export default function TerminalGL() {
   const dragYRef = useRef<number | null>(null);
 
   const screenRef = useRef<TextScreen | null>(null);
-  const rendererRef = useRef<CRTGeomRenderer | CRTRenderer | null>(null);
-  const geomRef = useRef(true);
-  const [geom, setGeom] = useState(true);
+  const rendererRef = useRef<CRTGeomRenderer | CRTLottesRenderer | CRTRenderer | null>(null);
+  const shaderRef = useRef(0); // 0=crt-geom, 1=crt-lottes, 2=propio
+  const [shader, setShader] = useState(0);
   const [showKb, setShowKb] = useState(true);
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
@@ -257,17 +258,21 @@ export default function TerminalGL() {
     const scr = screenRef.current;
     if (!glc || !scr) return;
     try {
-      rendererRef.current = geomRef.current
-        ? new CRTGeomRenderer(glc, scr.canvas)
-        : new CRTRenderer(glc, scr.canvas);
+      const s = shaderRef.current;
+      rendererRef.current =
+        s === 0
+          ? new CRTGeomRenderer(glc, scr.canvas)
+          : s === 1
+            ? new CRTLottesRenderer(glc, scr.canvas)
+            : new CRTRenderer(glc, scr.canvas);
     } catch (e) {
       console.error(e);
       rendererRef.current = null;
     }
   };
   const toggleShader = () => {
-    geomRef.current = !geomRef.current;
-    setGeom(geomRef.current);
+    shaderRef.current = (shaderRef.current + 1) % 3;
+    setShader(shaderRef.current);
     buildRenderer();
   };
 
@@ -458,7 +463,7 @@ export default function TerminalGL() {
             </label>
           </span>
           <button type="button" className="gl-shaderbtn" onClick={toggleShader}>
-            {geom ? "crt-geom" : "propio"}
+            {["crt-geom", "crt-lottes", "propio"][shader]}
           </button>
           <span className="monitor-led" aria-hidden="true"></span>
         </div>
