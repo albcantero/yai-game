@@ -166,8 +166,10 @@ body{
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
 .confirm-overlay{ position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }
 .confirm-dialog{ min-width:260px;max-width:90vw;margin:0 }
-.confirm-dialog .window-body{ margin:12px 14px 14px }
-.confirm-dialog .window-body p{ margin:0 0 16px }
+.confirm-dialog .window-body{ margin:14px 16px 16px }
+.confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
+.confirm-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }
+.confirm-row p{ margin:0 }
 .confirm-buttons{ display:flex;gap:10px;justify-content:center }
 .confirm-buttons button{ min-width:84px;padding:6px 14px }
 

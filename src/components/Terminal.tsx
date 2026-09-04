@@ -467,7 +467,10 @@ export default function Terminal() {
               </div>
             </div>
             <div className="window-body">
-              <p>¿Seguro que quieres salir del sistema?</p>
+              <div className="confirm-row">
+                <img className="confirm-icon" src="/icons/msg_question.png" alt="" />
+                <p>¿Seguro que quieres salir del sistema?</p>
+              </div>
               <div className="confirm-buttons">
                 <button type="button" onClick={closeAttempt}>Sí</button>
                 <button type="button" onClick={() => setConfirmClose(false)}>No</button>
