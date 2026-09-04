@@ -30,6 +30,7 @@ body{
   position:relative;
   display:flex;flex-direction:column;
   overflow:hidden;
+  padding:24px;                 /* margen para que el abombado no toque los bordes del viewport */
   background:#050805;
 }
 
