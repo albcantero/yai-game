@@ -285,24 +285,26 @@ export default function TerminalGL() {
   };
   const onScreenDown = (e: ReactPointerEvent) => {
     dragYRef.current = e.clientY;
-    // captura: el arrastre sigue aunque el dedo/cursor se salga del canvas
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-  };
-  const onScreenMove = (e: ReactPointerEvent) => {
-    if (dragYRef.current == null) return;
-    const scr = screenRef.current;
-    if (!scr) return;
-    const dy = e.clientY - dragYRef.current;
-    dragYRef.current = e.clientY;
-    scrollUpRef.current = Math.max(0, Math.min(scr.maxScroll, scrollUpRef.current + dy));
-    dirtyRef.current = true;
-  };
-  const onScreenUp = () => {
-    dragYRef.current = null;
+    // escuchamos en WINDOW: el arrastre sigue continuo aunque el dedo se salga del canvas
+    // (más robusto que setPointerCapture, que en iOS/WebKit falla).
+    const move = (ev: PointerEvent) => {
+      if (dragYRef.current == null) return;
+      const scr = screenRef.current;
+      if (!scr) return;
+      const dy = ev.clientY - dragYRef.current;
+      dragYRef.current = ev.clientY;
+      scrollUpRef.current = Math.max(0, Math.min(scr.maxScroll, scrollUpRef.current + dy));
+      dirtyRef.current = true;
+    };
+    const up = () => {
+      dragYRef.current = null;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
   };
 
   useEffect(() => {
@@ -432,9 +434,6 @@ export default function TerminalGL() {
             className="gl-canvas"
             onWheel={onScreenWheel}
             onPointerDown={onScreenDown}
-            onPointerMove={onScreenMove}
-            onPointerUp={onScreenUp}
-            onPointerCancel={onScreenUp}
           />
         </div>
         <div className="monitor-chin">
