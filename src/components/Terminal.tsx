@@ -310,7 +310,7 @@ export default function Terminal() {
   }, [dialog]);
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
-    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter") keyTick();
+    if (e.key === "Enter") keyTick();
     if (e.key === "Enter") {
       e.preventDefault();
       const v = input;
@@ -407,7 +407,7 @@ export default function Terminal() {
                     ref={inputRef}
                     type="text"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => { setInput(e.target.value); keyTick(); }}
                     onKeyDown={onKeyDown}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
