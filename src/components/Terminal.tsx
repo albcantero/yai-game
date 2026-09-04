@@ -278,10 +278,7 @@ export default function Terminal() {
     }, 350);
   };
   const holdProps = (k: string) => ({
-    onPointerDown: (e: ReactPointerEvent) => {
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-      startHold(k);
-    },
+    onPointerDown: () => startHold(k),
     onPointerUp: stopHold,
     onPointerLeave: stopHold,
     onPointerCancel: stopHold,
