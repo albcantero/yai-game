@@ -138,11 +138,11 @@ body{
     radial-gradient(75% 50% at 26% -10%, rgba(200,255,224,.08), rgba(200,255,224,.02) 42%, transparent 62%),
     /* brillos laterales del cristal (idea de la demo) */
     linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,0) 18% 82%, rgba(255,255,255,.05)),
-    /* curvatura: oscurecido hacia las esquinas (inset corner vignette) */
-    radial-gradient(120% 110% at 50% 50%, transparent 42%, rgba(0,0,0,.5) 80%, rgba(0,0,0,.92) 100%);
+    /* inset corner vignette: valores NATIVOS del html de la demo */
+    radial-gradient(115% 105% at 50% 50%, transparent 52%, rgba(0,0,0,.55) 84%, rgba(0,0,0,.9) 100%);
   box-shadow:
-    inset 0 0 70px 10px rgba(0,0,0,.5),   /* shadowbox: sombra interior sobre el borde del tubo */
-    inset 0 0 4px rgba(0,0,0,.9);         /* filo negro del cristal */
+    inset 0 0 0 2px #06120d,              /* shadowbox nativo de la demo */
+    inset 0 0 30px 6px rgba(0,0,0,.75);
 }
 
 .row{ white-space:pre-wrap;word-break:break-word;min-height:1em }
