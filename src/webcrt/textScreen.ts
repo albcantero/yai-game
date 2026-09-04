@@ -1,0 +1,114 @@
+// Renderiza el contenido de la terminal a un <canvas> 2D a resolución "nativa"
+// (rejilla de caracteres). Ese canvas es la textura que luego pasa por el shader CRT.
+
+export interface LineModel {
+  text: string;
+  cls: string; // "", "b", "muted", "d"
+  mark: string; // "*", ">", ""
+}
+export interface ScreenModel {
+  lines: LineModel[];
+  input: string;
+  showInput: boolean;
+  cursorOn: boolean;
+}
+
+const BG = "#050805";
+const COLORS: Record<string, string> = {
+  "": "#37f07d",
+  b: "#b8ffd6",
+  muted: "#1f9e5e",
+  d: "#ff5f5f",
+};
+const PROMPT = "#1f9e5e";
+
+export class TextScreen {
+  canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private fontPx: number;
+  cellW = 8;
+  cellH: number;
+  cols = 48;
+  rows = 30;
+
+  constructor(fontPx = 16, fontFamily = '"IBM VGA","Courier New",monospace') {
+    this.fontPx = fontPx;
+    this.cellH = fontPx; // la IBM VGA es 8x16 -> celda de 16 de alto
+    this.canvas = document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d", { alpha: false })!;
+    this.ctx.font = `${fontPx}px ${fontFamily}`;
+    this.ctx.textBaseline = "top";
+    // ancho de celda real de la fuente monoespaciada
+    const w = this.ctx.measureText("MMMMMMMMMM").width / 10;
+    this.cellW = w > 0 ? w : fontPx * 0.5;
+  }
+
+  /** Ajusta la rejilla a la proporción de la pantalla (ancho/alto en px de pantalla). */
+  layout(aspect: number): void {
+    this.rows = 32;
+    const h = this.rows * this.cellH;
+    const w = Math.max(this.cellW * 12, Math.round(h * aspect));
+    this.cols = Math.max(12, Math.floor(w / this.cellW));
+    this.canvas.width = Math.round(this.cols * this.cellW);
+    this.canvas.height = Math.round(this.rows * this.cellH);
+    // el contexto se resetea al cambiar el tamaño del canvas
+    this.ctx.font = `${this.fontPx}px "IBM VGA","Courier New",monospace`;
+    this.ctx.textBaseline = "top";
+  }
+
+  private wrap(model: ScreenModel): { text: string; color: string; markLen: number; markColor: string }[] {
+    const out: { text: string; color: string; markLen: number; markColor: string }[] = [];
+    const push = (l: LineModel) => {
+      const color = COLORS[l.cls] ?? COLORS[""];
+      const markColor = l.cls === "d" ? COLORS.d : PROMPT;
+      const prefix = l.mark ? l.mark + " " : "";
+      const indent = prefix.length; // 0 o 2 (sangrado francés)
+      const avail = Math.max(1, this.cols - indent);
+      const content = l.text ?? "";
+      if (content.length === 0) {
+        out.push({ text: prefix, color, markLen: prefix.length, markColor });
+        return;
+      }
+      for (let i = 0, first = true; i < content.length; i += avail, first = false) {
+        const chunk = content.slice(i, i + avail);
+        if (first) out.push({ text: prefix + chunk, color, markLen: prefix.length, markColor });
+        else out.push({ text: " ".repeat(indent) + chunk, color, markLen: 0, markColor });
+      }
+    };
+    for (const l of model.lines) push(l);
+    if (model.showInput) push({ text: model.input, cls: "", mark: ">" });
+    return out;
+  }
+
+  render(model: ScreenModel): void {
+    const ctx = this.ctx;
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    const all = this.wrap(model);
+    const visible = all.slice(Math.max(0, all.length - this.rows));
+
+    for (let i = 0; i < visible.length; i++) {
+      const row = visible[i];
+      const y = i * this.cellH;
+      if (row.markLen > 0) {
+        ctx.fillStyle = row.markColor;
+        ctx.fillText(row.text.slice(0, row.markLen), 0, y);
+        ctx.fillStyle = row.color;
+        ctx.fillText(row.text.slice(row.markLen), row.markLen * this.cellW, y);
+      } else {
+        ctx.fillStyle = row.color;
+        ctx.fillText(row.text, 0, y);
+      }
+    }
+
+    // cursor de bloque al final de la línea de input
+    if (model.showInput && model.cursorOn) {
+      const lastY = (visible.length - 1) * this.cellH;
+      const col = (2 + model.input.length) % this.cols;
+      const extraRows = Math.floor((2 + model.input.length) / this.cols);
+      ctx.fillStyle = COLORS[""];
+      ctx.fillRect(col * this.cellW, lastY + extraRows * this.cellH, this.cellW, this.cellH - 1);
+    }
+  }
+}
