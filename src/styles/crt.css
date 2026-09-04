@@ -42,7 +42,7 @@ body{
 
 /* ---------- Header Windows 98 ---------- */
 .win-header{ flex:none;user-select:none }  /* sin z-index: es flex item y el z-index lo pondria por encima de las scanlines */
-.win-header .title-bar{ min-height:38px }
+.win-header .title-bar{ padding:3px 2px 3px 3px }  /* medida nativa de 98.css: sin min-height, alto según contenido */
 .win-header .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 6px 0 2px;align-self:center }
 .win-header .title-bar-text{ flex:1;font-size:16px }
 /* controles del header cuadrados y consistentes (cog + X del mismo tamaño), con el bisel nativo de 98.css */
