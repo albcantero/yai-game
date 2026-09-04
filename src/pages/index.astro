@@ -14,13 +14,39 @@ import "../styles/home.css";
     <main class="home">
       <img class="home__bg" src="/title-background.svg" alt="" />
       <div class="home__content">
-        <h1 class="home__title">EL libro<br />perdido</h1>
+        <h1 class="home__title"><span class="line">EL libro</span><span class="line">perdido</span></h1>
         <a class="home__btn" href="/terminal">Terminal</a>
       </div>
       <button class="home__sound" id="sound" type="button" aria-label="Sonido">🔊</button>
     </main>
 
     <script>
+      import { animate, stagger } from "motion";
+
+      // Título "wavy": partir en letras y animar en ola continua (Motion).
+      (() => {
+        const lines = document.querySelectorAll(".home__title .line");
+        const chars = [];
+        lines.forEach((line) => {
+          const text = line.textContent || "";
+          line.textContent = "";
+          for (const c of text) {
+            const s = document.createElement("span");
+            s.className = "ch";
+            s.textContent = c === " " ? " " : c;
+            line.appendChild(s);
+            chars.push(s);
+          }
+        });
+        if (chars.length) {
+          animate(
+            chars,
+            { y: [0, -14, 0] },
+            { duration: 1.6, delay: stagger(0.06), repeat: Infinity, ease: "easeInOut" },
+          );
+        }
+      })();
+
       // Loop sin corte con Web Audio API (AudioBufferSourceNode.loop = sample-accurate,
       // sin el hueco que deja <audio loop>).
       const soundBtn = document.getElementById("sound");
