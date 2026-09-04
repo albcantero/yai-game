@@ -324,10 +324,9 @@ body{
 .keyboard button.kmod{ flex:1.5 }                        /* Mayús / Borrar */
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
-.keyboard button.kmod[aria-pressed="true"]{              /* mayús activo: solo hundido, sin color */
+.keyboard button.kmod[aria-pressed="true"]{              /* mayús activo: hundido con su sombra, sin color */
   background:linear-gradient(180deg,#494d44,#3a3e35);
-  transform:translateY(1px);
-  box-shadow:none;
+  box-shadow:inset 0 2px 3px rgba(0,0,0,.5);
 }
 
 @media (prefers-reduced-motion:reduce){
