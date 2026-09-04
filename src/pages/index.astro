@@ -1,7 +1,5 @@
 ---
-import "../styles/98.scoped.css";
-import "../styles/crt.css";
-import Terminal from "../components/Terminal.tsx";
+import "../styles/home.css";
 ---
 
 <!doctype html>
@@ -9,12 +7,50 @@ import Terminal from "../components/Terminal.tsx";
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Sistema interno de la Librería Manto Rochoa." />
-    <title>Manto Rochoa · Sistema interno</title>
+    <meta name="description" content="Librería Manto Rochoa." />
+    <title>Manto Rochoa</title>
   </head>
   <body>
-    <main class="stage">
-      <Terminal client:load />
+    <main class="home">
+      <div class="home__bg"></div>
+      <div class="home__content">
+        <a class="home__btn" href="/terminal">Terminal</a>
+      </div>
+      <button class="home__sound" id="sound" type="button" aria-label="Sonido">🔊</button>
+      <audio id="bgm" src="/audio/analog-6802.mp3" loop preload="auto"></audio>
     </main>
+
+    <script>
+      const bgm = document.getElementById("bgm");
+      const soundBtn = document.getElementById("sound");
+      let on = true;
+
+      const tryPlay = () => {
+        if (on) bgm.play().catch(() => {});
+      };
+
+      // Intento de autoplay; si el navegador lo bloquea, arranca en la primera interacción.
+      tryPlay();
+      const kick = () => {
+        tryPlay();
+        window.removeEventListener("pointerdown", kick);
+        window.removeEventListener("keydown", kick);
+      };
+      window.addEventListener("pointerdown", kick);
+      window.addEventListener("keydown", kick);
+
+      soundBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        on = !on;
+        if (on) {
+          bgm.muted = false;
+          tryPlay();
+          soundBtn.textContent = "🔊";
+        } else {
+          bgm.pause();
+          soundBtn.textContent = "🔇";
+        }
+      });
+    </script>
   </body>
 </html>

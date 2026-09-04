@@ -1,0 +1,50 @@
+@font-face{
+  font-family:'Courier Pixel';
+  src:url('/fonts/courier-pixel.woff2') format('woff2');
+  font-display:swap;
+}
+
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{ margin:0; background:#05070a; }
+
+.home{
+  position:relative;
+  min-height:100vh;min-height:100dvh;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.home__bg{
+  position:absolute;inset:0;z-index:0;
+  background:#05070a url('/title-background.svg') center/cover no-repeat;
+  image-rendering:pixelated;
+}
+
+.home__content{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  padding:24px;
+}
+
+.home__btn{
+  font-family:'Courier Pixel',"Courier New",monospace;
+  font-size:24px;letter-spacing:1px;
+  color:#eafff3;text-decoration:none;
+  background:rgba(6,16,10,.82);
+  border:2px solid #37f07d;
+  padding:14px 38px;border-radius:6px;
+  box-shadow:0 0 18px rgba(55,240,125,.35), inset 0 0 12px rgba(55,240,125,.15);
+  transition:transform .08s ease, box-shadow .15s ease, background .15s ease;
+}
+.home__btn:hover{ background:rgba(10,26,16,.92);box-shadow:0 0 26px rgba(55,240,125,.55) }
+.home__btn:active{ transform:translateY(1px) }
+.home__btn:focus-visible{ outline:2px solid #eafff3;outline-offset:3px }
+
+.home__sound{
+  position:fixed;top:14px;right:14px;z-index:2;
+  appearance:none;border:1px solid rgba(255,255,255,.35);
+  background:rgba(0,0,0,.45);color:#fff;font-size:18px;
+  width:44px;height:44px;border-radius:8px;cursor:pointer;
+  backdrop-filter:blur(4px);
+}
