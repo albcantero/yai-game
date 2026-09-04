@@ -76,13 +76,17 @@ body{
   --flicker-alpha:.10;
   position:relative;width:100%;height:100%;overflow:hidden;
   display:flex;flex-direction:column;
-  background:#050805;color:#37f07d;
+  background:silver;color:#37f07d;                       /* marco de ventana Win98 (gris); el verde real va en .crt-body */
+  box-shadow:                                            /* bisel 3D calcado de 98.css .window */
+    inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf,
+    inset -2px -2px grey,    inset 2px 2px #fff;
+  padding:3px;                                            /* grosor del marco gris */
   font-family:'Courier Pixel',"Courier New",ui-monospace,monospace;
   font-size:11px;line-height:1.4;
   animation:textShadow 4s infinite;
 }
-.crt-body{ position:relative;flex:1;min-height:0 }
-.win98{ font-family:"Pixelated MS Sans Serif",Tahoma,sans-serif }  /* nativa de 98.css (sin acentos, por decisión) */
+.crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
+.win98{ font-family:"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* texto Win98; si no, hereda el verde del body */
 /* sobrescribe la font-family que 98.css fija en cada componente (su MS Sans pixelada no tiene acentos) */
 .win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif;font-size:16px }
 
