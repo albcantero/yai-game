@@ -44,14 +44,32 @@ body{
 .win98 .title-bar-controls button[aria-label="Close"]{ background-position:center;background-size:14px }
 
 /* ---------- Área de pantalla (CRT + viñeta) ---------- */
+/* carcasa del monitor (plástico con 3D) + mentón grueso abajo */
+.monitor{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  background:#3c3f3a;
+  border-radius:14px;
+  padding:14px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.22),   /* filo de luz arriba */
+    inset 0 -3px 0 rgba(0,0,0,0.45),         /* filo de sombra abajo */
+    0 16px 34px -18px rgba(0,0,0,0.7);       /* sombra proyectada */
+}
+.monitor-chin{
+  flex:none;height:46px;margin-top:12px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;
+}
+.monitor-brand{ font-family:'Courier Pixel',"Courier New",monospace;font-size:13px;letter-spacing:2px;color:#22261f;text-shadow:0 1px 0 rgba(255,255,255,.14) }
+.monitor-led{ width:9px;height:9px;border-radius:50%;background:#37f07d;box-shadow:0 0 8px #37f07d, inset 0 0 2px rgba(255,255,255,.7) }
+
+/* pantalla hundida dentro de la carcasa */
 .screen-area{
   position:relative;flex:1;min-height:0;overflow:hidden;
-  border-radius:26px;                       /* esquinas del tubo */
-  box-shadow:
-    inset 0 0 0 2px rgba(64,86,70,.55),     /* filo fino verdoso (borde del tubo) */
-    inset 0 0 30px rgba(0,0,0,.85),         /* oscurece los bordes hacia dentro */
-    0 0 0 1px rgba(18,28,22,.7),            /* filo exterior sutil */
-    0 14px 48px rgba(0,0,0,.6);             /* sombra suave proyectada */
+  border-radius:12px;
+  background:radial-gradient(120% 100% at 50% 40%, #0b0d0b 0%, #050605 78%);
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 26px 8px rgba(0,0,0,0.8);
 }
 
 .crt{

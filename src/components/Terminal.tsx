@@ -367,7 +367,8 @@ export default function Terminal() {
         </filter>
       </svg>
 
-      <div className="screen-area">
+      <div className="monitor">
+        <div className="screen-area">
         <div
           className={"crt curved" + (warpReady ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
@@ -433,6 +434,11 @@ export default function Terminal() {
           </div>
         </div>
         <div className="curve-overlay"></div>
+        </div>
+        <div className="monitor-chin">
+          <span className="monitor-brand">SANTAS OCHOVA</span>
+          <span className="monitor-led" aria-hidden="true"></span>
+        </div>
       </div>
 
       <div className="win98 keyboard">
