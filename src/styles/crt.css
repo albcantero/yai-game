@@ -43,10 +43,11 @@ body{
 /* ---------- Header Windows 98 ---------- */
 .win-header{ flex:none;user-select:none }  /* sin z-index: es flex item y el z-index lo pondria por encima de las scanlines */
 .win-header .title-bar{ min-height:38px }
-.win-header .title-bar-text{ flex:1;font-size:16px;padding-left:2px }
+.win-header .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 6px 0 2px;align-self:center }
+.win-header .title-bar-text{ flex:1;font-size:16px }
 /* controles del header cuadrados y consistentes (cog + X del mismo tamaño), con el bisel nativo de 98.css */
-.win98 .title-bar-controls button{ width:26px;height:26px;min-width:0;min-height:0;padding:0;background-position:center;background-repeat:no-repeat }
-.win98 .win-cog{ width:26px;height:26px;font-size:15px;line-height:1;padding:0;margin-right:4px }
+.win98 .title-bar-controls button{ width:18px;height:18px;min-width:0;min-height:0;padding:0;background-position:center;background-repeat:no-repeat }
+.win98 .win-cog{ width:18px;height:18px;font-size:12px;line-height:1;padding:0;margin-right:4px }
 
 /* ---------- Área de pantalla (CRT + viñeta) ---------- */
 /* carcasa del monitor (plástico con 3D) + mentón grueso abajo */
