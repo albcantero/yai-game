@@ -179,8 +179,8 @@ export default function Terminal() {
               const ny = (y / (size - 1)) * 2 - 1;
               const f = strength * (nx * nx + ny * ny);
               const i = (y * size + x) * 4;
-              d[i] = Math.max(0, Math.min(255, 128 - nx * f * 127));
-              d[i + 1] = Math.max(0, Math.min(255, 128 - ny * f * 127));
+              d[i] = Math.max(0, Math.min(255, 128 + nx * f * 127));
+              d[i + 1] = Math.max(0, Math.min(255, 128 + ny * f * 127));
               d[i + 2] = 128;
               d[i + 3] = 255;
             }
