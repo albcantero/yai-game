@@ -71,64 +71,63 @@ body{
 .monitor-led{ width:9px;height:9px;border-radius:50%;background:#37f07d;box-shadow:0 0 8px #37f07d, inset 0 0 2px rgba(255,255,255,.7) }
 /* botón glow on/off del teclado en el mentón (encendido = teclado en pantalla). Glow verde fósforo */
 .kbd-toggle{
-  --hue:150; --sat:5%;
+  --hue:95; --sat:6%;                     /* gris-oliva del plástico del monitor (#474a42/#2f322c) */
   --hue2:146; --sat2:84%; --light2:58%;   /* verde fósforo del CRT */
   --primary:hsl(var(--hue2),var(--sat2),var(--light2));
   --td:0.3s; --tt:ease-in-out;
   --tt2:cubic-bezier(0.42,-1.84,0.42,1.84);
   --tt3:cubic-bezier(0.42,0,0.42,1.84);
-  font-size:4.2px;   /* escala todo el botón: 10em = 42px */
-  position:relative;display:block;margin:0;padding:0;border:0;outline:transparent;
+  position:relative;display:block;margin:0;padding:0;border:0;outline:transparent;flex:none;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
-  width:10em;height:10em;border-radius:50%;
+  width:44px;height:44px;border-radius:50%;   /* px fijos: el móvil no puede inflarlo (min font-size) */
   background-color:transparent;
-  background-image:linear-gradient(hsl(var(--hue),var(--sat),10%),hsl(var(--hue),var(--sat),15%));
+  background-image:linear-gradient(hsl(var(--hue),var(--sat),18%),hsl(var(--hue),var(--sat),23%));
   box-shadow:
-    0 0 0 0.125em hsla(var(--hue2),var(--sat2),50%,0),
-    0 0 0.25em hsl(var(--hue),var(--sat),5%) inset,
-    0 0.125em 0.125em hsl(var(--hue),var(--sat),25%);
+    0 0 0 1px hsla(var(--hue2),var(--sat2),50%,0),
+    0 0 1px hsl(var(--hue),var(--sat),12%) inset,
+    0 1px 1px hsl(var(--hue),var(--sat),33%);
   transition:box-shadow var(--td) var(--tt);
 }
 .kbd-toggle:before,.kbd-toggle:after{ border-radius:inherit;content:"";display:block;position:absolute }
 .kbd-toggle:before{
-  background-image:linear-gradient(hsl(var(--hue),var(--sat),20%),hsl(var(--hue),var(--sat),10%));
-  box-shadow:0 0.75em 0.75em 0.25em hsla(var(--hue),0%,0%,0.7);
-  top:1.5em;left:1.5em;width:7em;height:7em;
+  background-image:linear-gradient(hsl(var(--hue),var(--sat),30%),hsl(var(--hue),var(--sat),21%));
+  box-shadow:0 4px 4px 1px hsla(var(--hue),0%,0%,0.6);
+  top:6.5px;left:6.5px;width:31px;height:31px;
   transition:box-shadow var(--td) var(--tt2), transform var(--td) var(--tt2);
 }
 .kbd-toggle:after{
-  background-color:hsl(var(--hue),var(--sat),10%);
-  background-image:linear-gradient(hsla(var(--hue),var(--sat),20%,0),hsl(var(--hue),var(--sat),20%));
+  background-color:hsl(var(--hue),var(--sat),19%);
+  background-image:linear-gradient(hsla(var(--hue),var(--sat),28%,0),hsl(var(--hue),var(--sat),28%));
   box-shadow:
-    0 0.0625em 0 hsl(var(--hue),var(--sat),25%) inset,
-    0 -0.0625em 0 hsl(var(--hue),var(--sat),25%) inset,
+    0 0.5px 0 hsl(var(--hue),var(--sat),34%) inset,
+    0 -0.5px 0 hsl(var(--hue),var(--sat),34%) inset,
     0 0 0 0 hsla(var(--hue2),var(--sat2),var(--light2),0.1) inset;
-  top:3em;left:3em;width:4em;height:4em;
+  top:13px;left:13px;width:18px;height:18px;
   transition:background-color var(--td) var(--tt), box-shadow var(--td) var(--tt), transform var(--td) var(--tt2);
 }
 .kbd-toggle .btn__icon{
   display:block;position:absolute;z-index:1;
-  top:calc(50% - 1.8em);left:calc(50% - 1.8em);width:3.6em;height:3.6em;
-  color:hsl(var(--hue),var(--sat),38%);   /* icono apagado: gris tenue (stroke=currentColor) */
+  top:calc(50% - 8px);left:calc(50% - 8px);width:16px;height:16px;
+  color:hsl(var(--hue),var(--sat),50%);   /* icono apagado: gris tenue (stroke=currentColor) */
   transition:filter var(--td) var(--tt), color var(--td) var(--tt);
 }
 .kbd-toggle .btn__sr{ position:absolute;width:1px;height:1px;overflow:hidden }
 /* ENCENDIDO = teclado en pantalla */
 .kbd-toggle[aria-pressed="true"]:before,
 .kbd-toggle[aria-pressed="true"]:after,
-.kbd-toggle[aria-pressed="true"] .btn__icon{ transform:scale(0.98) }
+.kbd-toggle[aria-pressed="true"] .btn__icon{ transform:scale(0.94) }
 .kbd-toggle[aria-pressed="true"]:before{
-  box-shadow:0 0.375em 0.375em 0 hsla(var(--hue),0%,0%,0.7);
+  box-shadow:0 2px 2px 0 hsla(var(--hue),0%,0%,0.6);
   transition-timing-function:var(--tt3);
 }
 .kbd-toggle[aria-pressed="true"]:after{
-  background-color:hsl(var(--hue),var(--sat),20%);
+  background-color:hsl(var(--hue),var(--sat),26%);
   box-shadow:
-    0 0.0625em 0 hsla(var(--hue2),var(--sat2),var(--light2),0.5) inset,
-    0 -0.0625em 0 hsla(var(--hue2),var(--sat2),var(--light2),0.5) inset,
-    0 0 0.75em 0.25em hsla(var(--hue2),var(--sat2),var(--light2),0.3) inset;
+    0 0.5px 0 hsla(var(--hue2),var(--sat2),var(--light2),0.5) inset,
+    0 -0.5px 0 hsla(var(--hue2),var(--sat2),var(--light2),0.5) inset,
+    0 0 6px 2px hsla(var(--hue2),var(--sat2),var(--light2),0.35) inset;
 }
-.kbd-toggle[aria-pressed="true"] .btn__icon{ color:var(--primary);filter:drop-shadow(0 0 0.35em var(--primary)) }
+.kbd-toggle[aria-pressed="true"] .btn__icon{ color:var(--primary);filter:drop-shadow(0 0 5px var(--primary)) }
 
 /* pantalla hundida dentro de la carcasa */
 .screen-area{
