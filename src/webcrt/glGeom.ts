@@ -28,6 +28,7 @@ uniform float uD;        // distancia del observador
 uniform float uScanW;    // grosor de scanline
 uniform float uDotMask;  // fuerza del dot-mask
 uniform float uCorner;   // tamaño de esquina redondeada
+uniform vec2  uAspect;   // (1.0, alto/ancho) del contenido, para que llene la pantalla
 
 #define TextureSize uTexRes
 #define InputSize   uTexRes
@@ -40,7 +41,7 @@ uniform float uCorner;   // tamaño de esquina redondeada
 #define PI 3.141592653589
 #define FIX(c) max(abs(c), 1e-5)
 
-const vec2 aspect   = vec2(1.0, 0.75);
+#define aspect uAspect
 const vec2 overscan = vec2(1.0, 1.0);
 const vec2 sinangle = vec2(0.001);
 const vec2 cosangle = vec2(1.001);
@@ -225,7 +226,7 @@ export class CRTGeomRenderer {
     gl.enableVertexAttribArray(aPos);
     gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-    for (const name of ["uTex", "uTexRes", "uOutRes", "uCurv", "uR", "uD", "uScanW", "uDotMask", "uCorner"]) {
+    for (const name of ["uTex", "uTexRes", "uOutRes", "uCurv", "uR", "uD", "uScanW", "uDotMask", "uCorner", "uAspect"]) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
 
@@ -271,6 +272,7 @@ export class CRTGeomRenderer {
     gl.uniform1f(this.u.uScanW, p.scanWeight);
     gl.uniform1f(this.u.uDotMask, p.dotMask);
     gl.uniform1f(this.u.uCorner, p.corner);
+    gl.uniform2f(this.u.uAspect, 1.0, this.source.height / Math.max(1, this.source.width));
 
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 6);

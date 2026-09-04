@@ -261,16 +261,22 @@ export default function TerminalGL() {
 
   return (
     <div className="gl-stage">
-      <div className="gl-screen">
-        <canvas ref={glRef} className="gl-canvas" />
-      </div>
-      <div className="gl-controls">
-        <button type="button" onClick={() => setShowKb((v) => !v)}>
-          {showKb ? "Ocultar teclado" : "Mostrar teclado"}
-        </button>
-        <button type="button" onClick={toggleShader}>
-          Shader: {geom ? "crt-geom" : "propio"}
-        </button>
+      <div className="monitor">
+        <div className="gl-screen">
+          <canvas ref={glRef} className="gl-canvas" />
+        </div>
+        <div className="monitor-chin">
+          <span className="monitor-brand">SANTAS OCHOVA</span>
+          <div className="gl-controls">
+            <button type="button" onClick={toggleShader}>
+              {geom ? "crt-geom" : "propio"}
+            </button>
+            <button type="button" onClick={() => setShowKb((v) => !v)}>
+              {showKb ? "⌨ ocultar" : "⌨ mostrar"}
+            </button>
+          </div>
+          <span className="monitor-led" aria-hidden="true"></span>
+        </div>
       </div>
       {showKb && (
         <div className="keyboard">
