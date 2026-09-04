@@ -39,6 +39,7 @@ export default function Terminal() {
   const [warpReady, setWarpReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [showKeyboard, setShowKeyboard] = useState(true);
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -437,10 +438,20 @@ export default function Terminal() {
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
+          <button
+            type="button"
+            className="monitor-btn"
+            aria-pressed={showKeyboard}
+            title={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
+            onClick={() => setShowKeyboard((v) => !v)}
+          >
+            ⌨ {showKeyboard ? "OCULTAR" : "TECLADO"}
+          </button>
           <span className="monitor-led" aria-hidden="true"></span>
         </div>
       </div>
 
+      {showKeyboard && (
       <div className="win98 keyboard">
         {[
           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
@@ -462,6 +473,7 @@ export default function Terminal() {
           <button type="button" className="kwide" onClick={() => handleKey("Enter")}>Enter ↵</button>
         </div>
       </div>
+      )}
 
       {confirmClose && (
         <div className="win98 confirm-overlay">
