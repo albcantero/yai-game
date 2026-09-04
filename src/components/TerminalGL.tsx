@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx } from "../terminal/types";
 import { TextScreen } from "../webcrt/textScreen";
 import type { LineModel } from "../webcrt/textScreen";
 import { CRTGeomRenderer } from "../webcrt/glGeom";
+import { CRTRenderer } from "../webcrt/gl";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -23,6 +24,11 @@ export default function TerminalGL() {
   const cursorOnRef = useRef(true);
   const handleKeyRef = useRef<(k: string) => void>(() => {});
   const didBoot = useRef(false);
+  const screenRef = useRef<TextScreen | null>(null);
+  const rendererRef = useRef<CRTGeomRenderer | CRTRenderer | null>(null);
+  const geomRef = useRef(true);
+  const [geom, setGeom] = useState(true);
+  const [showKb, setShowKb] = useState(true);
 
   const lookup = useRef<Map<string, Command>>(new Map());
   if (lookup.current.size === 0) {
@@ -139,13 +145,31 @@ export default function TerminalGL() {
   };
   handleKeyRef.current = handleKey;
 
+  const buildRenderer = () => {
+    const glc = glRef.current;
+    const scr = screenRef.current;
+    if (!glc || !scr) return;
+    try {
+      rendererRef.current = geomRef.current
+        ? new CRTGeomRenderer(glc, scr.canvas)
+        : new CRTRenderer(glc, scr.canvas);
+    } catch (e) {
+      console.error(e);
+      rendererRef.current = null;
+    }
+  };
+  const toggleShader = () => {
+    geomRef.current = !geomRef.current;
+    setGeom(geomRef.current);
+    buildRenderer();
+  };
+
   useEffect(() => {
     if (didBoot.current) return;
     didBoot.current = true;
     const glCanvas = glRef.current;
     if (!glCanvas) return;
 
-    let renderer: CRTGeomRenderer | null = null;
     let screen: TextScreen | null = null;
     let raf = 0;
     let lastBlink = 0;
@@ -167,6 +191,7 @@ export default function TerminalGL() {
 
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
+      const renderer = rendererRef.current;
       if (!renderer || !screen) return;
       // parpadeo del cursor
       if (now - lastBlink > 530) {
@@ -189,13 +214,10 @@ export default function TerminalGL() {
         /* la fuente caerá al fallback */
       }
       screen = new TextScreen(16);
+      screenRef.current = screen;
       relayout();
-      try {
-        renderer = new CRTGeomRenderer(glCanvas, screen.canvas);
-      } catch (e) {
-        console.error(e);
-        return;
-      }
+      buildRenderer();
+      if (!rendererRef.current) return;
       window.addEventListener("resize", relayout);
       raf = requestAnimationFrame(loop);
 
@@ -242,22 +264,32 @@ export default function TerminalGL() {
       <div className="gl-screen">
         <canvas ref={glRef} className="gl-canvas" />
       </div>
-      <div className="keyboard">
-        {KEYS.map((row, ri) => (
-          <div className="krow" key={ri}>
-            {row.map((k) => (
-              <button type="button" key={k} onPointerDown={() => handleKey(k)}>
-                {k}
-              </button>
-            ))}
-          </div>
-        ))}
-        <div className="krow">
-          <button type="button" className="kmod" onPointerDown={() => handleKey("Backspace")}>⌫</button>
-          <button type="button" className="kspace" onPointerDown={() => handleKey(" ")}>Espacio</button>
-          <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
-        </div>
+      <div className="gl-controls">
+        <button type="button" onClick={() => setShowKb((v) => !v)}>
+          {showKb ? "Ocultar teclado" : "Mostrar teclado"}
+        </button>
+        <button type="button" onClick={toggleShader}>
+          Shader: {geom ? "crt-geom" : "propio"}
+        </button>
       </div>
+      {showKb && (
+        <div className="keyboard">
+          {KEYS.map((row, ri) => (
+            <div className="krow" key={ri}>
+              {row.map((k) => (
+                <button type="button" key={k} onPointerDown={() => handleKey(k)}>
+                  {k}
+                </button>
+              ))}
+            </div>
+          ))}
+          <div className="krow">
+            <button type="button" className="kmod" onPointerDown={() => handleKey("Backspace")}>⌫</button>
+            <button type="button" className="kspace" onPointerDown={() => handleKey(" ")}>Espacio</button>
+            <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
