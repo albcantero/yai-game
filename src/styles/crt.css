@@ -107,7 +107,7 @@ body{
 }
 .content>*{ width:100%;max-width:760px }
 /* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
-.crt.warp{ filter:url(#barrel);transform:scale(1.035) }
+.crt.warp{ filter:url(#barrel) }   /* sin overscan: la franja negra rodea la ventana entera y el filtro no se pinta fuera */
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
