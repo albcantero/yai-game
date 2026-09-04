@@ -43,6 +43,7 @@ export default function Terminal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
+  const [geomLike, setGeomLike] = useState(false);
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
 
@@ -430,7 +431,7 @@ export default function Terminal() {
       <div className="monitor">
         <div className="screen-area">
         <div
-          className={"crt curved" + (warpReady ? " warp" : "")}
+          className={"crt curved" + (warpReady ? " warp" : "") + (geomLike ? " geomlike" : "")}
           onPointerDown={onScreenPointerDown}
         >
           <div className="win98 win-header">
@@ -524,6 +525,9 @@ export default function Terminal() {
               <span className="switch__label">Teclado</span>
             </label>
           </span>
+          <button type="button" className="crt-toggle" onClick={() => setGeomLike((v) => !v)}>
+            {geomLike ? "crt-geom" : "actual"}
+          </button>
           <span className="monitor-led" aria-hidden="true"></span>
         </div>
       </div>
