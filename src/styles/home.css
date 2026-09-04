@@ -45,7 +45,7 @@ body{ margin:0; background:#05070a; }
   letter-spacing:1px;
 }
 .home__title .line{ display:block }
-.home__title .line--wavy{ margin-top:-.18em }
+.home__title .line--wavy{ margin-top:-.18em;transform:translateX(.5em) }
 .home__title .ch{ display:inline-block;will-change:transform }
 
 .home__btn{
