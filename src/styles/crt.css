@@ -176,12 +176,12 @@ body{
 
 .content{
   position:relative;z-index:1;
-  height:100%;overflow:auto;overflow-x:hidden;
+  height:100%;overflow:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   display:flex;flex-direction:column;align-items:center;
   padding:22px 24px 28px;
   scrollbar-width:thin;scrollbar-color:#1c6b3f transparent;
 }
-.content>*{ width:100%;max-width:760px }
+.content>*{ width:100%;max-width:760px;flex:none }  /* que las filas NO se encojan: desbordan y hacen scroll, no se solapan */
 /* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
 .crt.warp{ filter:url(#barrel) }   /* sin overscan: la franja negra rodea la ventana entera y el filtro no se pinta fuera */
 .content::-webkit-scrollbar{ width:8px }
@@ -226,6 +226,7 @@ body{
 .muted{ color:#1f9e5e }
 .d{ color:#ff5f5f }
 .astk{ color:#1f9e5e }
+.row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
 .prompt{ color:#1f9e5e }
 
 .banner-wrap{ overflow:hidden;margin:0 0 8px }
