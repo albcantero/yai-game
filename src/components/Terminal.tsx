@@ -778,7 +778,7 @@ export default function Terminal() {
               <div className="inputline">
                 <span className="field">
                   <span className="mirror">{input}</span>
-                  <span className="cursor">█</span>
+                  <span className="cursor" />
                 </span>
               </div>
             )}
@@ -796,7 +796,7 @@ export default function Terminal() {
                     <span className="flabel">{f.label}</span>
                     <span className="field">
                       <span className="mirror">{f.mask ? "•".repeat(f.value.length) : f.value}</span>
-                      {i === form.active && form.editing && <span className="cursor">█</span>}
+                      {i === form.active && form.editing && <span className="cursor" />}
                     </span>
                   </div>
                 ))}

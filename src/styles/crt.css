@@ -239,7 +239,7 @@ body{
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }
-.cursor{ display:inline-block;width:.6ch;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }
+.cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
 .crt.idle .cursor{ opacity:.35;animation:none }
 @keyframes blink{ 0%,50%{opacity:1} 50.01%,100%{opacity:0} }
 .field input{ position:absolute;inset:0;width:100%;height:100%;background:transparent;border:0;outline:0;margin:0;padding:0;font:inherit;color:transparent;caret-color:transparent }
