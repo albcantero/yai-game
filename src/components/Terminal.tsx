@@ -26,6 +26,10 @@ const finePointer = () =>
 // reactivarlo (util solo en PC, donde el filtro se repinta nativo).
 const WARP_ENABLED = false;
 
+// PRUEBA iOS: audio OFF. Sospecha de que el AudioContext al pasar a "running" (primera tecla)
+// estrangula el scheduler de React en Safari y deja de renderizar. Si con esto escribe, era el audio.
+const AUDIO_ENABLED = false;
+
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
 function frameArt(text: string): string {
   const lines = text.replace(/^\n+/, "").replace(/\s+$/, "").split("\n");
@@ -102,6 +106,7 @@ export default function Terminal() {
   // Tic de tecleo: reproduce uno de los samples mp3 reales al azar.
   const keyTick = () => {
     if (suppressTickRef.current) return;   // los botones del monitor no suenan a teclado
+    if (!AUDIO_ENABLED) return;
     if (navigator.vibrate) navigator.vibrate(8);
     try {
       const ac = acRef.current;
@@ -122,6 +127,7 @@ export default function Terminal() {
 
   // Chip sintetizado para el texto que aparece solo (máquina de escribir).
   const printTick = () => {
+    if (!AUDIO_ENABLED) return;
     try {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       if (!AC) return;
@@ -147,6 +153,7 @@ export default function Terminal() {
 
   // Reproduce un SFX corto por Web Audio (buffer pre-decodificado = sin latencia). Fallback a <audio>.
   const playSfx = (src: string, vol = 1) => {
+    if (!AUDIO_ENABLED) return;
     const ac = acRef.current;
     const buf = sfxBuffersRef.current[src];
     if (ac && buf) {
@@ -394,7 +401,7 @@ export default function Terminal() {
     // Precarga los samples de tecleo (mp3 reales) en buffers.
     try {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
-      if (AC) {
+      if (AUDIO_ENABLED && AC) {
         if (!acRef.current) acRef.current = new AC();
         const ac = acRef.current;
         Promise.all(
