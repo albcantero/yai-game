@@ -31,6 +31,16 @@ interface FormState {
   onSubmit: (values: string[]) => void;
 }
 
+// Menu/panel navegable: lista de opciones (sin campos), caret + flechas + Enter.
+interface PanelOption {
+  label: string;
+  run: () => void;
+}
+interface PanelState {
+  options: PanelOption[];
+  active: number;
+}
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const prefersReduced = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -74,6 +84,7 @@ export default function Terminal() {
   const [numMode, setNumMode] = useState(false);
   const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
   const [loader, setLoader] = useState<string | null>(null); // texto del loader activo (o null): bloquea el input
+  const [panel, setPanel] = useState<PanelState | null>(null); // menu del panel (Mis mensajes / Salir)
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -264,6 +275,25 @@ export default function Terminal() {
   // Verifica credenciales contra el RPC y muestra el resultado.
   // Secuencia de conexion: "Conectado con el servidor" + loader ASCII (min 3s; el login real va rapido,
   // asi que fingimos el timing). Bloquea el input mientras dura.
+  // Abre el panel del personaje (menu). De momento: "Mis mensajes" y "Salir".
+  const openPanel = () => {
+    setPanel({
+      active: 0,
+      options: [
+        { label: "Mis mensajes", run: () => print("(proximamente: aqui iran tus mensajes)", "muted") },
+        {
+          label: "Salir",
+          run: () => {
+            setPanel(null);
+            print("");
+            print("Sesión cerrada");
+            print("");
+          },
+        },
+      ],
+    });
+  };
+
   const connectFlow = async (username: string, password: string) => {
     print("");
     setLoader("Conectando con el servidor..."); // loader 1
@@ -283,7 +313,8 @@ export default function Terminal() {
     setLoader("Descargando metadatos de su cuenta...");
     await sleep(2500);
     setLoader(null);
-    clear(); // limpia la pantalla tras la descarga (en Fase 2 aqui se abrira el panel de mensajes)
+    clear(); // limpia la pantalla tras la descarga
+    openPanel(); // abre el panel del personaje
   };
 
   // Abre el formulario de login: dos campos con navegacion por flechas.
@@ -291,7 +322,7 @@ export default function Terminal() {
     print("Introduzca sus credenciales para acceder al sistema");
     setForm({
       fields: [
-        { label: "[USER] Cuenta de usuario:", value: "" },
+        { label: "[USER] Usuario:", value: "" },
         { label: "[PASSWORD] Contraseña:", value: "", mask: true },
       ],
       active: 0,
@@ -299,7 +330,7 @@ export default function Terminal() {
       submitLabel: "Conectar",
       onSubmit: (vals) => {
         // deja el formulario fijado en pantalla (limpio) y arranca la secuencia de conexion
-        addLine({ text: "[USER] Cuenta de usuario: " + vals[0], cls: "", mark: "" });
+        addLine({ text: "[USER] Usuario: " + vals[0], cls: "", mark: "" });
         addLine({ text: "[PASSWORD] Contraseña: " + "*".repeat(vals[1].length), cls: "", mark: "" });
         connectFlow(vals[0].trim(), vals[1]);
       },
@@ -400,9 +431,29 @@ export default function Terminal() {
   };
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
+  // Teclas del panel/menu: flechas mueven el caret, Enter ejecuta la opcion.
+  const handlePanelKey = (k: string) => {
+    const p = panel;
+    if (!p) return;
+    if (k === "ArrowUp") {
+      keyTick();
+      setPanel({ ...p, active: Math.max(0, p.active - 1) });
+    } else if (k === "ArrowDown") {
+      keyTick();
+      setPanel({ ...p, active: Math.min(p.options.length - 1, p.active + 1) });
+    } else if (k === "Enter") {
+      keyTick();
+      p.options[p.active].run();
+    }
+  };
+
   const handleKey = (k: string) => {
     if (loader) return;
     if (menuOpen) return;
+    if (panel) {
+      handlePanelKey(k);
+      return;
+    }
     if (form) {
       handleFormKey(k);
       return;
@@ -772,7 +823,7 @@ export default function Terminal() {
     window.location.href = "/";
   };
 
-  const showInput = booted && !dialog && !loader;
+  const showInput = booted && !dialog && !loader && !panel;
   // Acciones del formulario: "Conectar" (si todos los campos llenos) y "Cancelar" (siempre, al final).
   const fAllFilled = form ? form.fields.every((x) => x.value.length > 0) : false;
   const fConnect = !!form?.submitLabel && fAllFilled;
@@ -902,6 +953,22 @@ export default function Terminal() {
                   </span>
                   <span className="faction">Salir</span>
                 </div>
+              </div>
+            )}
+            {panel && (
+              <div className="form">
+                {panel.options.map((o, i) => (
+                  <div className={"inputline" + (i === 0 ? " fconnect-row" : "")} key={i}>
+                    <span className="fcaret" aria-hidden="true">
+                      {i === panel.active && (
+                        <svg viewBox="9 7 6 10" fill="currentColor">
+                          <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="faction">{o.label}</span>
+                  </div>
+                ))}
               </div>
             )}
             {showInput && (
