@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
@@ -68,7 +68,8 @@ export default function Terminal() {
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
-  const humRef = useRef<HTMLAudioElement>(null); // zumbido de fondo del CRT (loop)
+  const humBufferRef = useRef<AudioBuffer | null>(null); // buffer del zumbido (Web Audio: suena en movil aunque este en silencio)
+  const humSrcRef = useRef<AudioBufferSourceNode | null>(null);
   const suppressTickRef = useRef(false); // silencia el tic de tecla cuando el sonido lo dispara otra cosa (botones del monitor)
   const shiftRef = useRef(false);
   const holdTimerRef = useRef<number | null>(null);
@@ -273,7 +274,7 @@ export default function Terminal() {
   // Botones de navegacion del monitor (arriba/abajo/OK): hacen su accion pero suenan a boton
   // de monitor (terminal-button), no al tic del teclado.
   const chinKey = (k: string) => {
-    playSfx("/audio/terminal-button.mp3");
+    playSfx("/audio/terminal-click-button-switch.mp3");
     suppressTickRef.current = true;
     handleKey(k);
     suppressTickRef.current = false;
@@ -317,7 +318,7 @@ export default function Terminal() {
   };
 
   // Sonido de click en el chrome del terminal (cerrar X, cog/menu, items, botones de dialogo...).
-  const chromeClick = (e: ReactMouseEvent) => {
+  const chromeClick = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
   };
 
@@ -380,6 +381,13 @@ export default function Terminal() {
             keyBuffersRef.current = bufs;
           })
           .catch(() => {});
+        fetch("/audio/terminal-humming.mp3")
+          .then((r) => r.arrayBuffer())
+          .then((a) => ac.decodeAudioData(a))
+          .then((b) => {
+            humBufferRef.current = b;
+          })
+          .catch(() => {});
       }
     } catch {
       /* sin audio */
@@ -430,14 +438,23 @@ export default function Terminal() {
 
   useEffect(() => stopHold, []);
 
-  // Zumbido de fondo del CRT: loop a bajo volumen, arranca en la primera interaccion (autoplay).
+  // Zumbido de fondo del CRT via Web Audio (bypassa el interruptor de silencio de iOS, que
+  // silencia los <audio>; por eso en movil no sonaba). Loop; arranca en la primera interaccion.
   useEffect(() => {
     const start = () => {
-      const h = humRef.current;
-      if (h) {
-        h.volume = 0.5;
-        h.play().catch(() => {});
-      }
+      const ac = acRef.current;
+      const buf = humBufferRef.current;
+      if (!ac || !buf || humSrcRef.current) return; // aun no listo: sigue escuchando
+      if (ac.state === "suspended") ac.resume();
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      const g = ac.createGain();
+      g.gain.value = 0.38; // 75% de lo anterior
+      src.connect(g);
+      g.connect(ac.destination);
+      src.start(0);
+      humSrcRef.current = src;
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
     };
@@ -475,15 +492,13 @@ export default function Terminal() {
         </filter>
       </svg>
 
-      <audio ref={humRef} src="/audio/terminal-humming.mp3" loop preload="auto" aria-hidden="true" />
-
       <div className="monitor">
         <div className="screen-area">
         <div
           className={"crt curved" + (warpReady ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
-          <div className="win98 win-header" onClickCapture={chromeClick}>
+          <div className="win98 win-header" onPointerDownCapture={chromeClick}>
             <div className="title-bar">
               <img className="title-icon" src="/icons/term.png" alt="" />
               <div className="title-bar-text">santasochova-term.exe</div>
@@ -524,7 +539,7 @@ export default function Terminal() {
             )}
           </div>
           {menuOpen && (
-            <aside className="win98 win-sidebar" onClickCapture={chromeClick}>
+            <aside className="win98 win-sidebar" onPointerDownCapture={chromeClick}>
               <div className="window">
                 <div className="title-bar">
                   <div className="title-bar-text">Menú</div>
@@ -553,11 +568,11 @@ export default function Terminal() {
               className={"chin-btn chin-kb" + (showKeyboard ? " is-on" : "")}
               aria-pressed={showKeyboard}
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
-              onClick={() => {
-                setShowKeyboard((v) => !v);
+              onPointerDown={() => {
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
+              onClick={() => setShowKeyboard((v) => !v)}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
             </button>
@@ -575,11 +590,11 @@ export default function Terminal() {
               className={"chin-btn chin-kb chin-power" + (powerOn ? " is-on" : "")}
               aria-pressed={powerOn}
               aria-label={powerOn ? "Apagar" : "Encender"}
-              onClick={() => {
-                setPowerOn((v) => !v);
+              onPointerDown={() => {
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
+              onClick={() => setPowerOn((v) => !v)}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
             </button>
@@ -667,7 +682,7 @@ export default function Terminal() {
       )}
 
       {confirmClose && (
-        <div className="win98 confirm-overlay" onClickCapture={chromeClick}>
+        <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
           <div className="window confirm-dialog">
             <div className="title-bar">
               <div className="title-bar-text">Cerrar sesión</div>
