@@ -279,7 +279,7 @@ export default function Terminal() {
       onSubmit: (vals) => {
         // deja el formulario fijado en pantalla (limpio) y verifica
         addLine({ text: "[USUARIO] " + vals[0], cls: "", mark: "" });
-        addLine({ text: "[CONTRASEÑA] " + "•".repeat(vals[1].length), cls: "", mark: "" });
+        addLine({ text: "[CONTRASEÑA] " + "*".repeat(vals[1].length), cls: "", mark: "" });
         doLogin(vals[0].trim(), vals[1]);
       },
     });
@@ -803,7 +803,7 @@ export default function Terminal() {
                     </span>
                     <span className="flabel">{f.label}</span>
                     <span className="field">
-                      <span className="mirror">{f.mask ? "•".repeat(f.value.length) : f.value}</span>
+                      <span className="mirror">{f.mask ? "*".repeat(f.value.length) : f.value}</span>
                       {i === form.active && form.editing && <span className="cursor" />}
                     </span>
                   </div>
@@ -813,7 +813,7 @@ export default function Terminal() {
             {showInput && (
               <div className="hint" onPointerDown={confirmClick}>
                 (Pulsa ENTER o haz{" "}
-                <svg className="hint-cursor" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M9 7h2v16H9zm2 0h2v15h-2zm2 2h2v12h-2zm2 2h2v8h-2zm2 2h2v6h-2zm2 2h2v2h-2z" />
                   <path d="M11 21h2v2h-2zm2-2h2v2h-2zm2-2h6v2h-6zm0-12h2v2h-2zM5 10h2v2H5zm0-5h2v2H5zm4-4h2v4H9zM3 3h2v2H3zm0 9h2v2H3zm14-9h2v2h-2z" />
                 </svg>{" "}
