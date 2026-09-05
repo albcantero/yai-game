@@ -73,6 +73,7 @@ export default function Terminal() {
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
   const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
+  const [connecting, setConnecting] = useState(false); // secuencia de conexion (loader): bloquea el input
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -261,9 +262,17 @@ export default function Terminal() {
   };
 
   // Verifica credenciales contra el RPC y muestra el resultado.
-  const doLogin = async (username: string, password: string) => {
-    print("Verificando credenciales", "muted");
+  // Secuencia de conexion: "Conectado con el servidor" + loader ASCII (min 3s; el login real va rapido,
+  // asi que fingimos el timing). Bloquea el input mientras dura.
+  const connectFlow = async (username: string, password: string) => {
+    setConnecting(true); // muestra el loader (SVG girando)
+    print("");
+    print("Conectado con el servidor");
+    const start = Date.now();
     const res = await loginCharacter(username, password);
+    const elapsed = Date.now() - start;
+    if (elapsed < 3000) await sleep(3000 - elapsed); // minimo 3s de loader (timing fake)
+    setConnecting(false);
     if (res.ok) {
       sys("OK", "Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
@@ -285,10 +294,10 @@ export default function Terminal() {
       editing: false,
       submitLabel: "Conectar",
       onSubmit: (vals) => {
-        // deja el formulario fijado en pantalla (limpio) y verifica
+        // deja el formulario fijado en pantalla (limpio) y arranca la secuencia de conexion
         addLine({ text: "[USER] Cuenta de usuario: " + vals[0], cls: "", mark: "" });
         addLine({ text: "[PASSWORD] Contraseña: " + "*".repeat(vals[1].length), cls: "", mark: "" });
-        doLogin(vals[0].trim(), vals[1]);
+        connectFlow(vals[0].trim(), vals[1]);
       },
     });
   };
@@ -358,8 +367,11 @@ export default function Terminal() {
     const arg = parts.slice(1).join(" ");
     const command = lookup.get(cmd);
     if (!command) {
-      sys("ERROR", '"' + parts[0] + '" no se reconoce como un comando interno', "d");
-      print("Escribe help para consultar los comandos disponibles", "muted");
+      sys(
+        "ERROR",
+        '"' + parts[0] + '" no se reconoce como un comando interno\nEscribe "help" para consultar los comandos disponibles',
+        "d",
+      );
       print("");
       return;
     }
@@ -370,6 +382,7 @@ export default function Terminal() {
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
   const handleKey = (k: string) => {
+    if (connecting) return;
     if (menuOpen) return;
     if (form) {
       handleFormKey(k);
@@ -740,7 +753,7 @@ export default function Terminal() {
     window.location.href = "/";
   };
 
-  const showInput = booted && !dialog;
+  const showInput = booted && !dialog && !connecting;
 
   return (
     <>
@@ -787,12 +800,27 @@ export default function Terminal() {
                   </span>
                 </div>
               ) : (
-                <div className={"row" + (l.cls ? " " + l.cls : "")} key={l.id}>
+                <div
+                  className={"row" + (l.cls ? " " + l.cls : "")}
+                  key={l.id}
+                  style={
+                    l.code
+                      ? { paddingLeft: l.code.length + 3 + "ch", textIndent: -(l.code.length + 3) + "ch" }
+                      : undefined
+                  }
+                >
                   {l.mark && <span className={l.mark === ">" ? "prompt" : "astk"}>{l.mark + " "}</span>}
                   {l.code && <span className="syscode">[{l.code}] </span>}
                   {l.text}
                 </div>
               ),
+            )}
+            {connecting && (
+              <div className="loader">
+                <svg className="loader-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M14 23H10V19H14V23ZM7 21H3L3 17H7V21ZM21 20H18V17H21V20ZM6 14H1L1 9H6V14ZM23 13H20V10H23V13ZM13 7H7L7 1L13 1V7ZM20 6H18V4L20 4V6Z" />
+                </svg>
+              </div>
             )}
             {showInput && !form && (
               <div className="inputline">
@@ -832,7 +860,7 @@ export default function Terminal() {
                   </div>
                 ))}
                 {form.submitLabel && form.fields.every((x) => x.value.length > 0) && (
-                  <div className="inputline">
+                  <div className="inputline fconnect-row">
                     <span className="fcaret" aria-hidden="true">
                       {form.active === form.fields.length && (
                         <svg viewBox="9 7 6 10" fill="currentColor">

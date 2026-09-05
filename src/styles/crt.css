@@ -239,6 +239,11 @@ body{
 .fcheck-gap{ display:inline-block;width:.85em }   /* hueco del bracket vacio, mismo ancho que el check */
 .fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
 .fconnect{ flex:none;color:#b8ffd6 }   /* accion final "Conectar" (aparece con todos los campos llenos) */
+.fconnect-row{ margin-top:1.2em }   /* hueco (salto de linea) antes de "Conectar" */
+/* loader de conexion: SVG pixelart girando en bucle */
+.loader{ margin-top:.4em }
+.loader-svg{ width:1.4em;height:1.4em;fill:currentColor;animation:spin .8s steps(8) infinite }
+@keyframes spin{ to{ transform:rotate(360deg) } }
 /* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
 .fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
