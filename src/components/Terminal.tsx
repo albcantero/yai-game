@@ -31,17 +31,6 @@ function frameArt(text: string): string {
   return out + "+" + bar + "+";
 }
 
-// Reproduce un SFX corto (mp3) de una vez.
-const playSfx = (src: string, vol = 1) => {
-  try {
-    const a = new Audio(src);
-    a.volume = vol;
-    a.play().catch(() => {});
-  } catch {
-    /* sin audio */
-  }
-};
-
 export default function Terminal() {
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
@@ -70,6 +59,7 @@ export default function Terminal() {
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
   const humBufferRef = useRef<AudioBuffer | null>(null); // buffer del zumbido (Web Audio: suena en movil aunque este en silencio)
   const humSrcRef = useRef<AudioBufferSourceNode | null>(null);
+  const sfxBuffersRef = useRef<Record<string, AudioBuffer>>({}); // SFX de click pre-decodificados (Web Audio, sin latencia)
   const suppressTickRef = useRef(false); // silencia el tic de tecla cuando el sonido lo dispara otra cosa (botones del monitor)
   const shiftRef = useRef(false);
   const holdTimerRef = useRef<number | null>(null);
@@ -141,6 +131,34 @@ export default function Terminal() {
       g.connect(ac.destination);
       o.start(t);
       o.stop(t + 0.035);
+    } catch {
+      /* sin audio */
+    }
+  };
+
+  // Reproduce un SFX corto por Web Audio (buffer pre-decodificado = sin latencia). Fallback a <audio>.
+  const playSfx = (src: string, vol = 1) => {
+    const ac = acRef.current;
+    const buf = sfxBuffersRef.current[src];
+    if (ac && buf) {
+      try {
+        if (ac.state === "suspended") ac.resume();
+        const s = ac.createBufferSource();
+        s.buffer = buf;
+        const g = ac.createGain();
+        g.gain.value = vol;
+        s.connect(g);
+        g.connect(ac.destination);
+        s.start(0);
+        return;
+      } catch {
+        /* cae al fallback */
+      }
+    }
+    try {
+      const a = new Audio(src);
+      a.volume = vol;
+      a.play().catch(() => {});
     } catch {
       /* sin audio */
     }
@@ -388,6 +406,18 @@ export default function Terminal() {
             humBufferRef.current = b;
           })
           .catch(() => {});
+        // SFX de click pre-decodificados (para que suenen sin latencia)
+        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-click-button-switch.mp3"].forEach(
+          (src) => {
+            fetch(src)
+              .then((r) => r.arrayBuffer())
+              .then((a) => ac.decodeAudioData(a))
+              .then((b) => {
+                sfxBuffersRef.current[src] = b;
+              })
+              .catch(() => {});
+          },
+        );
       }
     } catch {
       /* sin audio */
