@@ -342,19 +342,17 @@ body{
     inset 0 1px 0 rgba(255,255,255,.20),                /* filo de luz arriba */
     inset 0 -2px 0 rgba(0,0,0,.35),                      /* grosor del keycap */
     0 2px 2px rgba(0,0,0,.4);                            /* sombra proyectada */
-  text-shadow:0 1px 0 rgba(255,255,255,.14);            /* grabado en plástico, como la marca */
-  transform:translate3d(0,0,0);                         /* capa GPU: la letra y su brillo se rasterizan JUNTOS y se deslizan como un bloque al pulsar (no se descuadran) */
-  will-change:transform;
+  text-shadow:0 1px 0 rgba(255,255,255,.4);             /* grabado en plástico (highlight abajo); más marcado que el span SANTAS OCHOVA porque el keycap es claro */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
   touch-action:manipulation;
-  transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;
+  transition:box-shadow .06s ease, filter .1s ease;    /* la posición (1px) NO transiciona: baja de golpe, sin frames a subpíxel donde la letra y su brillo se descuadren */
 }
 .keyboard button:focus{ outline:none }
 .keyboard button:active,
 .keyboard button[data-pressing]{
-  transform:translate3d(0,1px,0);
+  transform:translateY(1px);
   box-shadow:                                           /* NO quitamos el relieve de golpe: la letra y su filo de luz bajan JUNTOS (antes se descuadraban) */
     inset 0 1px 0 rgba(255,255,255,.14),                /* filo de luz atenuado, viaja con la tecla */
     inset 0 -1px 0 rgba(0,0,0,.30),
