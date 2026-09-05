@@ -362,6 +362,48 @@ export default function Terminal() {
     initRemoteLog();
   }, []);
 
+  // Animacion de pulsado garantizada: con :active (atado a la duracion del toque) un tap ultrarrapido
+  // deja la animacion a medias. En su lugar marcamos .pressing y la mantenemos un minimo de tiempo,
+  // asi la transicion completa (bajada + sostener + subida) se ve entera pulses como pulses. Delegado
+  // a nivel ventana (captura) para no tener que tocar cada boton.
+  useEffect(() => {
+    const MIN = 130; // ms: >= la transicion mas larga (.08s) con margen
+    let cur: HTMLElement | null = null;
+    let at = 0;
+    let timer = 0;
+    const down = (e: PointerEvent) => {
+      const btn = (e.target as HTMLElement)?.closest?.(".chin-btn, .keyboard button") as HTMLElement | null;
+      if (!btn) return;
+      if (timer) {
+        clearTimeout(timer);
+        timer = 0;
+      }
+      if (cur && cur !== btn) cur.classList.remove("pressing");
+      cur = btn;
+      at = performance.now();
+      btn.classList.add("pressing");
+    };
+    const up = () => {
+      if (!cur) return;
+      const btn = cur;
+      cur = null;
+      const wait = Math.max(0, MIN - (performance.now() - at));
+      timer = window.setTimeout(() => {
+        btn.classList.remove("pressing");
+        timer = 0;
+      }, wait);
+    };
+    window.addEventListener("pointerdown", down, true);
+    window.addEventListener("pointerup", up, true);
+    window.addEventListener("pointercancel", up, true);
+    return () => {
+      window.removeEventListener("pointerdown", down, true);
+      window.removeEventListener("pointerup", up, true);
+      window.removeEventListener("pointercancel", up, true);
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
   useEffect(() => {
     if (didBoot.current) return;

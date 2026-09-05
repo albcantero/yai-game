@@ -105,19 +105,22 @@ body{
     inset 0 -3px 0 #363832,   /* labio inferior SUTIL (como #ddd sobre #f4f5f6, no el borde oscuro) */
     0 -3px 0 #454840;         /* color del fondo: TAPA el borde superior -> relieve */
 }
-.chin-btn:active{                                          /* al pulsar: el relieve se DESVANECE animado (no de golpe), en sync con el icono */
+.chin-btn:active,
+.chin-btn.pressing{                                        /* al pulsar: el relieve se DESVANECE animado (no de golpe), en sync con el icono */
   box-shadow:
     -1px -2px 4px rgba(255,255,255,0),
     -2px 0 4px rgba(255,255,255,0),
     1px 2px 4px rgba(0,0,0,0);
 }
-.chin-btn:active::before{
+.chin-btn:active::before,
+.chin-btn.pressing::before{
   box-shadow:
     inset 0 -3px 0 rgba(54,56,50,0),
     0 -3px 0 rgba(69,72,64,0);
 }
 .chin-btn svg{ position:relative;width:18px;height:18px;display:block;filter:drop-shadow(0 1px 0 rgba(255,255,255,.16));transform:translate3d(0,-3px,0);transition:transform .08s ease-in-out;will-change:transform }  /* emboss + icono levantado (reposo); translate3d = GPU, glide fluido como el button-11 */
-.chin-btn:active svg{ transform:translate3d(0,0,0) }       /* el icono se desliza abajo al pulsar (animacion del button-11) */
+.chin-btn:active svg,
+.chin-btn.pressing svg{ transform:translate3d(0,0,0) }     /* el icono se desliza abajo al pulsar (animacion del button-11) */
 /* teclado ON (ya soltado): el boton queda PRESSED (relieve desvanecido + icono abajo) */
 .chin-btn.is-on{
   box-shadow:
@@ -133,11 +136,13 @@ body{
 .chin-btn.is-on svg{ transform:translate3d(0,0,0) }
 /* Boton de teclado: mientras se MANTIENE pulsado muestra la SOMBRA (hundido oscuro). Al soltar
    queda pressed (is-on) o raised. Secuencia: arriba -> (pulsar) sombra -> (soltar) pressed */
-.chin-btn.chin-kb:active{
+.chin-btn.chin-kb:active,
+.chin-btn.chin-kb.pressing{
   background-color:#3a3d36;
   box-shadow:inset 0 2px 4px rgba(0,0,0,.35);
 }
-.chin-btn.chin-kb:active::before{
+.chin-btn.chin-kb:active::before,
+.chin-btn.chin-kb.pressing::before{
   box-shadow:inset 0 2px 4px rgba(0,0,0,.28);
 }
 
@@ -315,7 +320,8 @@ body{
   transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;
 }
 .keyboard button:focus{ outline:none }
-.keyboard button:active{
+.keyboard button:active,
+.keyboard button.pressing{
   transform:translateY(1px);
   box-shadow:none;                                      /* hundida al pulsar, sin sombra dura arriba */
 }
