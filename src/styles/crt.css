@@ -235,6 +235,8 @@ body{
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
 .flabel{ flex:none;color:#37f07d }   /* etiqueta de campo: mismo verde base que el resto */
+.fcheck{ flex:none;display:inline-flex;align-items:center }   /* checkbox del campo: marcado si tiene texto */
+.fconnect{ flex:none;color:#b8ffd6 }   /* accion final "Conectar" (aparece con todos los campos llenos) */
 /* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
 .fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }

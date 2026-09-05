@@ -25,8 +25,9 @@ interface Field {
 }
 interface FormState {
   fields: Field[];
-  active: number;
+  active: number; // indice sobre [campos..., (accion final si todos llenos)]
   editing: boolean; // false = navegando con el caret; true = escribiendo en el campo activo
+  submitLabel?: string; // accion final que aparece cuando TODOS los campos tienen texto (p.ej. "Conectar")
   onSubmit: (values: string[]) => void;
 }
 
@@ -267,7 +268,7 @@ export default function Terminal() {
       sys("ACCESS_GRANTED", "Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
     } else {
-      sys("ACCESS_DENIED", "Credenciales incorrectas", "d");
+      sys("ERROR", "Credenciales incorrectas", "d");
     }
     print("");
   };
@@ -282,6 +283,7 @@ export default function Terminal() {
       ],
       active: 0,
       editing: false,
+      submitLabel: "Conectar",
       onSubmit: (vals) => {
         // deja el formulario fijado en pantalla (limpio) y verifica
         addLine({ text: "[USER] Cuenta de usuario: " + vals[0], cls: "", mark: "" });
@@ -302,31 +304,34 @@ export default function Terminal() {
       setShift(n);
       return;
     }
+    const allFilled = f.fields.every((x) => x.value.length > 0);
+    const count = f.fields.length + (allFilled && f.submitLabel ? 1 : 0); // +1 por "Conectar"
+
     if (!f.editing) {
-      // NAVEGACION: el caret se mueve con las flechas; Enter selecciona el campo para escribir.
+      // NAVEGACION: el caret se mueve con las flechas; Enter selecciona campo (o pulsa "Conectar").
       if (k === "ArrowUp") {
         keyTick();
         setForm({ ...f, active: Math.max(0, f.active - 1) });
       } else if (k === "ArrowDown") {
         keyTick();
-        setForm({ ...f, active: Math.min(f.fields.length - 1, f.active + 1) });
+        setForm({ ...f, active: Math.min(count - 1, f.active + 1) });
       } else if (k === "Enter") {
         keyTick();
-        setForm({ ...f, editing: true }); // seleccionado: aparece el cursor de escribir
+        if (f.active < f.fields.length) {
+          setForm({ ...f, editing: true }); // es un campo: a editar
+        } else {
+          const values = f.fields.map((x) => x.value); // es "Conectar": envia
+          setForm(null);
+          f.onSubmit(values);
+        }
       }
       return; // escribir no hace nada hasta seleccionar el campo
     }
-    // EDICION: se escribe en el campo activo; las flechas NO navegan.
+    // EDICION: se escribe en el campo activo; las flechas NO navegan; Enter sale a navegacion.
     if (k === "ArrowUp" || k === "ArrowDown") return;
     if (k === "Enter") {
       keyTick();
-      if (f.active >= f.fields.length - 1) {
-        const values = f.fields.map((x) => x.value);
-        setForm(null);
-        f.onSubmit(values); // ultimo campo: envia
-      } else {
-        setForm({ ...f, editing: false }); // vuelve a navegacion
-      }
+      setForm({ ...f, editing: false });
       return;
     }
     const setActive = (v: string) => {
@@ -353,7 +358,7 @@ export default function Terminal() {
     const arg = parts.slice(1).join(" ");
     const command = lookup.get(cmd);
     if (!command) {
-      sys("UNKNOWN_COMMAND", '"' + parts[0] + '" no se reconoce como un comando interno', "d");
+      sys("ERROR", '"' + parts[0] + '" no se reconoce como un comando interno', "d");
       print("Escribe help para consultar los comandos disponibles", "muted");
       print("");
       return;
@@ -808,6 +813,17 @@ export default function Terminal() {
                         </svg>
                       )}
                     </span>
+                    <span className="fcheck" aria-hidden="true">
+                      {f.value.length ? (
+                        <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M22 22H2V2h20v20ZM4 20h16V4H4v16Zm7-4H9v-2h2v2Zm-2-2H7v-2h2v2Zm4 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Z" />
+                        </svg>
+                      ) : (
+                        <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4 4v16h16V4H4Zm18 18H2V2h20v20Z" />
+                        </svg>
+                      )}
+                    </span>
                     <span className="flabel">{f.label}</span>
                     <span className="field">
                       <span className="mirror">{f.mask ? "*".repeat(f.value.length) : f.value}</span>
@@ -815,6 +831,18 @@ export default function Terminal() {
                     </span>
                   </div>
                 ))}
+                {form.submitLabel && form.fields.every((x) => x.value.length > 0) && (
+                  <div className="inputline">
+                    <span className="fcaret" aria-hidden="true">
+                      {form.active === form.fields.length && (
+                        <svg viewBox="9 7 6 10" fill="currentColor">
+                          <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="fconnect">{form.submitLabel}</span>
+                  </div>
+                )}
               </div>
             )}
             {showInput && (

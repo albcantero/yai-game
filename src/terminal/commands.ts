@@ -78,7 +78,7 @@ export const commands: Command[] = [
     hidden: true,
     run: ({ print, sys }) => {
       print("");
-      sys("ACCESS_DENIED", "Nivel administrador", "d");
+      sys("ERROR", "Nivel administrador", "d");
       sys("LOGGED", "Intento registrado", "muted");
     },
   },
