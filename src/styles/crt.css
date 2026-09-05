@@ -227,7 +227,7 @@ body{
     inset 0 0 30px 6px rgba(0,0,0,.9);
 }
 
-.row{ white-space:pre-wrap;word-break:break-word;min-height:1em;padding-left:2ch;text-indent:-2ch }  /* sangrado francés: las líneas partidas se alinean tras el "* " */
+.row{ white-space:pre-wrap;word-break:break-word;min-height:1em }  /* wrap alineado a la izquierda, sin sangrado */
 .b{ color:#b8ffd6 }
 .muted{ color:#37f07d }   /* verde base (el oscuro #1f9e5e queda SOLO para el hint) */
 .d{ color:#ff5f5f }
@@ -342,7 +342,6 @@ body{
     inset 0 1px 0 rgba(255,255,255,.20),                /* filo de luz arriba */
     inset 0 -2px 0 rgba(0,0,0,.35),                      /* grosor del keycap */
     0 2px 2px rgba(0,0,0,.4);                            /* sombra proyectada */
-  text-shadow:0 1px 0 rgba(255,255,255,.4);             /* grabado en plástico (highlight abajo); más marcado que el span SANTAS OCHOVA porque el keycap es claro */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */

@@ -13,6 +13,7 @@ interface Line {
   cls: LineClass;
   mark: Mark;
   code?: string; // codigo de sistema entre corchetes ([ACCESS_DENIED], etc.), como span propio
+  bullet?: boolean; // viñeta "*" en columna propia (dos columnas, como [ERROR]): el texto envuelve alineado
   chev?: boolean;
   chevMore?: boolean;
 }
@@ -214,9 +215,15 @@ export default function Terminal() {
     }
   };
 
-  const typeLine = async (text: string, cls: LineClass = "", step = 9, mark: Mark = "") => {
+  const typeLine = async (
+    text: string,
+    cls: LineClass = "",
+    step = 9,
+    mark: Mark = "",
+    extra: { bullet?: boolean } = {},
+  ) => {
     const mk: Mark = text ? mark : "";
-    const id = addLine({ text: "", cls, mark: mk });
+    const id = addLine({ text: "", cls, mark: mk, ...extra });
     if (prefersReduced()) {
       setText(id, text);
       return;
@@ -711,22 +718,22 @@ export default function Terminal() {
     window.addEventListener("resize", onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBanner);
 
-    // Pantalla limpia al arrancar (el "boot tipo linux" vendra despues).
-    setBooted(true);
     rlog("info", "boot done");
 
-    // Menú principal del terminal: saludo + directivas + sincronización (bloquea el input mientras "sincroniza").
+    // Menú principal del terminal: saludo + directivas (typewriter, letra a letra) + sincronización.
+    // No marcamos booted hasta el final, así el prompt no parpadea mientras se escribe la bienvenida.
     (async () => {
-      print("Bienvenido/a a SANTAS OCHOVA: Tu Mejor Librería.");
-      print("Antes de continuar, le recuerdamos nuestras directivas:");
+      await typeLine("Bienvenido/a a SANTAS OCHOVA: Tu Mejor Librería.", "", 16);
+      await typeLine("Antes de continuar, le recuerdamos nuestras directivas:", "", 16);
       print("");
-      print(" * Literatura correcta para ciudadanos correctos.", "muted");
-      print(" * Una mente condicionada es una mente feliz.", "muted");
-      print(" * La lectura sin propósito produce inestabilidad social.", "muted");
+      await typeLine("Literatura correcta para ciudadanos correctos.", "muted", 16, "", { bullet: true });
+      await typeLine("Una mente condicionada es una mente feliz.", "muted", 16, "", { bullet: true });
+      await typeLine("La lectura sin propósito produce inestabilidad social.", "muted", 16, "", { bullet: true });
       print("");
       setLoader("Sincronizando...");
       await sleep(2500);
       setLoader(null);
+      setBooted(true); // ahora sí: aparece el prompt
     })();
 
     return () => window.removeEventListener("resize", onResize);
@@ -893,6 +900,11 @@ export default function Terminal() {
               ) : l.code ? (
                 <div className={"row syscode-row" + (l.cls ? " " + l.cls : "")} key={l.id}>
                   <span className="syscode">[{l.code}]</span>
+                  <span className="systext">{l.text}</span>
+                </div>
+              ) : l.bullet ? (
+                <div className={"row syscode-row" + (l.cls ? " " + l.cls : "")} key={l.id}>
+                  <span className="syscode">*</span>
                   <span className="systext">{l.text}</span>
                 </div>
               ) : (
