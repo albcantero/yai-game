@@ -763,7 +763,6 @@ export default function Terminal() {
     (async () => {
       await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16);
       await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16);
-      print("");
       await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, "", { bullet: true });
       await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true });
       await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true });
@@ -949,8 +948,9 @@ export default function Terminal() {
                   <span className="systext">{l.text}</span>
                 </div>
               ) : l.bullet ? (
-                <div className={"row bulletrow" + (l.cls ? " " + l.cls : "")} key={l.id}>
-                  {"* " + l.text}
+                <div className={"row syscode-row" + (l.cls ? " " + l.cls : "")} key={l.id}>
+                  <span className="syscode">*</span>
+                  <span className="systext">{l.text}</span>
                 </div>
               ) : (
                 <div className={"row" + (l.cls ? " " + l.cls : "")} key={l.id}>
