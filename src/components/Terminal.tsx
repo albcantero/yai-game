@@ -276,7 +276,7 @@ export default function Terminal() {
       sys("OK", "Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
     } else {
-      sys("ERROR", "Tu cuenta de usuario y/o contraseña son incorrectos\nInténtelo nuevamente", "d");
+      sys("ERROR", "Tu cuenta de usuario y/o contraseña son incorrectos. Inténtelo nuevamente", "d");
     }
     print("");
   };
@@ -798,18 +798,14 @@ export default function Terminal() {
                     {l.chevMore ? "  toca o Enter para continuar" : "  fin del mensaje"}
                   </span>
                 </div>
+              ) : l.code ? (
+                <div className={"row syscode-row" + (l.cls ? " " + l.cls : "")} key={l.id}>
+                  <span className="syscode">[{l.code}]</span>
+                  <span className="systext">{l.text}</span>
+                </div>
               ) : (
-                <div
-                  className={"row" + (l.cls ? " " + l.cls : "")}
-                  key={l.id}
-                  style={
-                    l.code
-                      ? { paddingLeft: l.code.length + 3 + "ch", textIndent: -(l.code.length + 3) + "ch" }
-                      : undefined
-                  }
-                >
+                <div className={"row" + (l.cls ? " " + l.cls : "")} key={l.id}>
                   {l.mark && <span className={l.mark === ">" ? "prompt" : "astk"}>{l.mark + " "}</span>}
-                  {l.code && <span className="syscode">[{l.code}] </span>}
                   {l.text}
                 </div>
               ),

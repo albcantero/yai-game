@@ -228,7 +228,10 @@ body{
 .astk{ color:#1f9e5e }
 .row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
 .prompt{ color:#1f9e5e }
-.syscode{ }   /* codigo de sistema [CODE]: span propio, estilizable aparte (por defecto hereda el color de la linea) */
+/* Linea de sistema en DOS COLUMNAS flex: [CODE] fijo | texto que hace wrap alineado bajo si mismo */
+.syscode-row{ display:flex;gap:.5ch;padding-left:0;text-indent:0 }
+.syscode{ flex:none }   /* codigo de sistema [CODE]: columna fija, estilizable aparte (hereda color de la linea) */
+.systext{ flex:1;min-width:0;white-space:pre-wrap;word-break:break-word }   /* columna de texto que envuelve */
 
 .banner-wrap{ overflow:hidden;margin:0 0 8px }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
