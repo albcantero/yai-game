@@ -235,8 +235,8 @@ body{
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px }
 .flabel{ flex:none;color:#1f9e5e }   /* etiqueta de campo en formularios (Usuario:, Contraseña:) */
 /* caret pixelart que marca el campo activo del formulario (se mueve con las flechas, parpadea) */
-.fcaret{ flex:none;width:1em;display:inline-flex;align-items:center;justify-content:center }
-.fcaret svg{ width:.8em;height:1.3em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
+.fcaret{ flex:none;width:.9em;display:inline-flex;align-items:center;justify-content:center }
+.fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:.6ch;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }
