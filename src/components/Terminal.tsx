@@ -43,6 +43,7 @@ export default function Terminal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
+  const [kbAnim, setKbAnim] = useState<null | "on" | "off">(null); // click tipo switch del boton de teclado (pasa por la sombra)
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
 
@@ -503,10 +504,12 @@ export default function Terminal() {
           <div className="chin-buttons">
             <button
               type="button"
-              className={"chin-btn" + (showKeyboard ? " is-on" : "")}
+              className={"chin-btn" + (showKeyboard ? " is-on" : "") + (kbAnim === "on" ? " kb-anim-on" : kbAnim === "off" ? " kb-anim-off" : "")}
               aria-pressed={showKeyboard}
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
+              onAnimationEnd={() => setKbAnim(null)}
               onClick={() => {
+                setKbAnim(showKeyboard ? "off" : "on");
                 setShowKeyboard((v) => !v);
                 try {
                   new Audio(SWITCH_SFX).play().catch(() => {});

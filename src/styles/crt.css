@@ -125,10 +125,15 @@ body{
     0 -3px 0 rgba(69,72,64,0);
 }
 .chin-btn.is-on svg{ transform:translate3d(0,0,0) }
-/* GUARDADO para reimplementar mas adelante (capa de sombra inset del estado ON):
-.chin-btn.is-on{ background-color:#3a3d36;box-shadow:inset 0 2px 4px rgba(0,0,0,.5) }
-.chin-btn.is-on::before{ box-shadow:inset 0 2px 4px rgba(0,0,0,.4) }
-*/
+/* Click tipo switch del boton de teclado: al alternar pasa por la SOMBRA inset en el medio
+   (arriba -> sombra -> abajo, y al reves). La sombra guardada, ahora como ::after que pulsa opacity. */
+.chin-btn::after{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 2px 4px rgba(0,0,0,.5);opacity:0 }
+.chin-btn.kb-anim-on::after,.chin-btn.kb-anim-off::after{ animation:kb-shadow-pulse .16s ease }
+@keyframes kb-shadow-pulse{ 0%,100%{opacity:0} 50%{opacity:1} }
+/* durante el click: boton + ::before + icono a .16s, para ir en sync con el pulso de sombra */
+.chin-btn.kb-anim-on,.chin-btn.kb-anim-off{ transition-duration:.16s }
+.chin-btn.kb-anim-on::before,.chin-btn.kb-anim-off::before{ transition-duration:.16s }
+.chin-btn.kb-anim-on svg,.chin-btn.kb-anim-off svg{ transition-duration:.16s }
 
 /* pantalla hundida dentro de la carcasa */
 .screen-area{
