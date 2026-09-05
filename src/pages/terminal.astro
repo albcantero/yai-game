@@ -36,6 +36,15 @@ import Terminal from "../components/Terminal.tsx";
           show("PROMISE: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
         });
         setTimeout(function () { show("t+2s: react " + (window.__reactMounted ? "MONTO OK" : "NO monto") ); }, 2000);
+        var taps = 0;
+        ["pointerdown", "touchstart", "click"].forEach(function (t) {
+          window.addEventListener(t, function (e) {
+            if (taps++ > 30) return;
+            var el = e.target || {};
+            var cls = el.className && el.className.toString ? el.className.toString().slice(0, 40) : "";
+            show(t + " -> " + (el.tagName || "?") + " ." + cls);
+          }, true);
+        });
       })();
     </script>
     <main class="stage">
