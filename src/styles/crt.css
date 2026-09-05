@@ -129,10 +129,10 @@ body{
    queda pressed (is-on) o raised. Secuencia: arriba -> (pulsar) sombra -> (soltar) pressed */
 .chin-btn.chin-kb:active{
   background-color:#3a3d36;
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.5);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.35);
 }
 .chin-btn.chin-kb:active::before{
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.4);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.28);
 }
 
 /* pantalla hundida dentro de la carcasa */
