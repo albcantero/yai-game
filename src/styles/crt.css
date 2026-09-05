@@ -102,7 +102,6 @@ body{
     inset 0 -3px 0 #363832,   /* labio inferior SUTIL (como #ddd sobre #f4f5f6, no el borde oscuro) */
     0 -3px 0 #454840;         /* color del fondo: TAPA el borde superior -> relieve */
 }
-.chin-btn:hover{ filter:brightness(1.06) }
 .chin-btn:active{                                          /* al pulsar: el relieve se DESVANECE animado (no de golpe), en sync con el icono */
   box-shadow:
     -1px -2px 4px rgba(255,255,255,0),
@@ -313,7 +312,6 @@ body{
   transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;
 }
 .keyboard button:focus{ outline:none }
-.keyboard button:hover{ filter:brightness(1.06) }
 .keyboard button:active{
   transform:translateY(1px);
   box-shadow:none;                                      /* hundida al pulsar, sin sombra dura arriba */

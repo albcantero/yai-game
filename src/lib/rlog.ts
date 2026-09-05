@@ -2,6 +2,9 @@
 // consola). Gateado tras ?debug=1 (se recuerda en localStorage; ?debug=0 lo apaga). En juego
 // normal no hace nada: cero red, cero ruido. Requiere la tabla public.debug_logs (ver README/SQL).
 
+declare const __BUILD_SHA__: string; // inyectado por vite.define (astro.config.mjs)
+const BUILD = typeof __BUILD_SHA__ !== "undefined" ? __BUILD_SHA__ : "?";
+
 const URL =
   (import.meta.env.PUBLIC_SUPABASE_URL as string) || "https://uydwufnirtivbsckiisx.supabase.co";
 const KEY =
@@ -61,5 +64,5 @@ export function initRemoteLog() {
       stack: (r && r.stack) || null,
     });
   });
-  rlog("info", "session start", { ua: navigator.userAgent, url: location.href });
+  rlog("info", "session start", { build: BUILD, ua: navigator.userAgent, url: location.href });
 }
