@@ -242,7 +242,7 @@ body{
 /* MEDIDA UNIVERSAL de los SVG inline del terminal (la del caret): altura del cuerpo de texto,
    anchura proporcional, alineado con la linea. Usar .term-svg en todo SVG inline de aqui en adelante. */
 .term-svg{ height:.8em;width:auto;vertical-align:-.1em;fill:currentColor }
-.hint .term-svg{ height:1.2rem;vertical-align:-.25em }   /* cursor de raton: algo mayor, subido un pelin */
+.hint .term-svg{ height:1.1rem;vertical-align:-.25em }   /* cursor de raton: algo mayor, subido un pelin */
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
