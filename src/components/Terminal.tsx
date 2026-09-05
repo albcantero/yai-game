@@ -369,9 +369,9 @@ export default function Terminal() {
   // re-renderizar un toggle (kbd/power cambia a is-on) no nos borra la marca. Delegado a nivel
   // ventana (captura) para no tener que tocar cada boton.
   useEffect(() => {
-    const MIN = 130; // ms: >= la transicion mas larga (.08s) con margen
     let cur: HTMLElement | null = null;
     let at = 0;
+    let min = 130; // ms que se sostiene el pulsado: >= la transicion mas larga (.08s) con margen
     let timer = 0;
     const down = (e: PointerEvent) => {
       const btn = (e.target as HTMLElement)?.closest?.(".chin-btn, .keyboard button") as HTMLElement | null;
@@ -383,13 +383,15 @@ export default function Terminal() {
       if (cur && cur !== btn) cur.removeAttribute("data-pressing");
       cur = btn;
       at = performance.now();
+      // los toggle (kbd/power) sostienen la sombra un pelin mas para que se aprecie la fase intermedia
+      min = btn.classList.contains("chin-kb") ? 200 : 130;
       btn.setAttribute("data-pressing", "");
     };
     const up = () => {
       if (!cur) return;
       const btn = cur;
       cur = null;
-      const wait = Math.max(0, MIN - (performance.now() - at));
+      const wait = Math.max(0, min - (performance.now() - at));
       timer = window.setTimeout(() => {
         btn.removeAttribute("data-pressing");
         timer = 0;
