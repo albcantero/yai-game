@@ -312,7 +312,7 @@ body{
   display:flex;flex-direction:column;gap:8px;
   width:100%;max-width:680px;margin:4px auto 0;   /* 4px de aire entre pantalla y teclado */
   padding:14px 12px 10px;
-  background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja de plástico oscuro */
+  background:linear-gradient(180deg,#2b3a30,#212e26);   /* bandeja verdosa oscura (misma materia que las teclas) */
   border-radius:12px;
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,0.30),   /* filo de luz arriba (volumen, como la carcasa) */
@@ -325,15 +325,15 @@ body{
   flex:1 1 0;min-width:0;min-height:0;
   padding:10px 0;
   font-size:24px;font-family:'Determination Sans',"Courier New",monospace;
-  color:#7fbf90;                                        /* letra verdosa, grabada */
-  background:linear-gradient(180deg,#2c3a2d,#1f2a20);   /* keycap verdoso oscuro */
-  border:2px solid #37472f;border-radius:9px;
+  color:#7cae8b;                                        /* label verde grabado */
+  background-color:#243028;                             /* FLAT verdoso oscuro (sin gradiente, como button-11) */
+  border:2px solid #3a4a40;border-radius:12px;
   box-shadow:
-    -3px -3px 8px rgba(130,200,150,.10),                /* luz arriba-izq (glow neumorfico, era blanco) */
-    3px 4px 8px rgba(0,0,0,.5),                          /* sombra abajo-der */
-    inset 0 2px 0 rgba(140,210,160,.14),                /* filo de luz arriba */
-    inset 0 -4px 0 #141d16;                              /* labio inferior (relieve, era #ddd) */
-  text-shadow:0 1px 0 rgba(0,0,0,.4), 0 -1px 0 rgba(140,210,160,.10);    /* grabado */
+    -2px -6px 10px rgba(150,205,175,.10),               /* glow claro arriba-izq (era #fff) */
+    -6px 0 10px rgba(150,205,175,.06),
+    2px 6px 9px rgba(0,0,0,.35),                         /* sombra abajo-der */
+    inset 0 -4px 0 #17211b;                              /* labio inferior (era inset -4px #ddd) */
+  text-shadow:1px 1px 2px rgba(150,205,175,.22);        /* grabado (luz, como el original) */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
@@ -343,11 +343,8 @@ body{
 .keyboard button:focus{ outline:none }
 .keyboard button:hover{ filter:brightness(1.06) }
 .keyboard button:active{
-  transform:translateY(2px);
-  border-color:#2c3a26;
-  background:linear-gradient(180deg,#212c22,#1a2419);   /* mas oscura al hundirse */
-  box-shadow:inset 0 3px 5px rgba(0,0,0,.55);           /* colapsa: solo sombra interior (como el original) */
-  text-shadow:0 1px 0 rgba(0,0,0,.4);
+  transform:translateY(1px);
+  box-shadow:none;                                      /* colapsa TODO al pulsar (button-11 :active) */
 }
 .keyboard button svg{ display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
 .keyboard button.kmod{ flex:1.5 }                        /* Mayús / Borrar */
@@ -355,8 +352,8 @@ body{
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
 .keyboard button.kmod[aria-pressed="true"]{              /* mayus activo: hundido, sin color potente */
-  background:linear-gradient(180deg,#1c261d,#161f17);
-  box-shadow:inset 0 3px 5px rgba(0,0,0,.6);
+  background-color:#1c261f;
+  box-shadow:inset 0 3px 5px rgba(0,0,0,.5);
 }
 
 @media (prefers-reduced-motion:reduce){
