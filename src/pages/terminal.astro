@@ -13,6 +13,28 @@ import Terminal from "../components/Terminal.tsx";
     <title>Santas Ochova · Sistema interno</title>
   </head>
   <body>
+    <!-- DIAGNOSTICO TEMPORAL: muestra en pantalla cualquier error de JS (para depurar iOS) -->
+    <script is:inline>
+      (function () {
+        function show(msg) {
+          var d = document.getElementById("__err");
+          if (!d) {
+            d = document.createElement("div");
+            d.id = "__err";
+            d.style.cssText =
+              "position:fixed;top:0;left:0;right:0;z-index:99999;background:#900;color:#fff;font:12px/1.4 monospace;padding:8px;white-space:pre-wrap;max-height:60vh;overflow:auto";
+            document.body.appendChild(d);
+          }
+          d.textContent += msg + "\n\n";
+        }
+        window.addEventListener("error", function (e) {
+          show("ERROR: " + (e.message || "") + " @ " + (e.filename || "") + ":" + (e.lineno || "") + (e.error && e.error.stack ? "\n" + e.error.stack : ""));
+        });
+        window.addEventListener("unhandledrejection", function (e) {
+          show("PROMISE: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+        });
+      })();
+    </script>
     <main class="stage">
       <Terminal client:load />
     </main>

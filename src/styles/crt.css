@@ -79,7 +79,7 @@ body{
 .chin-buttons{ display:flex;align-items:center;gap:6px;flex:none }
 .chin-power{ margin-left:12px }   /* hueco de separacion antes del boton de encendido */
 /* LED rojo de encendido (estatico, sin parpadeo), a la derecha del power */
-.chin-led{ flex:none;width:6px;height:6px;margin-left:5px;border-radius:50%;background-color:#f00;box-shadow:rgba(0,0,0,.2) 0 -1px 3px 1px, inset #441313 0 -1px 3px, rgba(255,0,0,.6) 0 0 4px;transition:background-color .15s ease, box-shadow .15s ease }
+.chin-led{ flex:none;width:6px;height:6px;margin-left:3px;border-radius:50%;background-color:#f00;box-shadow:rgba(0,0,0,.2) 0 -1px 3px 1px, inset #441313 0 -1px 3px, rgba(255,0,0,.6) 0 0 4px;transition:background-color .15s ease, box-shadow .15s ease }
 .chin-led.off{ background-color:#3a1010;box-shadow:rgba(0,0,0,.2) 0 -1px 3px 1px, inset #200 0 -1px 3px }   /* power OFF: LED apagado, sin glow */
 .chin-btn{
   position:relative;
