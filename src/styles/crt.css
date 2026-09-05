@@ -89,7 +89,7 @@ body{
     1px 2px 4px rgba(0,0,0,.35);                           /* sombra abajo-der (mas contenida) */
   font:11px 'Courier Pixel',"Courier New",monospace;letter-spacing:1px;
   -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;touch-action:manipulation;   /* sin el rectangulo azul del toque en movil */
-  transition:transform .08s ease-in-out, box-shadow .08s ease-in-out, filter .1s ease;
+  transition:transform .08s ease-in-out, box-shadow .08s ease-in-out, background-color .08s ease-in-out, filter .1s ease;
 }
 .chin-btn::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
@@ -112,7 +112,7 @@ body{
 }
 .chin-btn svg{ position:relative;width:18px;height:18px;display:block;filter:drop-shadow(0 1px 0 rgba(255,255,255,.16));transform:translate3d(0,-3px,0);transition:transform .08s ease-in-out;will-change:transform }  /* emboss + icono levantado (reposo); translate3d = GPU, glide fluido como el button-11 */
 .chin-btn:active svg{ transform:translate3d(0,0,0) }       /* el icono se desliza abajo al pulsar (animacion del button-11) */
-/* teclado ON: el boton se queda PRESSED, IDENTICO al :active de flechas/OK (relieve desvanecido + icono abajo). No sube hasta que se vuelve a pulsar; la transicion .08s anima la bajada y la subida */
+/* teclado ON (ya soltado): el boton queda PRESSED (relieve desvanecido + icono abajo) */
 .chin-btn.is-on{
   box-shadow:
     -1px -2px 4px rgba(255,255,255,0),
@@ -125,16 +125,15 @@ body{
     0 -3px 0 rgba(69,72,64,0);
 }
 .chin-btn.is-on svg{ transform:translate3d(0,0,0) }
-/* Click tipo switch del boton de teclado: al alternar pasa por la SOMBRA inset en el medio
-   (arriba -> sombra -> abajo, y al reves). La sombra guardada, ahora como ::after que pulsa opacity. */
-.chin-btn::after{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:rgba(0,0,0,.18);box-shadow:inset 0 2px 5px rgba(0,0,0,.55);opacity:0 }
-.chin-btn.kb-anim-on::after,.chin-btn.kb-anim-off::after{ animation:kb-shadow-pulse .24s ease }
-@keyframes kb-shadow-pulse{ 0%{opacity:0} 22%,42%{opacity:1} 100%{opacity:0} }   /* la sombra sube PRIMERO, antes de que el boton baje */
-/* durante el click: boton + ::before + icono a .16s, para ir en sync con el pulso de sombra */
-/* el boton/relieve/icono ESPERAN (delay) a que salga la sombra y LUEGO bajan: arriba -> sombra -> abajo */
-.chin-btn.kb-anim-on,.chin-btn.kb-anim-off{ transition-duration:.12s;transition-delay:.1s }
-.chin-btn.kb-anim-on::before,.chin-btn.kb-anim-off::before{ transition-duration:.12s;transition-delay:.1s }
-.chin-btn.kb-anim-on svg,.chin-btn.kb-anim-off svg{ transition-duration:.12s;transition-delay:.1s }
+/* Boton de teclado: mientras se MANTIENE pulsado muestra la SOMBRA (hundido oscuro). Al soltar
+   queda pressed (is-on) o raised. Secuencia: arriba -> (pulsar) sombra -> (soltar) pressed */
+.chin-btn.chin-kb:active{
+  background-color:#3a3d36;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.5);
+}
+.chin-btn.chin-kb:active::before{
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.4);
+}
 
 /* pantalla hundida dentro de la carcasa */
 .screen-area{
