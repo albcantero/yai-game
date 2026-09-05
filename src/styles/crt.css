@@ -329,10 +329,10 @@ body{
   background:linear-gradient(180deg,#5c6057,#494d44);   /* keycap de plástico, luz arriba */
   border:0;border-radius:7px;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.20),                /* filo de luz arriba */
-    inset 0 -2px 0 rgba(0,0,0,.35),                      /* grosor del keycap */
-    0 2px 2px rgba(0,0,0,.4);                            /* sombra proyectada */
-  text-shadow:0 1px 0 rgba(255,255,255,.14);            /* grabado en plástico, como la marca */
+    inset 0 1px 0 rgba(255,255,255,.22),                /* filo de luz arriba */
+    inset 0 -3px 0 rgba(0,0,0,.42),                      /* labio del keycap, mas marcado (mas relieve) */
+    0 3px 3px rgba(0,0,0,.45);                           /* sombra proyectada */
+  text-shadow:0 1px 0 rgba(255,255,255,.16), 0 -1px 0 rgba(0,0,0,.22);   /* label grabado (emboss) */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
@@ -342,8 +342,9 @@ body{
 .keyboard button:focus{ outline:none }
 .keyboard button:hover{ filter:brightness(1.06) }
 .keyboard button:active{
-  transform:translateY(1px);
-  box-shadow:none;                                      /* hundida al pulsar, sin sombra dura arriba */
+  transform:translateY(2px);
+  background:linear-gradient(180deg,#4a4e45,#3c3f37);   /* un pelin mas oscura al hundirse */
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.5);            /* hundida: sombra interior, sin relieve */
 }
 .keyboard button svg{ display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
 .keyboard button.kmod{ flex:1.5 }                        /* Mayús / Borrar */
