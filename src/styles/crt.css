@@ -239,6 +239,7 @@ body{
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
 /* hint clicable bajo el input activo (no navegable con flechas) */
 .hint{ margin-top:8px;color:#1f9e5e;opacity:.65;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent }
+.hint-cursor{ width:1em;height:1em;vertical-align:-.15em;fill:currentColor }   /* icono de cursor de raton inline en el hint */
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
