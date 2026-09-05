@@ -26,8 +26,7 @@ const finePointer = () =>
 // problema propio en iOS (feImage/feDisplacementMap), volver a poner en false.
 const WARP_ENABLED = true;
 
-// DIAG: audio ON con sondas de logging para cazar DONDE muere React cuando el AudioContext pasa a
-// "running". Ver los useEffect/rlog. Poner en false para volver al estado bueno (sin audio).
+// Audio del terminal por Web Audio (bypassa el interruptor de silencio de iOS). ON.
 const AUDIO_ENABLED = true;
 
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
@@ -65,7 +64,6 @@ export default function Terminal() {
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
-  const commitN = useRef(0); // DIAG: cuenta commits de React para ver cuando deja de renderizar
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
   const humBufferRef = useRef<AudioBuffer | null>(null); // buffer del zumbido (Web Audio: suena en movil aunque este en silencio)
@@ -259,7 +257,6 @@ export default function Terminal() {
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
   const handleKey = (k: string) => {
-    rlog("evt", "handleKey", { k, booted, menuOpen, dialog });
     if (menuOpen) return;
     if (dialog) {
       if (k === "Enter" || k === " ") {
@@ -359,24 +356,6 @@ export default function Terminal() {
   // Logging remoto para depurar en el movil (gateado tras ?debug=1).
   useEffect(() => {
     initRemoteLog();
-  }, []);
-
-  // DIAG: cuenta cada commit de React. Si se para tras activar el audio -> React deja de renderizar.
-  useEffect(() => {
-    commitN.current++;
-    if (booted) rlog("evt", "commit", { n: commitN.current });
-  });
-
-  // DIAG: registra cada toque a nivel ventana (capture). Si siguen llegando tras el congelado, el
-  // hilo principal esta vivo y los eventos disparan; el problema es de render, no de eventos.
-  useEffect(() => {
-    let n = 0;
-    const onDown = (e: Event) => {
-      const t = e.target as HTMLElement | null;
-      rlog("evt", "pointerdown", { n: ++n, tag: t?.tagName, cls: (t?.className || "").toString().slice(0, 30) });
-    };
-    window.addEventListener("pointerdown", onDown, true);
-    return () => window.removeEventListener("pointerdown", onDown, true);
   }, []);
 
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
@@ -511,6 +490,43 @@ export default function Terminal() {
   }, []);
 
   useEffect(() => stopHold, []);
+
+  // iOS tarda en la PRIMERA reproduccion de cada buffer (lo prepara en ese instante), por eso el
+  // primer clic de cada sonido iba con retraso. En el primer gesto (fase de CAPTURA, antes que los
+  // handlers de React) "calentamos" todos los buffers reproduciendolos en silencio, para que las
+  // primeras pulsaciones reales ya suenen inmediatas.
+  useEffect(() => {
+    if (!AUDIO_ENABLED) return;
+    const warm = () => {
+      const ac = acRef.current;
+      if (!ac) return; // aun sin contexto: reintenta en el siguiente gesto
+      try {
+        if (ac.state === "suspended") ac.resume();
+        const g = ac.createGain();
+        g.gain.value = 0;
+        g.connect(ac.destination);
+        const all = [...keyBuffersRef.current, ...Object.values(sfxBuffersRef.current)];
+        if (humBufferRef.current) all.push(humBufferRef.current);
+        for (const b of all) {
+          const s = ac.createBufferSource();
+          s.buffer = b;
+          s.connect(g);
+          s.start(0);
+          s.stop(ac.currentTime + 0.02);
+        }
+      } catch {
+        /* sin audio */
+      }
+      window.removeEventListener("pointerdown", warm, true);
+      window.removeEventListener("keydown", warm, true);
+    };
+    window.addEventListener("pointerdown", warm, true);
+    window.addEventListener("keydown", warm, true);
+    return () => {
+      window.removeEventListener("pointerdown", warm, true);
+      window.removeEventListener("keydown", warm, true);
+    };
+  }, []);
 
   // Zumbido de fondo del CRT via Web Audio (bypassa el interruptor de silencio de iOS, que
   // silencia los <audio>; por eso en movil no sonaba). Loop; arranca en la primera interaccion.
