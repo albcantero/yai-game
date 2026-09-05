@@ -264,7 +264,6 @@ body{
 .hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em }   /* cursor de raton: pegado a "Click" */
 .field{ position:relative;flex:1;min-width:0 }
 .uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
-.is-blocked{ pointer-events:none;opacity:.45 }   /* teclado/botones bloqueados mientras hay loader */
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
 .crt.idle .cursor{ opacity:.35;animation:none }
@@ -354,7 +353,10 @@ body{
 .keyboard button:active,
 .keyboard button[data-pressing]{
   transform:translateY(1px);
-  box-shadow:none;                                      /* hundida al pulsar, sin sombra dura arriba */
+  box-shadow:                                           /* NO quitamos el relieve de golpe: la letra y su filo de luz bajan JUNTOS (antes se descuadraban) */
+    inset 0 1px 0 rgba(255,255,255,.14),                /* filo de luz atenuado, viaja con la tecla */
+    inset 0 -1px 0 rgba(0,0,0,.30),
+    0 1px 1px rgba(0,0,0,.4);                           /* sombra proyectada menor: tecla hundida */
 }
 .keyboard button svg{ display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
 .keyboard button.kmod{ flex:1.5 }                        /* Mayús / Borrar */

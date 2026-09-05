@@ -85,6 +85,7 @@ export default function Terminal() {
   const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
   const [loader, setLoader] = useState<string | null>(null); // texto del loader activo (o null): bloquea el input
   const [panel, setPanel] = useState<PanelState | null>(null); // menu del panel (Mis mensajes / Salir)
+  const [account, setAccount] = useState(false); // dentro de la cuenta: oculta el logo del inicio
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -281,6 +282,7 @@ export default function Terminal() {
     await sleep(2000);
     setLoader(null);
     setPanel(null);
+    setAccount(false); // salimos de la cuenta: el logo vuelve a la pantalla de inicio
     clear(); // vuelve a la pantalla de inicio (con el logo)
   };
 
@@ -313,6 +315,17 @@ export default function Terminal() {
     await sleep(2500);
     setLoader(null);
     clear(); // limpia la pantalla tras la descarga
+    setAccount(true); // entramos a la cuenta: a partir de aqui el logo NO aparece
+    print("Bienvenido/a a SANTAS OCHOVA: Tu Mejor Librería.");
+    print("Antes de continuar, le recuerdamos nuestras directivas:");
+    print("");
+    print(" * Literatura correcta para ciudadanos correctos.", "muted");
+    print(" * Una mente condicionada es una mente feliz.", "muted");
+    print(" * La lectura sin propósito produce inestabilidad social.", "muted");
+    print("");
+    setLoader("Sincronizando..."); // ultimo loader antes de revelar el menu de la cuenta
+    await sleep(2500);
+    setLoader(null);
     openPanel(); // abre el panel del personaje
   };
 
@@ -504,6 +517,7 @@ export default function Terminal() {
   // Botones de navegacion del monitor (arriba/abajo/OK): hacen su accion pero suenan a boton
   // de monitor (terminal-button), no al tic del teclado.
   const chinKey = (k: string) => {
+    if (loader) return; // durante un loader los botones del monitor no hacen nada (ni sonido ni acción)
     playSfx("/audio/terminal-simple-button.mp3");
     suppressTickRef.current = true;
     handleKey(k);
@@ -536,7 +550,7 @@ export default function Terminal() {
   const startHold = (k: string) => {
     handleKey(k); // primer toque: inserta/borra + sonido + vibración
     stopHold();
-    const repeatable = booted && !menuOpen && !dialog && !form && (k === "Backspace" || k.length === 1);
+    const repeatable = booted && !menuOpen && !dialog && !form && !panel && !loader && (k === "Backspace" || k.length === 1);
     if (!repeatable) return;
     holdTimerRef.current = window.setTimeout(() => {
       holdIntervalRef.current = window.setInterval(() => repeatKey(k), 60); // repeticiones SIN sonido
@@ -861,7 +875,7 @@ export default function Terminal() {
           </div>
           <div className="crt-body">
           <div className="content" ref={scrollRef}>
-            <div className="banner-wrap" hidden={!!panel}>
+            <div className="banner-wrap" hidden={account}>
               <pre className="banner" ref={bannerRef}></pre>
             </div>
             {lines.map((l) =>
@@ -1013,17 +1027,18 @@ export default function Terminal() {
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
-          <div className={"chin-buttons" + (loader ? " is-blocked" : "")}>
+          <div className="chin-buttons">
             <button
               type="button"
               className={"chin-btn chin-kb" + (showKeyboard ? " is-on" : "")}
               aria-pressed={showKeyboard}
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
               onPointerDown={() => {
+                if (loader) return;
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
-              onClick={() => setShowKeyboard((v) => !v)}
+              onClick={() => { if (loader) return; setShowKeyboard((v) => !v); }}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
             </button>
@@ -1042,12 +1057,13 @@ export default function Terminal() {
               aria-pressed={powerOn}
               aria-label={powerOn ? "Apagar" : "Encender"}
               onPointerDown={() => {
+                if (loader) return;
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
-              onClick={() => setPowerOn((v) => !v)}
+              onClick={() => { if (loader) return; setPowerOn((v) => !v); }}
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
             </button>
             <span className={"chin-led" + (powerOn ? "" : " off")} aria-hidden="true"></span>
           </div>
@@ -1055,7 +1071,7 @@ export default function Terminal() {
       </div>
 
       {showKeyboard && (
-      <div className={"keyboard" + (loader ? " is-blocked" : "")}>
+      <div className="keyboard">
         {!numMode ? (
         <>
         <div className="krow">
@@ -1074,7 +1090,7 @@ export default function Terminal() {
         </div>
         <div className="krow">
           <button type="button" className="kmod" aria-pressed={shift} aria-label="Mayúsculas" onPointerDown={() => handleKey("Shift")}>
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 21h8v-2H8zm0-2h2v-6H8zm-5-6h5v-2H3zm0-2h2V9H3zm2-2h2V7H5zm2-2h2V5H7zm2-2h2V3H9zm2-2h2V1h-2zm2 2h2V3h-2zm2 2h2V5h-2zm2 2h2V7h-2zm2 4h2V9h-2zm-3 0h3v-2h-3zm-2 6h2v-6h-2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 3h2v2h2v2h2v2h2v4h-5v8H8v-8H3V9h2V7h2V5h2V3h2V1h2v2Z"/></svg>
           </button>
           {["z", "x", "c", "v", "b", "n", "m"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>
@@ -1088,11 +1104,11 @@ export default function Terminal() {
             {...holdProps("Backspace")}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2h12v2ZM8 17H6v-2h2v2Zm14 0h-2V7h2v10ZM6 15H4v-2h2v2Zm8 0h-2v-2h2v2Zm4 0h-2v-2h2v2ZM4 13H2v-2h2v2Zm12 0h-2v-2h2v2ZM6 11H4V9h2v2Zm8 0h-2V9h2v2Zm4 0h-2V9h2v2ZM8 9H6V7h2v2Zm12-2H8V5h12v2Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2H6v-2H4v-2H2v-2h2V9h2V7h2V5h12v2h2v10h-2v2Zm-8-8h2v2h-2v2h2v-2h2v2h2v-2h-2v-2h2V9h-2v2h-2V9h-2v2Z"/></svg>
           </button>
         </div>
         <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(true); }}>123</button>
+          <button type="button" className="knum" onPointerDown={() => { if (loader) return; keyTick(); setNumMode(true); }}>123</button>
           <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
         </div>
@@ -1100,31 +1116,26 @@ export default function Terminal() {
         ) : (
         <>
         <div className="krow">
-          {["1", "2", "3"].map((k) => (
+          {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>{k}</button>
           ))}
         </div>
         <div className="krow">
-          {["4", "5", "6"].map((k) => (
+          {["¿", "?", "¡", "!", ".", ",", "-"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>{k}</button>
           ))}
         </div>
         <div className="krow">
-          {["7", "8", "9"].map((k) => (
+          {["+", ":", ";", "*", "#", "@"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>{k}</button>
           ))}
-        </div>
-        <div className="krow">
-          {["*", "0", "#"].map((k) => (
-            <button type="button" key={k} {...holdProps(k)}>{k}</button>
-          ))}
-        </div>
-        <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(false); }}>ABC</button>
-          <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kmod" aria-label="Borrar" {...holdProps("Backspace")} onContextMenu={(e) => e.preventDefault()}>
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2h12v2ZM8 17H6v-2h2v2Zm14 0h-2V7h2v10ZM6 15H4v-2h2v2Zm8 0h-2v-2h2v2Zm4 0h-2v-2h2v2ZM4 13H2v-2h2v2Zm12 0h-2v-2h2v2ZM6 11H4V9h2v2Zm8 0h-2V9h2v2Zm4 0h-2V9h2v2ZM8 9H6V7h2v2Zm12-2H8V5h12v2Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2H6v-2H4v-2H2v-2h2V9h2V7h2V5h12v2h2v10h-2v2Zm-8-8h2v2h-2v2h2v-2h2v2h2v-2h-2v-2h2V9h-2v2h-2V9h-2v2Z"/></svg>
           </button>
+        </div>
+        <div className="krow">
+          <button type="button" className="knum" onPointerDown={() => { if (loader) return; keyTick(); setNumMode(false); }}>ABC</button>
+          <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
         </div>
         </>
