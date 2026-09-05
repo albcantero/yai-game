@@ -244,13 +244,12 @@ export default function Terminal() {
   // Login interactivo: pregunta usuario, luego clave (enmascarada), y llama al RPC.
   const startLogin = () => {
     setAuth({ stage: "user", username: "" });
-    print("usuario:");
   };
   const submitAuth = async (raw: string) => {
     if (!auth) return;
     if (auth.stage === "user") {
       const u = raw.trim();
-      echo(u);
+      print("usuario: " + u); // eco inline, mismo estilo que el prompt
       if (!u) {
         setAuth(null);
         print("login cancelado.", "muted");
@@ -258,10 +257,9 @@ export default function Terminal() {
         return;
       }
       setAuth({ stage: "pass", username: u });
-      print("clave:");
       return;
     }
-    echo("••••••••"); // nunca mostramos la clave en pantalla
+    print("clave: " + "•".repeat(raw.length)); // eco enmascarado, nunca la clave real
     const username = auth.username;
     setAuth(null);
     print("verificando...", "muted");
@@ -320,7 +318,7 @@ export default function Terminal() {
     if (k === "Enter") {
       keyTick();
       const v = curRef.current;
-      if (v.trim()) historyRef.current.push(v);
+      if (!auth && v.trim()) historyRef.current.push(v); // en login no guardamos usuario/clave en el historial
       hposRef.current = historyRef.current.length;
       setLine("");
       submit(v);
@@ -722,7 +720,9 @@ export default function Terminal() {
             )}
             {showInput && (
               <div className="inputline">
-                <span className="prompt">{">"}</span>
+                <span className={auth ? "astk" : "prompt"}>
+                  {auth ? (auth.stage === "user" ? "* usuario:" : "* clave:") : ">"}
+                </span>
                 <span className="field">
                   <span className="mirror">{auth?.stage === "pass" ? "•".repeat(input.length) : input}</span>
                   <span className="cursor">█</span>
