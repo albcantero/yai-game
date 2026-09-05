@@ -12,6 +12,7 @@ interface Line {
   text: string;
   cls: LineClass;
   mark: Mark;
+  code?: string; // codigo de sistema entre corchetes ([ACCESS_DENIED], etc.), como span propio
   chev?: boolean;
   chevMore?: boolean;
 }
@@ -111,6 +112,10 @@ export default function Terminal() {
   };
   const echo = (text: string) => {
     addLine({ text, cls: "", mark: "" });
+  };
+  // Linea de sistema: codigo entre corchetes (span propio) + mensaje. sys("ACCESS_DENIED", "...", "d").
+  const sys = (code: string, text: string, cls: LineClass = "") => {
+    addLine({ text, cls, mark: "", code });
   };
   const clear = () => setLines([]);
   const setLine = (v: string) => {
@@ -259,10 +264,10 @@ export default function Terminal() {
     print("verificando...", "muted");
     const res = await loginCharacter(username, password);
     if (res.ok) {
-      print("[ACCESS_GRANTED] Acceso concedido, hola " + (res.display_name || username), "b");
+      sys("ACCESS_GRANTED", "Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
     } else {
-      print("[ACCESS_DENIED] Credenciales incorrectas", "d");
+      sys("ACCESS_DENIED", "Credenciales incorrectas", "d");
     }
     print("");
   };
@@ -348,12 +353,12 @@ export default function Terminal() {
     const arg = parts.slice(1).join(" ");
     const command = lookup.get(cmd);
     if (!command) {
-      print('[UNKNOWN_COMMAND] "' + parts[0] + '" no se reconoce como un comando interno', "d");
+      sys("UNKNOWN_COMMAND", '"' + parts[0] + '" no se reconoce como un comando interno', "d");
       print("Escribe help para consultar los comandos disponibles", "muted");
       print("");
       return;
     }
-    const ctx: Ctx = { print, clear, startDialog: runDialog, startLogin, arg, raw: line };
+    const ctx: Ctx = { print, sys, clear, startDialog: runDialog, startLogin, arg, raw: line };
     command.run(ctx);
     if (!command.names.includes("contacto") && !command.names.includes("login")) print("");
   };
@@ -779,6 +784,7 @@ export default function Terminal() {
               ) : (
                 <div className={"row" + (l.cls ? " " + l.cls : "")} key={l.id}>
                   {l.mark && <span className={l.mark === ">" ? "prompt" : "astk"}>{l.mark + " "}</span>}
+                  {l.code && <span className="syscode">[{l.code}] </span>}
                   {l.text}
                 </div>
               ),

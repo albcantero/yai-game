@@ -228,6 +228,7 @@ body{
 .astk{ color:#1f9e5e }
 .row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
 .prompt{ color:#1f9e5e }
+.syscode{ }   /* codigo de sistema [CODE]: span propio, estilizable aparte (por defecto hereda el color de la linea) */
 
 .banner-wrap{ overflow:hidden;margin:0 0 8px }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }

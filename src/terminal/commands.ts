@@ -36,17 +36,17 @@ export const commands: Command[] = [
     names: ["buscar"],
     usage: "buscar <isbn>",
     desc: "localizar un título",
-    run: ({ print, arg }) => {
+    run: ({ print, sys, arg }) => {
       if (!arg) {
         print("Uso: buscar <isbn>", "muted");
         return;
       }
       if (/00000000|trastienda/i.test(arg)) {
-        print("[FOUND] Registro interno localizado", "b");
+        sys("FOUND", "Registro interno localizado", "b");
         print("Estante inferior · no consta en el mostrador", "muted");
         return;
       }
-      print('[NOT_FOUND] Sin resultados para "' + arg + '" en el catálogo público', "muted");
+      sys("NOT_FOUND", 'Sin resultados para "' + arg + '" en el catálogo público', "muted");
     },
   },
   {
@@ -76,10 +76,10 @@ export const commands: Command[] = [
   {
     names: ["acceso", "admin", "root"],
     hidden: true,
-    run: ({ print }) => {
+    run: ({ print, sys }) => {
       print("");
-      print("[ACCESS_DENIED] Nivel administrador", "d");
-      print("[LOGGED] Intento registrado", "muted");
+      sys("ACCESS_DENIED", "Nivel administrador", "d");
+      sys("LOGGED", "Intento registrado", "muted");
     },
   },
 ];

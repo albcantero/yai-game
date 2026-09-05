@@ -4,6 +4,8 @@ export type LineClass = "" | "b" | "muted" | "d";
 export interface Ctx {
   /** Imprime una línea instantánea. */
   print: (text: string, cls?: LineClass) => void;
+  /** Imprime una línea de sistema: código entre corchetes (span propio) + mensaje. */
+  sys: (code: string, text: string, cls?: LineClass) => void;
   /** Vacía la pantalla. */
   clear: () => void;
   /** Reproduce un diálogo por partes (con chevron de continuar). */
