@@ -27,6 +27,9 @@
   font-display:swap;
 }
 
+/* Sello de build estilo dev (esquina): ver el SHA horneado en el bundle => saber si es deploy actual o cache */
+.build-stamp{ position:fixed;left:4px;bottom:4px;z-index:99999;font:9px/1 'Courier Pixel',ui-monospace,monospace;letter-spacing:.5px;color:#37f07d;opacity:.4;pointer-events:none;text-shadow:0 1px 0 rgba(0,0,0,.6) }
+
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
 html,body{ height:100% }

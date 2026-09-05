@@ -3,7 +3,7 @@
 // normal no hace nada: cero red, cero ruido. Requiere la tabla public.debug_logs (ver README/SQL).
 
 declare const __BUILD_SHA__: string; // inyectado por vite.define (astro.config.mjs)
-const BUILD = typeof __BUILD_SHA__ !== "undefined" ? __BUILD_SHA__ : "?";
+export const BUILD = typeof __BUILD_SHA__ !== "undefined" ? __BUILD_SHA__ : "?";
 
 const URL =
   (import.meta.env.PUBLIC_SUPABASE_URL as string) || "https://uydwufnirtivbsckiisx.supabase.co";

@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
-import { initRemoteLog, rlog } from "../lib/rlog";
+import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
 
 type Mark = "*" | ">" | "";
 interface Line {
@@ -28,6 +28,10 @@ const WARP_ENABLED = true;
 
 // Audio del terminal por Web Audio (bypassa el interruptor de silencio de iOS). ON.
 const AUDIO_ENABLED = true;
+
+// Sello de build (SHA) visible en una esquina, estilo dev, para saber al vuelo si estoy en el deploy
+// actual o en uno cacheado (sin necesidad de ?debug=1). Poner en false para la version final.
+const SHOW_BUILD = true;
 
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
 function frameArt(text: string): string {
@@ -582,6 +586,12 @@ export default function Terminal() {
           <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
+
+      {SHOW_BUILD && (
+        <div className="build-stamp" aria-hidden="true">
+          build {BUILD}
+        </div>
+      )}
 
       <div className="monitor">
         <div className="screen-area">
