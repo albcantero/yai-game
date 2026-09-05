@@ -271,15 +271,15 @@ export default function Terminal() {
   const startLogin = () => {
     setForm({
       fields: [
-        { label: "Usuario:", value: "" },
-        { label: "Contraseña:", value: "", mask: true },
+        { label: "[USUARIO]", value: "" },
+        { label: "[CONTRASEÑA]", value: "", mask: true },
       ],
       active: 0,
       editing: false,
       onSubmit: (vals) => {
         // deja el formulario fijado en pantalla (limpio) y verifica
-        addLine({ text: "Usuario: " + vals[0], cls: "", mark: "" });
-        addLine({ text: "Contraseña: " + "•".repeat(vals[1].length), cls: "", mark: "" });
+        addLine({ text: "[USUARIO] " + vals[0], cls: "", mark: "" });
+        addLine({ text: "[CONTRASEÑA] " + "•".repeat(vals[1].length), cls: "", mark: "" });
         doLogin(vals[0].trim(), vals[1]);
       },
     });
@@ -414,6 +414,14 @@ export default function Terminal() {
     playSfx("/audio/terminal-simple-button.mp3");
     suppressTickRef.current = true;
     handleKey(k);
+    suppressTickRef.current = false;
+  };
+
+  // Click en el hint "(Pulsa ENTER...)" = confirmar (equivale a Enter), con sonido de click.
+  const confirmClick = () => {
+    playSfx("/audio/mouse-click.mp3");
+    suppressTickRef.current = true;
+    handleKey("Enter");
     suppressTickRef.current = false;
   };
 
@@ -800,6 +808,11 @@ export default function Terminal() {
                     </span>
                   </div>
                 ))}
+              </div>
+            )}
+            {showInput && (
+              <div className="hint" onPointerDown={confirmClick}>
+                (Pulsa ENTER o haz Click para confirmar)
               </div>
             )}
           </div>

@@ -232,11 +232,13 @@ body{
 .banner-wrap{ overflow:hidden;margin:0 0 8px }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
 
-.inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px }
-.flabel{ flex:none;color:#1f9e5e }   /* etiqueta de campo en formularios (Usuario:, Contraseña:) */
-/* caret pixelart que marca el campo activo del formulario (se mueve con las flechas, parpadea) */
-.fcaret{ flex:none;width:.9em;display:inline-flex;align-items:center;justify-content:center }
+.inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
+.flabel{ flex:none;color:#1f9e5e }   /* etiqueta de campo en formularios ([USUARIO], [CONTRASEÑA]) */
+/* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
+.fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
+/* hint clicable bajo el input activo (no navegable con flechas) */
+.hint{ margin-top:8px;color:#1f9e5e;opacity:.65;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent }
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
