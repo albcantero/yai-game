@@ -75,10 +75,6 @@ body{
   padding:0 10px;
 }
 .monitor-brand{ font-family:'Courier Pixel',"Courier New",monospace;font-size:13px;letter-spacing:2px;color:#22261f;text-shadow:0 1px 0 rgba(255,255,255,.14) }
-.monitor-led{ width:9px;height:9px;border-radius:50%;background:#37f07d;box-shadow:0 0 8px #37f07d, inset 0 0 2px rgba(255,255,255,.7) }
-/* toggle actual vs crt-geom (comparar scanlines) */
-.crt-toggle{ font:10px 'Courier Pixel',"Courier New",monospace;letter-spacing:1px;color:#22261f;background:#4a4d46;border:0;border-radius:4px;padding:4px 8px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 1px 2px rgba(0,0,0,.4) }
-.crt-toggle:active{ box-shadow:inset 0 1px 3px rgba(0,0,0,.5) }
 /* botones del menton: [teclado][arriba][abajo][OK], todos el mismo estilo pixel */
 .chin-buttons{ display:flex;align-items:center;gap:6px;flex:none }
 .chin-btn{
@@ -91,7 +87,6 @@ body{
 }
 .chin-btn:active{ box-shadow:inset 0 1px 3px rgba(0,0,0,.5) }
 .chin-btn svg{ width:18px;height:18px;display:block }
-.chin-ok{ width:auto;padding:0 10px }
 /* teclado activo: hundido y verde fosforo */
 .chin-btn.is-on{ color:#1f9e5e;background:#3a3d38;box-shadow:inset 0 1px 3px rgba(0,0,0,.5) }
 /* interruptor rocker del teclado en el mentón (encendido = teclado en pantalla). Escalado en px para que el móvil no lo infle */
@@ -209,7 +204,6 @@ body{
 .content>*{ width:100%;max-width:760px;flex:none }  /* que las filas NO se encojan: desbordan y hacen scroll, no se solapan */
 /* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
 .crt.warp{ filter:url(#barrel) }   /* sin overscan: la franja negra rodea la ventana entera y el filtro no se pinta fuera */
-.crt.geomlike.warp{ filter:url(#barrel-geom) }   /* variante crt-geom: curva más esférica/pronunciada */
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
@@ -221,13 +215,6 @@ body{
     linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,.25) 50%),
     linear-gradient(90deg, rgba(255,0,0,.06), rgba(0,255,0,.02), rgba(0,0,255,.06));
   background-size:100% 2px, 3px 100%;
-}
-/* variante "crt-geom" (toggle): scanlines con perfil de haz + máscara más marcada */
-.crt.geomlike::before{
-  background:
-    linear-gradient(to bottom, rgba(0,0,0,.5), rgba(0,0,0,0) 50%, rgba(0,0,0,.5)),
-    linear-gradient(90deg, rgba(255,0,0,.10), rgba(0,255,0,.04), rgba(0,0,255,.10));
-  background-size:100% 3px, 3px 100%;
 }
 /* flicker (aleclownes ::after) */
 /* flicker aleclownes estándar */
@@ -252,15 +239,6 @@ body{
   box-shadow:
     inset 0 0 0 2px #06120d,              /* shadowbox (blur contenido de 30px, más denso) */
     inset 0 0 30px 6px rgba(0,0,0,.9);
-}
-/* variante crt-geom: esquinas del tubo más redondeadas (cornersize) + esquinas más negras */
-.screen-area:has(.crt.geomlike){ border-radius:32px }
-.crt.geomlike + .curve-overlay{
-  border-radius:32px;
-  background:
-    radial-gradient(75% 50% at 26% -10%, rgba(200,255,224,.08), rgba(200,255,224,.02) 42%, transparent 62%),
-    linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,0) 18% 82%, rgba(255,255,255,.05)),
-    radial-gradient(118% 108% at 50% 50%, transparent 50%, rgba(0,0,0,.8) 82%, rgba(0,0,0,1) 100%);
 }
 
 .row{ white-space:pre-wrap;word-break:break-word;min-height:1em;padding-left:2ch;text-indent:-2ch }  /* sangrado francés: las líneas partidas se alinean tras el "* " */

@@ -43,7 +43,6 @@ export default function Terminal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
-  const [geomLike, setGeomLike] = useState(false);
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
 
@@ -57,7 +56,6 @@ export default function Terminal() {
   const handleKeyRef = useRef<(k: string) => void>(() => {});
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
-  const feImageGeomRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
@@ -333,9 +331,7 @@ export default function Terminal() {
     };
     try {
       const url = makeMap(0.4); // barril actual
-      const urlGeom = makeMap(0.62); // más esférico (variante crt-geom)
       setHref(feImageRef.current, url);
-      setHref(feImageGeomRef.current, urlGeom);
       if (url) setWarpReady(true);
     } catch {
       /* navegador sin soporte: se queda plano */
@@ -432,16 +428,12 @@ export default function Terminal() {
           <feImage ref={feImageRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
           <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
         </filter>
-        <filter id="barrel-geom" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
-          <feImage ref={feImageGeomRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
-          <feDisplacementMap in="SourceGraphic" in2="map" scale="42" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
       </svg>
 
       <div className="monitor">
         <div className="screen-area">
         <div
-          className={"crt curved" + (warpReady ? " warp" : "") + (geomLike ? " geomlike" : "")}
+          className={"crt curved" + (warpReady ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
           <div className="win98 win-header">
@@ -527,17 +519,15 @@ export default function Terminal() {
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
             </button>
             <button type="button" className="chin-btn" aria-label="Arriba" onPointerDown={() => handleKey("ArrowUp")}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ transform: "rotate(-90deg)" }}><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2z"/><path d="M15 10H7V8h8zm2 2H5v-2h12z"/></svg>
             </button>
             <button type="button" className="chin-btn" aria-label="Abajo" onPointerDown={() => handleKey("ArrowDown")}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ transform: "rotate(90deg)" }}><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z"/></svg>
             </button>
-            <button type="button" className="chin-btn chin-ok" aria-label="OK" onPointerDown={() => handleKey("Enter")}>OK</button>
+            <button type="button" className="chin-btn" aria-label="OK" onPointerDown={() => handleKey("Enter")}>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 9h-2v12h2v2H9V7h4v2Zm2 12h-2v-2h2v2Zm6-2h-6v-2h4v-2h2v4Zm-2-4h-2v-2h2v2ZM5 14H3v-2h2v2Zm12-1h-2v-2h2v2ZM7 12H5v-2h2v2Zm8-1h-2V9h2v2ZM7 7H5V5h2v2Zm10 0h-2V5h2v2ZM5 5H3V3h2v2Zm6 0H9V1h2v4Zm8 0h-2V3h2v2Z"/></svg>
+            </button>
           </div>
-          <button type="button" className="crt-toggle" onClick={() => setGeomLike((v) => !v)}>
-            {geomLike ? "crt-geom" : "actual"}
-          </button>
-          <span className="monitor-led" aria-hidden="true"></span>
         </div>
       </div>
 
@@ -561,7 +551,7 @@ export default function Terminal() {
         </div>
         <div className="krow">
           <button type="button" className="kmod" aria-pressed={shift} aria-label="Mayúsculas" onPointerDown={() => handleKey("Shift")}>
-            <svg viewBox="0 0 500 500" aria-hidden="true"><path d="M433.704,237.465c4.456,6.086,7.092,13.539,7.092,21.622c0,20.079-16.266,36.341-36.344,36.341h-36.341c-9.991,0-18.173,8.18-18.173,18.172v109.025c0,20.079-16.262,36.341-36.341,36.341H186.4c-20.079,0-36.34-16.262-36.34-36.341V313.6c0-9.992-8.181-18.172-18.172-18.172H95.547c-20.079,0-36.342-16.262-36.342-36.341c0-8.083,2.635-15.536,7.08-21.622L217.747,54.388c17.807-17.808,46.695-17.808,64.505,0L433.704,237.465z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 21h8v-2H8zm0-2h2v-6H8zm-5-6h5v-2H3zm0-2h2V9H3zm2-2h2V7H5zm2-2h2V5H7zm2-2h2V3H9zm2-2h2V1h-2zm2 2h2V3h-2zm2 2h2V5h-2zm2 2h2V7h-2zm2 4h2V9h-2zm-3 0h3v-2h-3zm-2 6h2v-6h-2z"/></svg>
           </button>
           {["z", "x", "c", "v", "b", "n", "m"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>
@@ -575,7 +565,7 @@ export default function Terminal() {
             {...holdProps("Backspace")}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5,5h-10C8.234,5,6.666,5.807,5.93,6.837L3.32,10.49c-0.642,0.898-1.182,1.654-1.199,1.679C2,12.344,1.999,12.661,2.124,12.833c0.023,0.033,0.555,0.777,1.188,1.664l2.619,3.667C6.666,19.193,8.233,20,9.5,20h10c1.379,0,2.5-1.122,2.5-2.5v-10C22,6.122,20.879,5,19.5,5z M17.207,14.793c0.391,0.391,0.391,1.023,0,1.414C17.012,16.402,16.756,16.5,16.5,16.5s-0.512-0.098-0.707-0.293L13.5,13.914l-2.293,2.293C11.012,16.402,10.756,16.5,10.5,16.5s-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l2.293-2.293l-2.293-2.293c-0.391-0.391-0.391-1.023,0-1.414s1.023-0.391,1.414,0l2.293,2.293l2.293-2.293c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414L14.914,12.5L17.207,14.793z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2h12v2ZM8 17H6v-2h2v2Zm14 0h-2V7h2v10ZM6 15H4v-2h2v2Zm8 0h-2v-2h2v2Zm4 0h-2v-2h2v2ZM4 13H2v-2h2v2Zm12 0h-2v-2h2v2ZM6 11H4V9h2v2Zm8 0h-2V9h2v2Zm4 0h-2V9h2v2ZM8 9H6V7h2v2Zm12-2H8V5h12v2Z"/></svg>
           </button>
         </div>
         <div className="krow">
@@ -610,7 +600,7 @@ export default function Terminal() {
           <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(false); }}>ABC</button>
           <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kmod" aria-label="Borrar" {...holdProps("Backspace")} onContextMenu={(e) => e.preventDefault()}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5,5h-10C8.234,5,6.666,5.807,5.93,6.837L3.32,10.49c-0.642,0.898-1.182,1.654-1.199,1.679C2,12.344,1.999,12.661,2.124,12.833c0.023,0.033,0.555,0.777,1.188,1.664l2.619,3.667C6.666,19.193,8.233,20,9.5,20h10c1.379,0,2.5-1.122,2.5-2.5v-10C22,6.122,20.879,5,19.5,5z M17.207,14.793c0.391,0.391,0.391,1.023,0,1.414C17.012,16.402,16.756,16.5,16.5,16.5s-0.512-0.098-0.707-0.293L13.5,13.914l-2.293,2.293C11.012,16.402,10.756,16.5,10.5,16.5s-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l2.293-2.293l-2.293-2.293c-0.391-0.391-0.391-1.023,0-1.414s1.023-0.391,1.414,0l2.293,2.293l2.293-2.293c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414L14.914,12.5L17.207,14.793z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2h12v2ZM8 17H6v-2h2v2Zm14 0h-2V7h2v10ZM6 15H4v-2h2v2Zm8 0h-2v-2h2v2Zm4 0h-2v-2h2v2ZM4 13H2v-2h2v2Zm12 0h-2v-2h2v2ZM6 11H4V9h2v2Zm8 0h-2V9h2v2Zm4 0h-2V9h2v2ZM8 9H6V7h2v2Zm12-2H8V5h12v2Z"/></svg>
           </button>
           <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
         </div>
