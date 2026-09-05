@@ -26,9 +26,9 @@ const finePointer = () =>
 // problema propio en iOS (feImage/feDisplacementMap), volver a poner en false.
 const WARP_ENABLED = true;
 
-// PRUEBA iOS: audio OFF. Sospecha de que el AudioContext al pasar a "running" (primera tecla)
-// estrangula el scheduler de React en Safari y deja de renderizar. Si con esto escribe, era el audio.
-const AUDIO_ENABLED = false;
+// DIAG: audio ON con sondas de logging para cazar DONDE muere React cuando el AudioContext pasa a
+// "running". Ver los useEffect/rlog. Poner en false para volver al estado bueno (sin audio).
+const AUDIO_ENABLED = true;
 
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
 function frameArt(text: string): string {
@@ -65,6 +65,7 @@ export default function Terminal() {
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
+  const commitN = useRef(0); // DIAG: cuenta commits de React para ver cuando deja de renderizar
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
   const humBufferRef = useRef<AudioBuffer | null>(null); // buffer del zumbido (Web Audio: suena en movil aunque este en silencio)
@@ -258,6 +259,7 @@ export default function Terminal() {
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
   const handleKey = (k: string) => {
+    rlog("evt", "handleKey", { k, booted, menuOpen, dialog });
     if (menuOpen) return;
     if (dialog) {
       if (k === "Enter" || k === " ") {
@@ -357,6 +359,24 @@ export default function Terminal() {
   // Logging remoto para depurar en el movil (gateado tras ?debug=1).
   useEffect(() => {
     initRemoteLog();
+  }, []);
+
+  // DIAG: cuenta cada commit de React. Si se para tras activar el audio -> React deja de renderizar.
+  useEffect(() => {
+    commitN.current++;
+    if (booted) rlog("evt", "commit", { n: commitN.current });
+  });
+
+  // DIAG: registra cada toque a nivel ventana (capture). Si siguen llegando tras el congelado, el
+  // hilo principal esta vivo y los eventos disparan; el problema es de render, no de eventos.
+  useEffect(() => {
+    let n = 0;
+    const onDown = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      rlog("evt", "pointerdown", { n: ++n, tag: t?.tagName, cls: (t?.className || "").toString().slice(0, 30) });
+    };
+    window.addEventListener("pointerdown", onDown, true);
+    return () => window.removeEventListener("pointerdown", onDown, true);
   }, []);
 
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
@@ -509,6 +529,7 @@ export default function Terminal() {
       g.connect(ac.destination);
       src.start(0);
       humSrcRef.current = src;
+      rlog("audio", "hum started (contexto running)", { state: ac.state });
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
     };
