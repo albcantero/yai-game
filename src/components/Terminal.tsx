@@ -25,6 +25,7 @@ interface Field {
 interface FormState {
   fields: Field[];
   active: number;
+  editing: boolean; // false = navegando con el caret; true = escribiendo en el campo activo
   onSubmit: (values: string[]) => void;
 }
 
@@ -274,6 +275,7 @@ export default function Terminal() {
         { label: "Contraseña:", value: "", mask: true },
       ],
       active: 0,
+      editing: false,
       onSubmit: (vals) => {
         // deja el formulario fijado en pantalla (limpio) y verifica
         addLine({ text: "Usuario: " + vals[0], cls: "", mark: "" });
@@ -294,24 +296,30 @@ export default function Terminal() {
       setShift(n);
       return;
     }
-    if (k === "ArrowUp") {
-      keyTick();
-      setForm({ ...f, active: Math.max(0, f.active - 1) });
-      return;
+    if (!f.editing) {
+      // NAVEGACION: el caret se mueve con las flechas; Enter selecciona el campo para escribir.
+      if (k === "ArrowUp") {
+        keyTick();
+        setForm({ ...f, active: Math.max(0, f.active - 1) });
+      } else if (k === "ArrowDown") {
+        keyTick();
+        setForm({ ...f, active: Math.min(f.fields.length - 1, f.active + 1) });
+      } else if (k === "Enter") {
+        keyTick();
+        setForm({ ...f, editing: true }); // seleccionado: aparece el cursor de escribir
+      }
+      return; // escribir no hace nada hasta seleccionar el campo
     }
-    if (k === "ArrowDown") {
-      keyTick();
-      setForm({ ...f, active: Math.min(f.fields.length - 1, f.active + 1) });
-      return;
-    }
+    // EDICION: se escribe en el campo activo; las flechas NO navegan.
+    if (k === "ArrowUp" || k === "ArrowDown") return;
     if (k === "Enter") {
       keyTick();
-      if (f.active < f.fields.length - 1) {
-        setForm({ ...f, active: f.active + 1 }); // avanza al siguiente campo
-      } else {
+      if (f.active >= f.fields.length - 1) {
         const values = f.fields.map((x) => x.value);
         setForm(null);
         f.onSubmit(values); // ultimo campo: envia
+      } else {
+        setForm({ ...f, editing: false }); // vuelve a navegacion
       }
       return;
     }
@@ -779,8 +787,8 @@ export default function Terminal() {
                 {form.fields.map((f, i) => (
                   <div className="inputline" key={i}>
                     <span className="fcaret" aria-hidden="true">
-                      {i === form.active && (
-                        <svg viewBox="0 0 24 24" fill="currentColor">
+                      {i === form.active && !form.editing && (
+                        <svg viewBox="9 7 6 10" fill="currentColor">
                           <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
                         </svg>
                       )}
@@ -788,6 +796,7 @@ export default function Terminal() {
                     <span className="flabel">{f.label}</span>
                     <span className="field">
                       <span className="mirror">{f.mask ? "•".repeat(f.value.length) : f.value}</span>
+                      {i === form.active && form.editing && <span className="cursor">█</span>}
                     </span>
                   </div>
                 ))}
