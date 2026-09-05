@@ -42,11 +42,11 @@ export const commands: Command[] = [
         return;
       }
       if (/00000000|trastienda/i.test(arg)) {
-        sys("FOUND", "Registro interno localizado", "b");
+        sys("OK", "Registro interno localizado", "b");
         print("Estante inferior · no consta en el mostrador", "muted");
         return;
       }
-      sys("NOT_FOUND", 'Sin resultados para "' + arg + '" en el catálogo público', "muted");
+      print('Sin resultados para "' + arg + '" en el catálogo público', "muted");
     },
   },
   {
@@ -79,7 +79,7 @@ export const commands: Command[] = [
     run: ({ print, sys }) => {
       print("");
       sys("ERROR", "Nivel administrador", "d");
-      sys("LOGGED", "Intento registrado", "muted");
+      print("Intento registrado", "muted");
     },
   },
 ];

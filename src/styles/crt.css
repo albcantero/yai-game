@@ -223,7 +223,7 @@ body{
 
 .row{ white-space:pre-wrap;word-break:break-word;min-height:1em;padding-left:2ch;text-indent:-2ch }  /* sangrado francés: las líneas partidas se alinean tras el "* " */
 .b{ color:#b8ffd6 }
-.muted{ color:#1f9e5e }
+.muted{ color:#37f07d }   /* verde base (el oscuro #1f9e5e queda SOLO para el hint) */
 .d{ color:#ff5f5f }
 .astk{ color:#1f9e5e }
 .row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
@@ -236,8 +236,8 @@ body{
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
 .flabel{ flex:none;color:#37f07d }   /* etiqueta de campo: mismo verde base que el resto */
 .fcheck{ flex:none;white-space:nowrap }   /* checkbox [ ]: brackets de texto + check svg dentro si tiene texto */
-.fcheck-gap{ display:inline-block;width:1.1em }   /* hueco del bracket vacio, mismo ancho que el check */
-.fcheck svg{ stroke:currentColor;stroke-width:1.5 }   /* engorda el check (path relleno, muy fino) */
+.fcheck-gap{ display:inline-block;width:.85em }   /* hueco del bracket vacio, mismo ancho que el check */
+.fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
 .fconnect{ flex:none;color:#b8ffd6 }   /* accion final "Conectar" (aparece con todos los campos llenos) */
 /* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
 .fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }

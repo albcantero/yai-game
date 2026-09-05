@@ -262,10 +262,10 @@ export default function Terminal() {
 
   // Verifica credenciales contra el RPC y muestra el resultado.
   const doLogin = async (username: string, password: string) => {
-    print("verificando...", "muted");
+    print("Verificando credenciales", "muted");
     const res = await loginCharacter(username, password);
     if (res.ok) {
-      sys("ACCESS_GRANTED", "Acceso concedido, hola " + (res.display_name || username), "b");
+      sys("OK", "Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
     } else {
       sys("ERROR", "Credenciales incorrectas", "d");
