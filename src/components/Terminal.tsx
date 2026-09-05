@@ -819,7 +819,7 @@ export default function Terminal() {
                   <path d="M11 21h2v2h-2zm2-2h2v2h-2zm2-2h6v2h-6zm0-12h2v2h-2zM5 10h2v2H5zm0-5h2v2H5zm4-4h2v4H9zM3 3h2v2H3zm0 9h2v2H3zm14-9h2v2h-2z" />
                 </svg>
                 Click para interactuar. Pulsa{" "}
-                <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg className="term-svg" style={{ marginRight: 0 }} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2z" />
                   <path d="M15 10H7V8h8zm2 2H5v-2h12z" />
                 </svg>
