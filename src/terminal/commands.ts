@@ -11,13 +11,13 @@ export const commands: Command[] = [
     usage: "help",
     desc: "esta ayuda",
     run: ({ print }) => {
-      print("comandos disponibles", "b");
+      print("Comandos disponibles", "b");
       for (const c of commands.filter((x) => !x.hidden)) {
         const sig = (c.usage ?? c.names[0]).padEnd(16, " ");
         print("  " + sig + (c.desc ?? ""));
       }
       print("");
-      print("...y no todos los comandos están en esta lista.", "muted");
+      print("...y no todos los comandos están en esta lista", "muted");
     },
   },
   {
@@ -38,15 +38,15 @@ export const commands: Command[] = [
     desc: "localizar un título",
     run: ({ print, arg }) => {
       if (!arg) {
-        print("uso: buscar <isbn>", "muted");
+        print("Uso: buscar <isbn>", "muted");
         return;
       }
       if (/00000000|trastienda/i.test(arg)) {
-        print("registro interno localizado.", "b");
-        print("estante inferior · no consta en el mostrador.", "muted");
+        print("[FOUND] Registro interno localizado", "b");
+        print("Estante inferior · no consta en el mostrador", "muted");
         return;
       }
-      print('sin resultados para "' + arg + '" en el catálogo público.', "muted");
+      print('[NOT_FOUND] Sin resultados para "' + arg + '" en el catálogo público', "muted");
     },
   },
   {
@@ -78,8 +78,8 @@ export const commands: Command[] = [
     hidden: true,
     run: ({ print }) => {
       print("");
-      print("ACCESO DENEGADO · nivel administrador", "d");
-      print("intento registrado.", "muted");
+      print("[ACCESS_DENIED] Nivel administrador", "d");
+      print("[LOGGED] Intento registrado", "muted");
     },
   },
 ];
