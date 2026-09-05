@@ -43,6 +43,7 @@ export default function Terminal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
+  const [powerOn, setPowerOn] = useState(true); // interruptor de encendido de la maquina (switch como el teclado)
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
 
@@ -526,6 +527,23 @@ export default function Terminal() {
             </button>
             <button type="button" className="chin-btn" aria-label="OK" onPointerDown={() => handleKey("Enter")}>
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 9h-2v12h2v2H9V7h4v2Zm2 12h-2v-2h2v2Zm6-2h-6v-2h4v-2h2v4Zm-2-4h-2v-2h2v2ZM5 14H3v-2h2v2Zm12-1h-2v-2h2v2ZM7 12H5v-2h2v2Zm8-1h-2V9h2v2ZM7 7H5V5h2v2Zm10 0h-2V5h2v2ZM5 5H3V3h2v2Zm6 0H9V1h2v4Zm8 0h-2V3h2v2Z"/></svg>
+            </button>
+            <button
+              type="button"
+              className={"chin-btn chin-kb chin-power" + (powerOn ? " is-on" : "")}
+              aria-pressed={powerOn}
+              aria-label={powerOn ? "Apagar" : "Encender"}
+              onClick={() => {
+                setPowerOn((v) => !v);
+                try {
+                  new Audio(SWITCH_SFX).play().catch(() => {});
+                } catch {
+                  /* sin audio */
+                }
+                if (navigator.vibrate) navigator.vibrate(50);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
             </button>
           </div>
         </div>
