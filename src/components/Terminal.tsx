@@ -383,13 +383,6 @@ export default function Terminal() {
   const handleFormKey = (k: string) => {
     const f = form;
     if (!f) return;
-    if (k === "Shift") {
-      keyTick();
-      const n = !shiftRef.current;
-      shiftRef.current = n;
-      setShift(n);
-      return;
-    }
     const allFilled = f.fields.every((x) => x.value.length > 0);
     const connectAvail = allFilled && !!f.submitLabel;
     const cancelIndex = f.fields.length + (connectAvail ? 1 : 0); // "Cancelar" siempre al final
@@ -492,6 +485,14 @@ export default function Terminal() {
   const handleKey = (k: string) => {
     if (loader) return;
     if (menuOpen) return;
+    if (k === "Shift") {
+      // Mayús es un modificador: latcha SIEMPRE que el teclado esté activo, no solo al escribir
+      keyTick();
+      const n = !shiftRef.current;
+      shiftRef.current = n;
+      setShift(n);
+      return;
+    }
     if (panel) {
       handlePanelKey(k);
       return;
@@ -508,13 +509,6 @@ export default function Terminal() {
       return;
     }
     if (!booted) return;
-    if (k === "Shift") {
-      keyTick();
-      const n = !shiftRef.current;
-      shiftRef.current = n;
-      setShift(n);
-      return;
-    }
     if (k === "Enter") {
       keyTick();
       const v = curRef.current;
