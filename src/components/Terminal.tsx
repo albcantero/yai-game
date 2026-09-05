@@ -348,8 +348,8 @@ export default function Terminal() {
     const arg = parts.slice(1).join(" ");
     const command = lookup.get(cmd);
     if (!command) {
-      print("[UNKNOWN_COMMAND] Comando no reconocido: " + cmd, "d");
-      print("Escribe help para ver los comandos disponibles", "muted");
+      print('"' + parts[0] + '" no se reconoce como un comando interno', "d");
+      print("Escribe help para consultar los comandos disponibles", "muted");
       print("");
       return;
     }
@@ -813,12 +813,20 @@ export default function Terminal() {
             )}
             {showInput && (
               <div className="hint" onPointerDown={confirmClick}>
-                Pulsa{" "}
+                Pulsa ENTER o{" "}
                 <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M9 7h2v16H9zm2 0h2v15h-2zm2 2h2v12h-2zm2 2h2v8h-2zm2 2h2v6h-2zm2 2h2v2h-2z" />
                   <path d="M11 21h2v2h-2zm2-2h2v2h-2zm2-2h6v2h-6zm0-12h2v2h-2zM5 10h2v2H5zm0-5h2v2H5zm4-4h2v4H9zM3 3h2v2H3zm0 9h2v2H3zm14-9h2v2h-2z" />
                 </svg>
-                Click en el monitor o ENTER en el teclado
+                Click para interactuar. Pulsa{" "}
+                <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2z" />
+                  <path d="M15 10H7V8h8zm2 2H5v-2h12z" />
+                </svg>
+                <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z" />
+                </svg>{" "}
+                para desplazarte por NeoTerminal2. Escribe "help" para consultar los comandos disponibles
               </div>
             )}
           </div>
