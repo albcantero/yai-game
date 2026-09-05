@@ -270,6 +270,8 @@ body{
 .hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em;filter:drop-shadow(.44px 0 0 rgba(0,30,255,.5)) drop-shadow(-.44px 0 0 rgba(255,0,80,.3)) drop-shadow(0 0 1px currentColor) }   /* mismo tratamiento CRT que el texto (aberración azul/rojo + glow verde) para que el icono no se vea como un verde plano más brillante */
 .field{ position:relative;flex:1;min-width:0 }
 .uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
+.cprompt{ color:#37f07d;margin-right:.4ch }   /* prompt del compose de chat (›) */
+.chat-back{ display:inline-block;cursor:pointer;color:#1f9e5e;opacity:.65;margin:4px 0 8px;user-select:none;-webkit-tap-highlight-color:transparent }   /* volver del hilo al roster */
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
 .crt.idle .cursor{ opacity:.35;animation:none }

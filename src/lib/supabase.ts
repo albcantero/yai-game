@@ -58,3 +58,62 @@ export async function currentCharacter(): Promise<Character | null> {
     .single();
   return (data as Character) ?? null;
 }
+
+// ---------- Chat (Fase 2b): DMs 1-a-1 + Sala común (to_char NULL) ----------
+export interface Msg {
+  id: number;
+  created_at: string;
+  from_char: string;
+  to_char: string | null; // null = sala común
+  body: string;
+}
+
+// Todos los personajes (para el roster y para mapear username -> display_name).
+export async function allCharacters(): Promise<Character[]> {
+  await ensureSession();
+  const { data } = await supabase.from("characters").select("username,display_name");
+  return (data as Character[]) ?? [];
+}
+
+// Historial de un hilo: sala común (target null) o DM 1-a-1 (target = username del otro).
+export async function fetchThread(me: string, target: string | null): Promise<Msg[]> {
+  await ensureSession();
+  let q = supabase
+    .from("messages")
+    .select("id,created_at,from_char,to_char,body")
+    .order("created_at", { ascending: true });
+  if (target === null) {
+    q = q.is("to_char", null);
+  } else {
+    q = q.or(
+      `and(from_char.eq.${me},to_char.eq.${target}),and(from_char.eq.${target},to_char.eq.${me})`,
+    );
+  }
+  const { data, error } = await q;
+  if (error) return [];
+  return (data as Msg[]) ?? [];
+}
+
+// Envia un mensaje (a la sala si target null, o DM al username target).
+export async function sendMessage(
+  from: string,
+  target: string | null,
+  body: string,
+): Promise<{ ok: boolean; error?: string }> {
+  await ensureSession();
+  const { error } = await supabase.from("messages").insert({ from_char: from, to_char: target, body });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
+// Suscripcion realtime a INSERTs de messages (la RLS filtra a lo que puedo ver). Devuelve el desuscriptor.
+export function subscribeMessages(onInsert: (m: Msg) => void): () => void {
+  const ch = supabase
+    .channel("rt-messages")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p) =>
+      onInsert(p.new as Msg),
+    )
+    .subscribe();
+  return () => {
+    void supabase.removeChannel(ch);
+  };
+}

@@ -4,7 +4,17 @@ import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
 import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
-import { loginCharacter, ensureSession } from "../lib/supabase";
+import {
+  loginCharacter,
+  ensureSession,
+  currentCharacter,
+  allCharacters,
+  fetchThread,
+  sendMessage,
+  subscribeMessages,
+  type Character,
+  type Msg,
+} from "../lib/supabase";
 
 type Mark = "*" | ">" | "";
 interface Line {
@@ -88,6 +98,7 @@ export default function Terminal() {
   const [loader, setLoader] = useState(false); // hay una carga en curso: bloquea el input (el spinner es una línea propia)
   const [panel, setPanel] = useState<PanelState | null>(null); // menu del panel (Mis mensajes / Salir)
   const [account, setAccount] = useState(false); // dentro de la cuenta: oculta el logo del inicio
+  const [thread, setThread] = useState<{ target: string | null; name: string } | null>(null); // hilo de chat abierto (null = ninguno)
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -109,6 +120,10 @@ export default function Terminal() {
   const shiftModeRef = useRef<"off" | "shift" | "caps">("off");
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
+  const meRef = useRef<Character | null>(null); // personaje logueado (para el chat)
+  const namesRef = useRef<Record<string, string>>({}); // username -> display_name
+  const threadRef = useRef<{ target: string | null; name: string } | null>(null); // hilo actual (para el callback realtime, sin cierres obsoletos)
+  const chatUnsubRef = useRef<null | (() => void)>(null); // desuscriptor realtime del hilo abierto
 
   const lookup = useMemo(() => {
     const m = new Map<string, Command>();
@@ -319,6 +334,12 @@ export default function Terminal() {
   };
 
   const logoutFlow = async () => {
+    if (chatUnsubRef.current) {
+      chatUnsubRef.current();
+      chatUnsubRef.current = null;
+    }
+    threadRef.current = null;
+    setThread(null);
     setPanel(null); // quita el menú antes de mostrar el spinner
     await spin("Cerrando sesión...", async () => {
       await sleep(2000);
@@ -328,15 +349,79 @@ export default function Terminal() {
     clear(); // vuelve a la pantalla de inicio (con el logo)
   };
 
-  // Abre el panel del personaje (menu). De momento: "Mis mensajes" y "Salir".
+  // Abre el panel del personaje (menu): "Mis mensajes" y "Salir".
   const openPanel = () => {
     setPanel({
       active: 0,
       options: [
-        { label: "Mis mensajes", run: () => print("(proximamente: aqui iran tus mensajes)", "muted") },
+        { label: "Mis mensajes", run: () => void openMessages() },
         { label: "Salir", run: () => logoutFlow() },
       ],
     });
+  };
+
+  // ---------- Chat (Fase 2b): roster (panel) + hilo (mensajes en lines + compose) ----------
+  const printMsg = (m: Msg) => {
+    const mine = m.from_char === meRef.current?.username;
+    const who = mine ? "Tú" : namesRef.current[m.from_char] ?? m.from_char;
+    addLine({ text: who + ": " + m.body, cls: mine ? "b" : "", mark: "" });
+  };
+  const belongsToThread = (m: Msg, target: string | null, me: string) =>
+    target === null
+      ? m.to_char === null
+      : (m.from_char === me && m.to_char === target) || (m.from_char === target && m.to_char === me);
+  const sendChat = async (target: string | null, body: string) => {
+    const from = meRef.current?.username;
+    if (!from) return;
+    const res = await sendMessage(from, target, body);
+    if (!res.ok) sys("ERROR", "No se pudo enviar el mensaje", "d");
+  };
+  const openThread = async (target: string | null, name: string) => {
+    setPanel(null);
+    const t = { target, name };
+    threadRef.current = t;
+    setThread(t);
+    setLine(""); // borrador limpio al entrar
+    clear();
+    print(name, "muted");
+    print("");
+    const me = meRef.current?.username ?? "";
+    const msgs = await fetchThread(me, target);
+    for (const m of msgs) printMsg(m);
+    if (chatUnsubRef.current) chatUnsubRef.current();
+    chatUnsubRef.current = subscribeMessages((m) => {
+      const cur = threadRef.current;
+      if (cur && belongsToThread(m, cur.target, meRef.current?.username ?? "")) printMsg(m);
+    });
+  };
+  const openMessages = async () => {
+    const chars = (await allCharacters()).filter((c) => c.username !== meRef.current?.username);
+    setPanel({
+      active: 0,
+      options: [
+        { label: "Sala común", run: () => void openThread(null, "Sala común") },
+        ...chars.map((c) => ({ label: c.display_name, run: () => void openThread(c.username, c.display_name) })),
+        { label: "Salir", run: () => openPanel() },
+      ],
+    });
+  };
+  const backToRoster = () => {
+    if (chatUnsubRef.current) {
+      chatUnsubRef.current();
+      chatUnsubRef.current = null;
+    }
+    threadRef.current = null;
+    setThread(null);
+    setLine("");
+    clear();
+    void openMessages();
+  };
+  const loadIdentity = async () => {
+    const chars = await allCharacters();
+    const map: Record<string, string> = {};
+    for (const c of chars) map[c.username] = c.display_name;
+    namesRef.current = map;
+    meRef.current = await currentCharacter();
   };
 
   const connectFlow = async (username: string, password: string) => {
@@ -359,6 +444,7 @@ export default function Terminal() {
       return;
     }
     await spin("Descargando metadatos de su cuenta...", async () => {
+      await loadIdentity(); // personaje + mapa de nombres para el chat
       await sleep(2500);
       return { code: "OK" as const, text: "Metadatos sincronizados", cls: "b" as LineClass };
     });
@@ -500,6 +586,28 @@ export default function Terminal() {
       const cur = shiftModeRef.current;
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
+    }
+    if (thread) {
+      // En un hilo de chat: escribir compone, Enter ENVÍA (el mensaje vuelve por realtime)
+      if (k === "Enter") {
+        keyTick();
+        const body = curRef.current.trim();
+        setLine("");
+        if (body) void sendChat(thread.target, body);
+        return;
+      }
+      if (k === "Backspace") {
+        keyTick();
+        setLine(curRef.current.slice(0, -1));
+        return;
+      }
+      if (k.length === 1) {
+        keyTick();
+        setLine(curRef.current + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
+        consumeShift();
+        return;
+      }
+      return; // flechas u otras: nada en el hilo
     }
     if (panel) {
       handlePanelKey(k);
@@ -799,6 +907,7 @@ export default function Terminal() {
   }, []);
 
   useEffect(() => stopHold, []);
+  useEffect(() => () => chatUnsubRef.current?.(), []); // limpia la suscripción realtime al desmontar
 
   // iOS tarda en la PRIMERA reproduccion de cada buffer (lo prepara en ese instante), por eso el
   // primer clic de cada sonido iba con retraso. En el primer gesto (fase de CAPTURA, antes que los
@@ -881,7 +990,7 @@ export default function Terminal() {
     window.location.href = "/";
   };
 
-  const showInput = booted && !dialog && !loader && !panel;
+  const showInput = booted && !dialog && !loader && !panel && !thread;
   // Acciones del formulario: "Conectar" (si todos los campos llenos) y "Cancelar" (siempre, al final).
   const fAllFilled = form ? form.fields.every((x) => x.value.length > 0) : false;
   const fConnect = !!form?.submitLabel && fAllFilled;
@@ -967,6 +1076,18 @@ export default function Terminal() {
                   <span className="cursor" />
                 </span>
               </div>
+            )}
+            {thread && (
+              <>
+                <div className="chat-back" onPointerDown={backToRoster}>‹ Volver a mensajes</div>
+                <div className="inputline">
+                  <span className="field">
+                    <span className="cprompt">›</span>
+                    <span className="mirror">{input}</span>
+                    <span className="cursor" />
+                  </span>
+                </div>
+              </>
             )}
             {form && (
               <div className="form">
