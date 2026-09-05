@@ -283,6 +283,7 @@ export default function Terminal() {
     setLoader("Descargando metadatos de su cuenta...");
     await sleep(2500);
     setLoader(null);
+    clear(); // limpia la pantalla tras la descarga (en Fase 2 aqui se abrira el panel de mensajes)
   };
 
   // Abre el formulario de login: dos campos con navegacion por flechas.
