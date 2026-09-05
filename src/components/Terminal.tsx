@@ -20,6 +20,11 @@ const prefersReduced = () =>
 const finePointer = () =>
   typeof matchMedia !== "undefined" && matchMedia("(hover:hover) and (pointer:fine)").matches;
 
+// Warp CRT (abombado 3D via filtro SVG) DESACTIVADO siempre: en iOS Safari congela la pantalla
+// como un bitmap (feImage/feDisplacementMap no se re-evalua al cambiar el contenido). Todo el
+// codigo del filtro queda intacto; para reactivarlo, pon esto en true.
+const WARP_ENABLED = false;
+
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
 function frameArt(text: string): string {
   const lines = text.replace(/^\n+/, "").replace(/\s+$/, "").split("\n");
@@ -525,7 +530,7 @@ export default function Terminal() {
       <div className="monitor">
         <div className="screen-area">
         <div
-          className={"crt curved" + (warpReady ? " warp" : "")}
+          className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
           <div className="win98 win-header" onPointerDownCapture={chromeClick}>

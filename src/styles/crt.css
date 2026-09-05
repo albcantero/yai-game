@@ -176,13 +176,7 @@ body{
 }
 .content>*{ width:100%;max-width:760px;flex:none }  /* que las filas NO se encojan: desbordan y hacen scroll, no se solapan */
 /* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
-.crt.warp{ filter:url(#barrel) }   /* sin overscan: la franja negra rodea la ventana entera y el filtro no se pinta fuera */
-/* iOS Safari congela como bitmap una capa con filtro SVG feImage+feDisplacementMap: la pantalla
-   deja de repintarse (parece un bloque estatico). En tactiles quitamos el warp: se pierde el abombado
-   pero la terminal vuelve a estar viva. En PC (pointer:fine) se mantiene el warp. */
-@media (hover:none) and (pointer:coarse){
-  .crt.warp{ filter:none }
-}
+.crt.warp{ filter:url(#barrel) }   /* warp DESACTIVADO desde el JS (WARP_ENABLED=false): esta clase ya no se aplica. Regla intacta para reactivar */
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
