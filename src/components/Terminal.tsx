@@ -4,6 +4,7 @@ import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
 import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
+import { loginCharacter, ensureSession } from "../lib/supabase";
 
 type Mark = "*" | ">" | "";
 interface Line {
@@ -56,6 +57,7 @@ export default function Terminal() {
   const [powerOn, setPowerOn] = useState(true); // interruptor de encendido de la maquina (switch como el teclado)
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
+  const [auth, setAuth] = useState<{ stage: "user" | "pass"; username: string } | null>(null); // login interactivo
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -239,7 +241,45 @@ export default function Terminal() {
     print("");
   };
 
+  // Login interactivo: pregunta usuario, luego clave (enmascarada), y llama al RPC.
+  const startLogin = () => {
+    setAuth({ stage: "user", username: "" });
+    print("usuario:");
+  };
+  const submitAuth = async (raw: string) => {
+    if (!auth) return;
+    if (auth.stage === "user") {
+      const u = raw.trim();
+      echo(u);
+      if (!u) {
+        setAuth(null);
+        print("login cancelado.", "muted");
+        print("");
+        return;
+      }
+      setAuth({ stage: "pass", username: u });
+      print("clave:");
+      return;
+    }
+    echo("••••••••"); // nunca mostramos la clave en pantalla
+    const username = auth.username;
+    setAuth(null);
+    print("verificando...", "muted");
+    const res = await loginCharacter(username, raw);
+    if (res.ok) {
+      print("acceso concedido. hola, " + (res.display_name || username) + ".", "b");
+      print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
+    } else {
+      print("credenciales incorrectas.", "d");
+    }
+    print("");
+  };
+
   const submit = (raw: string) => {
+    if (auth) {
+      submitAuth(raw);
+      return;
+    }
     const line = raw.trim();
     echo(line);
     rlog("info", "submit", { line });
@@ -254,9 +294,9 @@ export default function Terminal() {
       print("");
       return;
     }
-    const ctx: Ctx = { print, clear, startDialog: runDialog, arg, raw: line };
+    const ctx: Ctx = { print, clear, startDialog: runDialog, startLogin, arg, raw: line };
     command.run(ctx);
-    if (!command.names.includes("contacto")) print("");
+    if (!command.names.includes("contacto") && !command.names.includes("login")) print("");
   };
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
@@ -360,6 +400,11 @@ export default function Terminal() {
   // Logging remoto para depurar en el movil (gateado tras ?debug=1).
   useEffect(() => {
     initRemoteLog();
+  }, []);
+
+  // Prepara la sesion (anonima) con Supabase al arrancar, para que el login vaya fluido.
+  useEffect(() => {
+    ensureSession().catch(() => {});
   }, []);
 
   // Animacion de pulsado garantizada: con :active (atado a la duracion del toque) un tap ultrarrapido
@@ -679,7 +724,7 @@ export default function Terminal() {
               <div className="inputline">
                 <span className="prompt">{">"}</span>
                 <span className="field">
-                  <span className="mirror">{input}</span>
+                  <span className="mirror">{auth?.stage === "pass" ? "•".repeat(input.length) : input}</span>
                   <span className="cursor">█</span>
                 </span>
               </div>

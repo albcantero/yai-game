@@ -50,19 +50,10 @@ export const commands: Command[] = [
     },
   },
   {
-    names: ["login"],
-    usage: "login <rol>",
-    desc: "identificarse en el sistema",
-    run: ({ print, arg }) => {
-      if (!arg) {
-        print("uso: login <rol>", "muted");
-        print("roles activos: mostrador · archivo · contabilidad");
-        print("(necesitas la contraseña de tu carpeta personal)", "muted");
-        return;
-      }
-      print('solicitando credenciales para el rol "' + arg + '"...');
-      print("contraseña requerida: introdúcela desde tu carpeta.", "muted");
-    },
+    names: ["login", "entrar"],
+    usage: "login",
+    desc: "identificarse con tu usuario y clave",
+    run: ({ startLogin }) => startLogin(),
   },
   {
     names: ["contacto", "mensaje"],

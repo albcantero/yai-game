@@ -8,6 +8,8 @@ export interface Ctx {
   clear: () => void;
   /** Reproduce un diálogo por partes (con chevron de continuar). */
   startDialog: (lines: string[]) => void;
+  /** Inicia el login interactivo: pregunta usuario y luego clave (enmascarada). */
+  startLogin: () => void;
   /** Argumentos tras el nombre del comando ("978" en "/buscar 978"). */
   arg: string;
   /** La línea completa tal cual se escribió. */
