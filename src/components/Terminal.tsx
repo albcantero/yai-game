@@ -492,7 +492,7 @@ export default function Terminal() {
   };
 
   const handleKey = (k: string) => {
-    if (loader) return;
+    // El teclado es INDEPENDIENTE del estado del terminal: NO se bloquea con el loader/spinner.
     if (menuOpen) return;
     if (k === "Shift") {
       // Ciclo tipo teclado móvil: minúsculas → mayús de 1 letra → bloq mayús → minúsculas
@@ -583,7 +583,7 @@ export default function Terminal() {
   const startHold = (k: string) => {
     handleKey(k); // primer toque: inserta/borra + sonido + vibración
     stopHold();
-    const repeatable = booted && !menuOpen && !dialog && !form && !panel && !loader && (k === "Backspace" || k.length === 1);
+    const repeatable = booted && !menuOpen && !dialog && !form && !panel && (k === "Backspace" || k.length === 1);
     if (!repeatable) return;
     holdTimerRef.current = window.setTimeout(() => {
       holdIntervalRef.current = window.setInterval(() => repeatKey(k), 60); // repeticiones SIN sonido
@@ -759,12 +759,12 @@ export default function Terminal() {
     // Menú principal del terminal: saludo + directivas (typewriter, letra a letra) + sincronización.
     // No marcamos booted hasta el final, así el prompt no parpadea mientras se escribe la bienvenida.
     (async () => {
-      await typeLine("Bienvenido/a a SANTAS OCHOVA Tu Mejor Librería.", "", 16);
+      await typeLine("Bienvenido/a a SANTAS OCHOVA Tu Mejor Librería", "", 16);
       await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16);
       print("");
-      await typeLine("Literatura correcta para ciudadanos correctos.", "muted", 16, "", { bullet: true });
-      await typeLine("Una mente condicionada es una mente feliz.", "muted", 16, "", { bullet: true });
-      await typeLine("La lectura sin propósito produce inestabilidad social.", "muted", 16, "", { bullet: true });
+      await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, "", { bullet: true });
+      await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true });
+      await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true });
       await spin("Sincronizando...", async () => {
         await sleep(2500);
         return { code: "OK", text: "Sistema sincronizado", cls: "b" };
@@ -1038,7 +1038,7 @@ export default function Terminal() {
               </div>
             )}
             {showInput && (
-              <>
+              <div className="help-block">
               <div className="help-q">¿Necesitas ayuda?</div>
               <div className="hint" onPointerDown={confirmClick}>
                 Pulsa ENTER o{" "}
@@ -1056,7 +1056,7 @@ export default function Terminal() {
                 </svg>{" "}
                 para desplazarte por NeoTerminal2. Escribe "help" para consultar los comandos disponibles
               </div>
-              </>
+              </div>
             )}
           </div>
           {menuOpen && (
@@ -1168,7 +1168,7 @@ export default function Terminal() {
           </button>
         </div>
         <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { if (loader) return; keyTick(); setNumMode(true); }}>123</button>
+          <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(true); }}>123</button>
           <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
         </div>
@@ -1194,7 +1194,7 @@ export default function Terminal() {
           </button>
         </div>
         <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { if (loader) return; keyTick(); setNumMode(false); }}>ABC</button>
+          <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(false); }}>ABC</button>
           <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => handleKey("Enter")}>Enter</button>
         </div>
