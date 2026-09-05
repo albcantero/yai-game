@@ -30,12 +30,7 @@
 /* Sello de build estilo dev (esquina): ver el SHA horneado en el bundle => saber si es deploy actual o cache */
 .build-stamp{ position:fixed;left:4px;bottom:4px;z-index:99999;font:9px/1 'Courier Pixel',ui-monospace,monospace;letter-spacing:.5px;color:#37f07d;opacity:.4;pointer-events:none;text-shadow:0 1px 0 rgba(0,0,0,.6) }
 
-:root{
-  color-scheme:dark;
-  /* cursor pixelart (el mismo puntero relleno del hint) para todo el terminal, botones del monitor incluidos */
-  --pix-cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%2337f07d"><path d="M9 7h2v16H9zm2 0h2v15h-2zm2 2h2v12h-2zm2 2h2v8h-2zm2 2h2v6h-2zm2 2h2v2h-2z"/><path d="M11 21h2v2h-2zm2-2h2v2h-2zm2-2h6v2h-6zm0-12h2v2h-2zM5 10h2v2H5zm0-5h2v2H5zm4-4h2v4H9zM3 3h2v2H3zm0 9h2v2H3zm14-9h2v2h-2z"/></svg>') 6 4, pointer;
-}
-.stage{ cursor:var(--pix-cursor) }   /* cursor pixelart en todo el terminal (escritorio) */
+:root{ color-scheme:dark; }
 *{ box-sizing:border-box }
 html,body{ height:100% }
 body{
@@ -93,7 +88,7 @@ body{
   position:relative;
   width:32px;height:30px;padding:0;
   display:inline-flex;align-items:center;justify-content:center;
-  background-color:#454840;color:#22261f;cursor:var(--pix-cursor);   /* gris del monitor */
+  background-color:#454840;color:#22261f;cursor:pointer;   /* gris del monitor */
   border:2px solid #22261f;border-radius:6px;              /* borde oscuro (tono "SANTAS OCHOVA"); el de arriba lo tapa el ::before */
   box-shadow:
     -1px -2px 4px rgba(255,255,255,.13),                   /* glow claro arriba-izq (mas ajustado al tamano) */
@@ -243,7 +238,7 @@ body{
 .fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
 /* hint clicable bajo el input activo (no navegable con flechas) */
-.hint{ margin-top:8px;color:#37f07d;opacity:.7;cursor:var(--pix-cursor);user-select:none;-webkit-tap-highlight-color:transparent }
+.hint{ margin-top:8px;color:#37f07d;opacity:.7;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent }
 /* MEDIDA UNIVERSAL de los SVG inline del terminal (la del caret): altura del cuerpo de texto,
    anchura proporcional, alineado con la linea. Usar .term-svg en todo SVG inline de aqui en adelante. */
 .term-svg{ height:.8em;width:auto;vertical-align:-.1em;fill:currentColor }
@@ -328,7 +323,7 @@ body{
     inset 0 -2px 0 rgba(0,0,0,.35),                      /* grosor del keycap */
     0 2px 2px rgba(0,0,0,.4);                            /* sombra proyectada */
   text-shadow:0 1px 0 rgba(255,255,255,.14);            /* grabado en plástico, como la marca */
-  cursor:var(--pix-cursor);
+  cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
   touch-action:manipulation;

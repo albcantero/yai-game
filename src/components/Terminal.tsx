@@ -866,7 +866,7 @@ export default function Terminal() {
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z"/></svg>
             </button>
             <button type="button" className="chin-btn" aria-label="OK" onPointerDown={() => chinKey("Enter")}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 9h-2v12h2v2H9V7h4v2Zm2 12h-2v-2h2v2Zm6-2h-6v-2h4v-2h2v4Zm-2-4h-2v-2h2v2ZM5 14H3v-2h2v2Zm12-1h-2v-2h2v2ZM7 12H5v-2h2v2Zm8-1h-2V9h2v2ZM7 7H5V5h2v2Zm10 0h-2V5h2v2ZM5 5H3V3h2v2Zm6 0H9V1h2v4Zm8 0h-2V3h2v2Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 7h2v16H9zm2 0h2v15h-2zm2 2h2v12h-2zm2 2h2v8h-2zm2 2h2v6h-2zm2 2h2v2h-2z"/><path d="M11 21h2v2h-2zm2-2h2v2h-2zm2-2h6v2h-6zm0-12h2v2h-2zM5 10h2v2H5zm0-5h2v2H5zm4-4h2v4H9zM3 3h2v2H3zm0 9h2v2H3zm14-9h2v2h-2z"/></svg>
             </button>
             <button
               type="button"
