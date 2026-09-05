@@ -340,6 +340,12 @@ export default function Terminal() {
     if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
   };
 
+  // DIAG temporal: confirma que React hidrata en el cliente (para depurar iOS).
+  useEffect(() => {
+    (window as any).__reactMounted = true;
+    if ((window as any).__diag) (window as any).__diag("react: MONTO OK");
+  }, []);
+
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
   useEffect(() => {
     if (didBoot.current) return;
