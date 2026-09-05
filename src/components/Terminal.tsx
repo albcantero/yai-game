@@ -286,7 +286,7 @@ export default function Terminal() {
           run: () => {
             setPanel(null);
             print("");
-            print("Sesión cerrada");
+            print("Se ha cerrado su sesión correctamente");
             print("");
           },
         },
