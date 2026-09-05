@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
+import { initRemoteLog, rlog } from "../lib/rlog";
 
 type Mark = "*" | ">" | "";
 interface Line {
@@ -20,11 +21,10 @@ const prefersReduced = () =>
 const finePointer = () =>
   typeof matchMedia !== "undefined" && matchMedia("(hover:hover) and (pointer:fine)").matches;
 
-// Warp CRT (abombado 3D via filtro SVG) DESACTIVADO: en iOS Safari el filtro se congela como un
-// bitmap (feImage/feDisplacementMap no se re-evalua al cambiar el contenido) y el juego es solo
-// para movil, asi que no compensa. El codigo del filtro queda intacto; pon esto en true para
-// reactivarlo (util solo en PC, donde el filtro se repinta nativo).
-const WARP_ENABLED = false;
+// Warp CRT (abombado 3D via filtro SVG). Estuvo desactivado mientras depurabamos el congelado de
+// iOS, que al final resulto ser el AudioContext, NO el filtro. Reactivado; si el filtro diera algun
+// problema propio en iOS (feImage/feDisplacementMap), volver a poner en false.
+const WARP_ENABLED = true;
 
 // PRUEBA iOS: audio OFF. Sospecha de que el AudioContext al pasar a "running" (primera tecla)
 // estrangula el scheduler de React en Safari y deja de renderizar. Si con esto escribe, era el audio.
@@ -239,6 +239,7 @@ export default function Terminal() {
   const submit = (raw: string) => {
     const line = raw.trim();
     echo(line);
+    rlog("info", "submit", { line });
     if (!line) return;
     const parts = line.split(/\s+/);
     const cmd = parts[0].toLowerCase();
@@ -353,6 +354,11 @@ export default function Terminal() {
     if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
   };
 
+  // Logging remoto para depurar en el movil (gateado tras ?debug=1).
+  useEffect(() => {
+    initRemoteLog();
+  }, []);
+
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
   useEffect(() => {
     if (didBoot.current) return;
@@ -453,6 +459,7 @@ export default function Terminal() {
       await typeLine("escribe help y pulsa Enter para empezar.", "", 10);
       print("");
       setBooted(true);
+      rlog("info", "boot done");
     })();
 
     return () => window.removeEventListener("resize", onResize);
