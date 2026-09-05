@@ -1036,6 +1036,8 @@ export default function Terminal() {
               </div>
             )}
             {showInput && (
+              <>
+              <div className="help-q">¿Necesitas ayuda?</div>
               <div className="hint" onPointerDown={confirmClick}>
                 Pulsa ENTER o{" "}
                 <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -1052,6 +1054,7 @@ export default function Terminal() {
                 </svg>{" "}
                 para desplazarte por NeoTerminal2. Escribe "help" para consultar los comandos disponibles
               </div>
+              </>
             )}
           </div>
           {menuOpen && (
