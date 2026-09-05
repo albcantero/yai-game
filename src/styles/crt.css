@@ -128,12 +128,13 @@ body{
 /* Click tipo switch del boton de teclado: al alternar pasa por la SOMBRA inset en el medio
    (arriba -> sombra -> abajo, y al reves). La sombra guardada, ahora como ::after que pulsa opacity. */
 .chin-btn::after{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:rgba(0,0,0,.18);box-shadow:inset 0 2px 5px rgba(0,0,0,.55);opacity:0 }
-.chin-btn.kb-anim-on::after,.chin-btn.kb-anim-off::after{ animation:kb-shadow-pulse .22s ease }
-@keyframes kb-shadow-pulse{ 0%,100%{opacity:0} 40%,60%{opacity:1} }   /* pico mantenido = la sombra se ve */
+.chin-btn.kb-anim-on::after,.chin-btn.kb-anim-off::after{ animation:kb-shadow-pulse .24s ease }
+@keyframes kb-shadow-pulse{ 0%{opacity:0} 22%,42%{opacity:1} 100%{opacity:0} }   /* la sombra sube PRIMERO, antes de que el boton baje */
 /* durante el click: boton + ::before + icono a .16s, para ir en sync con el pulso de sombra */
-.chin-btn.kb-anim-on,.chin-btn.kb-anim-off{ transition-duration:.22s }
-.chin-btn.kb-anim-on::before,.chin-btn.kb-anim-off::before{ transition-duration:.22s }
-.chin-btn.kb-anim-on svg,.chin-btn.kb-anim-off svg{ transition-duration:.22s }
+/* el boton/relieve/icono ESPERAN (delay) a que salga la sombra y LUEGO bajan: arriba -> sombra -> abajo */
+.chin-btn.kb-anim-on,.chin-btn.kb-anim-off{ transition-duration:.12s;transition-delay:.1s }
+.chin-btn.kb-anim-on::before,.chin-btn.kb-anim-off::before{ transition-duration:.12s;transition-delay:.1s }
+.chin-btn.kb-anim-on svg,.chin-btn.kb-anim-off svg{ transition-duration:.12s;transition-delay:.1s }
 
 /* pantalla hundida dentro de la carcasa */
 .screen-area{
