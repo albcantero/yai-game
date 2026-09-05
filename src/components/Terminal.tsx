@@ -292,7 +292,7 @@ export default function Terminal() {
   // Botones de navegacion del monitor (arriba/abajo/OK): hacen su accion pero suenan a boton
   // de monitor (terminal-button), no al tic del teclado.
   const chinKey = (k: string) => {
-    playSfx("/audio/terminal-click-button-switch.mp3");
+    playSfx("/audio/terminal-simple-button.mp3");
     suppressTickRef.current = true;
     handleKey(k);
     suppressTickRef.current = false;
@@ -407,7 +407,7 @@ export default function Terminal() {
           })
           .catch(() => {});
         // SFX de click pre-decodificados (para que suenen sin latencia)
-        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-click-button-switch.mp3"].forEach(
+        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3"].forEach(
           (src) => {
             fetch(src)
               .then((r) => r.arrayBuffer())
