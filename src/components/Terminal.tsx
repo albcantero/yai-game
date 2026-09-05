@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from "react";
 import { commands } from "../terminal/commands";
 import type { Command, Ctx, LineClass } from "../terminal/types";
 import BANNER from "../terminal/banner.txt?raw";
@@ -31,8 +31,16 @@ function frameArt(text: string): string {
   return out + "+" + bar + "+";
 }
 
-const SWITCH_SFX =
-  "data:audio/mpeg;base64,SUQzBAAAAAABSlRYWFgAAAAZAAADVENNAE5pY29sYXMgSmVzZW5iZXJnZXIAVFhYWAAAADAAAANUVDEAQ2V0dGUgdmlkw6lvIHRyYWl0ZSBkZSBQcm9qZXQgc2FucyB0aXRyZSAxAFRJVDIAAAAVAAADUHJvamV0IHNhbnMgdGl0cmUgMQBURU5DAAAAIQAAA1Byb1RyYW5zY29kZXJUb29sIChBcHBsZSBNUDMgdjEAVFNTRQAAAA8AAANMYXZmNTkuMzAuMTAxAAAAAAAAAAAAAAD/+1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYaW5nAAAADwAAAAwAAAnDAB8fHx8fHx8fVVVVVVVVVVWAgICAgICAgJKSkpKSkpKSkqWlpaWlpaWltbW1tbW1tbXFxcXFxcXFxcXS0tLS0tLS0uDg4ODg4ODg6urq6urq6urq9fX19fX19fX//////////wAAAABMYXZjNTkuNDIAAAAAAAAAAAAAAAAkAkAAAAAAAAAJw/AdFksAAAAAAAAAAAAAAAAAAAAA//sQRAAP8AAAf4AAAAgAAA/wAAABAAAB/hQAACAAAD/CgAAEAABAQAAQA/8fzf1/A89pkDcjtDAwWCYRAQBAFV3kT+CT+d+aaiVbJe19nytmpOQYuiZiNLV02X/hVxyj2V9Pw3x5DID/+6BkIgAAbw/QpgSgAgAAD/DAAAANxTlLuPaAAAAAP8MAAACtADP++pMyC5iaBwBsAXl29FZ9fHIC3hN0lp///xgDpuZpGhTQV///5THAUDo9zcvphn//5uPNFF5zYplXl4hTRLWQRA4w2M4FJK0lzoq4WBA695X4Ij4amDQutBQRZj7uUDWT1pGgQF5ZUBHkgCKY6rtNlRYU4wgS+CAEEICbrWiQNQqV0Etb43CiQk1RwE4ABlFiIH4U5sEQfWlMthwuQtRyyJUHB7tTsraO3apM0tWaruhA6lCVkroNqERtWuH4RLqtn8LGGXqwo9vs3FBd/o0w9m9DuNtxeDJ/5ya/liGaXmt1JQnumuCh2JPI+fe/+MhVUliXcsl2Hf/tq9lKYzv+/v6evrO3qfjcPwJuV/9TWqOrPvRCnVZ20todT////9d1l9WlpfkjAkhCJFEtvYUhpEGlhOSEywpMxQu7aMlRgwCFVcvlL9ePWp/ySN//+zHz/vWb1QlJjXRhQUXfhU3lyzFoqTVtp2tW5QMvPGTz3oJa1JNj6mpKw2rqWHlzMSaiCLQE6E6OlSQgPIwAE98jZir1tTxRhO0YFlBQIOjJt5zRp//5NP5H0NrdS6pmRGo58I1q3id3xFQDoSTW79OW1O1Moiy0AnhStaSqHiM5Ck3jgJh004vpHEhFFNumxtnfRg//+5Bk1wAHgGVdfmcoAAAAD/DAAAAKjLVv/JGAAAAANIOAAAQed9lsrfr0ZWXM/7nbNoCWm36Biy1ItiXt6Ho+J5Btufc31N90/modNatpV4cyNCoFujP4cq0TELBUxIQIG1kP0stJDU7wvygKbyCqM4nrykfwg0pvPopGDS3pgnLuaQM11KzsnTLgmM+p2kAiDWHIRSSIMgkPrCOz6K4IVGUCOc5ikk63+pgE5JUul//TY1vZt2chlRdbjtMlemjP7qz/73euZ85AU9+Syyqrqkq4Q0hiBdAeSgPEU6RiOlg+w1N965OkhHkeBgeTA5X+5lmirEpRxbJHid4Af5QBNkYnIPAIhqqWNUEiXAIDspj6cA0ANGxetLusurWnIUd2OpvdKMpV6st//psrrjnTmOTTRGUN/ld1vOW7J/1a/Ia4I3GhFQCnWZlSRFEB0D/GIIJdALirI8odLmjR2x9+NHW+zNihL0ZP/+XKdic4Vryr/BMB7syDyXWkb72x8GQYHb1gFVMTKkcTYKYEieXTIhIVQvM3smdDHW/2h/crAYj/+0Bk8wDyJy1aeSEcIAAADSAAAAEJkQFn5hxQyAAANIAAAAQPn4oY+hzBLDZG5AxChI+WLyRbUy7nMJjxhZIAeWiAY1apBUA4wRlA1R9+pkAnBn8KG+uOJVn3MEHOV8XHz3cI0ht8rW4TFlDGPJeaqc7FrmAHZQCHmCAhsBfuwmATf7WbdqoBZtbJQ17k1K6GrMdP/9HV92Zi0hjNrq9JfoHMzOUlUCEOevmuqgAAhwB3BGIhgP/7QGTzAPISN9n5IRzgAAANIAAAAQfdEWPgJENAAAA0gAAABA0Sy3+6HPAkX/91KdBVbLYb+tNXd7Hc4goTIuD55SwwW6zHCoCcsAD0AXaUEoAKBt//b5fZdXGCaUK21+smJjvprhJgLUS5YidPF8rIJ131AAgAGrMICAH+eYz9W+yykUq4C6Oa3ptszqiaNQ9TO332IVzU40D4l66A+sBKsb3MK//SnKSoeEbwjlksu4Y6nUw8//swZPsA8awMWfghSAAAAA0gAAABCB0LYeAwQ4gAADSAAAAElUxBTUUzLjEwMFVVVVVVVVVVVVVVgRCAAnmjmEjpMKT//f6oUrbOjqnbawppb6P//2DCQVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//swZPuA8etCV/kBHWAAAA0gAAABBxBTXeA8YoAAADSAAAAEVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sgZPyA8agY1vgLEKAAAA0gAAABBxDdV+KkToAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7IGT0gPF8JNV4BxHQAAANIAAAAQUcZVOgCSfAAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xBk9wzxTDJTaCASMgAADSAAAAEDIJ9QQAh2gAAANIAAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EGTtjfDOL1IYARUQAAANIAAAAQC4ATIAAAAAAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZN2P8AAAf4AAAAgAAA0gAAABAAAB/gAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=";
+// Reproduce un SFX corto (mp3) de una vez.
+const playSfx = (src: string, vol = 1) => {
+  try {
+    const a = new Audio(src);
+    a.volume = vol;
+    a.play().catch(() => {});
+  } catch {
+    /* sin audio */
+  }
+};
 
 export default function Terminal() {
   const [lines, setLines] = useState<Line[]>([]);
@@ -60,6 +68,7 @@ export default function Terminal() {
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
+  const humRef = useRef<HTMLAudioElement>(null); // zumbido de fondo del CRT (loop)
   const shiftRef = useRef(false);
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
@@ -296,6 +305,11 @@ export default function Terminal() {
     submit(cmd);
   };
 
+  // Sonido de click en el chrome del terminal (cerrar X, cog/menu, items, botones de dialogo...).
+  const chromeClick = (e: ReactMouseEvent) => {
+    if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
+  };
+
   // Arranque: mapa de curvatura + banner + secuencia de boot (una sola vez).
   useEffect(() => {
     if (didBoot.current) return;
@@ -405,6 +419,25 @@ export default function Terminal() {
 
   useEffect(() => stopHold, []);
 
+  // Zumbido de fondo del CRT: loop a bajo volumen, arranca en la primera interaccion (autoplay).
+  useEffect(() => {
+    const start = () => {
+      const h = humRef.current;
+      if (h) {
+        h.volume = 0.22;
+        h.play().catch(() => {});
+      }
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
+    window.addEventListener("pointerdown", start);
+    window.addEventListener("keydown", start);
+    return () => {
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
+  }, []);
+
   const onScreenPointerDown = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest(".win98")) return; // clics en header/menú/teclado: los gestiona el chrome
     if (menuOpen) {
@@ -431,13 +464,15 @@ export default function Terminal() {
         </filter>
       </svg>
 
+      <audio ref={humRef} src="/audio/terminal-humming.mp3" loop preload="auto" aria-hidden="true" />
+
       <div className="monitor">
         <div className="screen-area">
         <div
           className={"crt curved" + (warpReady ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
-          <div className="win98 win-header">
+          <div className="win98 win-header" onClickCapture={chromeClick}>
             <div className="title-bar">
               <img className="title-icon" src="/icons/term.png" alt="" />
               <div className="title-bar-text">santasochova-term.exe</div>
@@ -478,7 +513,7 @@ export default function Terminal() {
             )}
           </div>
           {menuOpen && (
-            <aside className="win98 win-sidebar">
+            <aside className="win98 win-sidebar" onClickCapture={chromeClick}>
               <div className="window">
                 <div className="title-bar">
                   <div className="title-bar-text">Menú</div>
@@ -509,11 +544,7 @@ export default function Terminal() {
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
               onClick={() => {
                 setShowKeyboard((v) => !v);
-                try {
-                  new Audio(SWITCH_SFX).play().catch(() => {});
-                } catch {
-                  /* sin audio */
-                }
+                playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
             >
@@ -535,11 +566,7 @@ export default function Terminal() {
               aria-label={powerOn ? "Apagar" : "Encender"}
               onClick={() => {
                 setPowerOn((v) => !v);
-                try {
-                  new Audio(SWITCH_SFX).play().catch(() => {});
-                } catch {
-                  /* sin audio */
-                }
+                playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
             >
@@ -629,7 +656,7 @@ export default function Terminal() {
       )}
 
       {confirmClose && (
-        <div className="win98 confirm-overlay">
+        <div className="win98 confirm-overlay" onClickCapture={chromeClick}>
           <div className="window confirm-dialog">
             <div className="title-bar">
               <div className="title-bar-text">Cerrar sesión</div>
