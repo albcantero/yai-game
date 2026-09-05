@@ -235,17 +235,17 @@ body{
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
 .flabel{ flex:none;color:#37f07d }   /* etiqueta de campo: mismo verde base que el resto */
-.fcheck{ flex:none;display:inline-flex;align-items:center }   /* checkbox del campo: marcado si tiene texto */
-.fcheck .term-svg{ width:1.1em;height:1.1em }   /* checkbox mas grande que la medida universal */
+.fcheck{ flex:none;white-space:nowrap }   /* checkbox [ ]: brackets de texto + check svg dentro si tiene texto */
+.fcheck-gap{ display:inline-block;width:1.1em }   /* hueco del bracket vacio, mismo ancho que el check */
 .fconnect{ flex:none;color:#b8ffd6 }   /* accion final "Conectar" (aparece con todos los campos llenos) */
 /* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
 .fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
 /* hint clicable bajo el input activo (no navegable con flechas) */
 .hint{ margin-top:8px;color:#1f9e5e;opacity:.65;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent }
-/* MEDIDA UNIVERSAL de los SVG inline del terminal (la del caret): altura del cuerpo de texto,
-   anchura proporcional, alineado con la linea. Usar .term-svg en todo SVG inline de aqui en adelante. */
-.term-svg{ height:.8em;width:auto;vertical-align:-.1em;fill:currentColor }
+/* MEDIDA UNIVERSAL de los SVG inline del terminal: altura del cuerpo de texto, anchura proporcional,
+   alineado con la linea. Usar .term-svg en todo SVG inline. El caret es la unica excepcion (.8em). */
+.term-svg{ height:1.1em;width:auto;vertical-align:-.1em;fill:currentColor }
 .hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em }   /* cursor de raton: pegado a "Click" */
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }

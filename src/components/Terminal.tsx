@@ -814,15 +814,15 @@ export default function Terminal() {
                       )}
                     </span>
                     <span className="fcheck" aria-hidden="true">
+                      {"["}
                       {f.value.length ? (
                         <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M22 22H2V2h20v20ZM4 20h16V4H4v16Zm7-4H9v-2h2v2Zm-2-2H7v-2h2v2Zm4 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Z" />
+                          <path d="M10 18H8v-2h2v2Zm-2-2H6v-2h2v2Zm4-2v2h-2v-2h2Zm-6 0H4v-2h2v2Zm8 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Zm2-2h-2V6h2v2Z" />
                         </svg>
                       ) : (
-                        <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M4 4v16h16V4H4Zm18 18H2V2h20v20Z" />
-                        </svg>
+                        <span className="fcheck-gap" />
                       )}
+                      {"]"}
                     </span>
                     <span className="flabel">{f.label}</span>
                     <span className="field">
