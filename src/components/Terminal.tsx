@@ -57,6 +57,8 @@ export default function Terminal() {
   const hposRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const crtRef = useRef<HTMLDivElement>(null); // para forzar repintado en iOS tras cada cambio
+  const repaintRef = useRef<HTMLDivElement>(null); // DIAG+fix: elemento fijo que cambia en cada commit (replica el panel)
+  const rcRef = useRef(0);
   const curRef = useRef("");
   const handleKeyRef = useRef<(k: string) => void>(() => {});
   const bannerRef = useRef<HTMLPreElement>(null);
@@ -462,14 +464,23 @@ export default function Terminal() {
   // forzamos un reflow del CRT: display off + lectura de offsetHeight + on, todo SINCRONO en el mismo
   // turno de JS, asi iOS re-rasteriza y no hay parpadeo visible. Preservamos el scroll del contenido.
   useEffect(() => {
+    // DIAG+fix: en cada commit de React cambiamos el texto de un elemento position:fixed visible.
+    // Esto es EXACTAMENTE lo que hacia el panel de diagnostico (que si descongelaba la pantalla).
+    // Si el numero sube al escribir -> React SI renderiza (bug de pintado). Si no sube -> React no
+    // renderiza en Safari (otro bug distinto).
+    rcRef.current++;
+    const p = repaintRef.current;
+    if (p) p.textContent = "r" + rcRef.current;
+    // Ademas, reflow del CRT (por si el cambio del elemento fijo no basta para forzar el repaint).
     const el = crtRef.current;
-    if (!el) return;
-    const sc = scrollRef.current;
-    const st = sc ? sc.scrollTop : 0;
-    el.style.display = "none";
-    void el.offsetHeight;
-    el.style.display = "";
-    if (sc) sc.scrollTop = st;
+    if (el) {
+      const sc = scrollRef.current;
+      const st = sc ? sc.scrollTop : 0;
+      el.style.display = "none";
+      void el.offsetHeight;
+      el.style.display = "";
+      if (sc) sc.scrollTop = st;
+    }
   });
 
   // Teclado físico (PC): enruta al mismo manejador que el teclado en pantalla.
@@ -543,6 +554,8 @@ export default function Terminal() {
           <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
+
+      <div ref={repaintRef} className="ios-repaint" aria-hidden="true"></div>
 
       <div className="monitor">
         <div className="screen-area">
