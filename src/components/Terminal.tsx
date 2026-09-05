@@ -82,7 +82,7 @@ export default function Terminal() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
   const [powerOn, setPowerOn] = useState(true); // interruptor de encendido de la maquina (switch como el teclado)
-  const [shift, setShift] = useState(false);
+  const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // teclado móvil: off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
   const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
   const [loader, setLoader] = useState(false); // hay una carga en curso: bloquea el input (el spinner es una línea propia)
@@ -106,7 +106,7 @@ export default function Terminal() {
   const humSrcRef = useRef<AudioBufferSourceNode | null>(null);
   const sfxBuffersRef = useRef<Record<string, AudioBuffer>>({}); // SFX de click pre-decodificados (Web Audio, sin latencia)
   const suppressTickRef = useRef(false); // silencia el tic de tecla cuando el sonido lo dispara otra cosa (botones del monitor)
-  const shiftRef = useRef(false);
+  const shiftModeRef = useRef<"off" | "shift" | "caps">("off");
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
 
@@ -137,6 +137,14 @@ export default function Terminal() {
   const setLine = (v: string) => {
     curRef.current = v;
     setInput(v);
+  };
+  // Estado de mayúsculas (ref + state a la vez). Ciclo off→shift→caps→off.
+  const setShiftState = (m: "off" | "shift" | "caps") => {
+    shiftModeRef.current = m;
+    setShiftMode(m);
+  };
+  const consumeShift = () => {
+    if (shiftModeRef.current === "shift") setShiftState("off"); // mayús de una sola letra: se gasta al escribir
   };
 
   // Tic de tecleo: reproduce uno de los samples mp3 reales al azar.
@@ -438,7 +446,8 @@ export default function Terminal() {
       setActive(f.fields[f.active].value.slice(0, -1));
     } else if (k.length === 1) {
       keyTick();
-      setActive(f.fields[f.active].value + (shiftRef.current ? k.toUpperCase() : k));
+      setActive(f.fields[f.active].value + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
+      consumeShift();
     }
   };
 
@@ -486,11 +495,10 @@ export default function Terminal() {
     if (loader) return;
     if (menuOpen) return;
     if (k === "Shift") {
-      // Mayús es un modificador: latcha SIEMPRE que el teclado esté activo, no solo al escribir
+      // Ciclo tipo teclado móvil: minúsculas → mayús de 1 letra → bloq mayús → minúsculas
       keyTick();
-      const n = !shiftRef.current;
-      shiftRef.current = n;
-      setShift(n);
+      const cur = shiftModeRef.current;
+      setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
     if (panel) {
@@ -533,7 +541,8 @@ export default function Terminal() {
       }
     } else if (k.length === 1) {
       keyTick();
-      setLine(curRef.current + (shiftRef.current ? k.toUpperCase() : k));
+      setLine(curRef.current + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
+      consumeShift();
     }
   };
   handleKeyRef.current = handleKey;
@@ -569,7 +578,7 @@ export default function Terminal() {
   };
   const repeatKey = (k: string) => {
     if (k === "Backspace") setLine(curRef.current.slice(0, -1));
-    else if (k.length === 1) setLine(curRef.current + (shiftRef.current ? k.toUpperCase() : k));
+    else if (k.length === 1) setLine(curRef.current + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
   };
   const startHold = (k: string) => {
     handleKey(k); // primer toque: inserta/borra + sonido + vibración
@@ -1124,24 +1133,28 @@ export default function Terminal() {
         <div className="krow">
           {["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>
-              {shift ? k.toUpperCase() : k}
+              {shiftMode !== "off" ? k.toUpperCase() : k}
             </button>
           ))}
         </div>
         <div className="krow">
           {["a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>
-              {shift ? k.toUpperCase() : k}
+              {shiftMode !== "off" ? k.toUpperCase() : k}
             </button>
           ))}
         </div>
         <div className="krow">
-          <button type="button" className="kmod" aria-pressed={shift} aria-label="Mayúsculas" onPointerDown={() => handleKey("Shift")}>
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 3h2v2h2v2h2v2h2v4h-5v8H8v-8H3V9h2V7h2V5h2V3h2V1h2v2Z"/></svg>
+          <button type="button" className="kmod" aria-pressed={shiftMode === "caps"} aria-label="Mayúsculas" onPointerDown={() => handleKey("Shift")}>
+            {shiftMode !== "off" ? (
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 3h2v2h2v2h2v2h2v4h-5v8H8v-8H3V9h2V7h2V5h2V3h2V1h2v2Z"/></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 21h8v-2H8zm0-2h2v-8H8zm-5-6h5v-2H3zm0-2h2V9H3zm2-2h2V7H5zm2-2h2V5H7zm2-2h2V3H9zm2-2h2V1h-2zm2 2h2V3h-2zm2 2h2V5h-2zm2 2h2V7h-2zm2 4h2V9h-2zm-3 0h3v-2h-3zm-2 6h2v-8h-2z"/></svg>
+            )}
           </button>
           {["z", "x", "c", "v", "b", "n", "m"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>
-              {shift ? k.toUpperCase() : k}
+              {shiftMode !== "off" ? k.toUpperCase() : k}
             </button>
           ))}
           <button
