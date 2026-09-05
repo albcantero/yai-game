@@ -316,16 +316,6 @@ export default function Terminal() {
     setLoader(null);
     clear(); // limpia la pantalla tras la descarga
     setAccount(true); // entramos a la cuenta: a partir de aqui el logo NO aparece
-    print("Bienvenido/a a SANTAS OCHOVA: Tu Mejor Librería.");
-    print("Antes de continuar, le recuerdamos nuestras directivas:");
-    print("");
-    print(" * Literatura correcta para ciudadanos correctos.", "muted");
-    print(" * Una mente condicionada es una mente feliz.", "muted");
-    print(" * La lectura sin propósito produce inestabilidad social.", "muted");
-    print("");
-    setLoader("Sincronizando..."); // ultimo loader antes de revelar el menu de la cuenta
-    await sleep(2500);
-    setLoader(null);
     openPanel(); // abre el panel del personaje
   };
 
@@ -724,6 +714,20 @@ export default function Terminal() {
     // Pantalla limpia al arrancar (el "boot tipo linux" vendra despues).
     setBooted(true);
     rlog("info", "boot done");
+
+    // Menú principal del terminal: saludo + directivas + sincronización (bloquea el input mientras "sincroniza").
+    (async () => {
+      print("Bienvenido/a a SANTAS OCHOVA: Tu Mejor Librería.");
+      print("Antes de continuar, le recuerdamos nuestras directivas:");
+      print("");
+      print(" * Literatura correcta para ciudadanos correctos.", "muted");
+      print(" * Una mente condicionada es una mente feliz.", "muted");
+      print(" * La lectura sin propósito produce inestabilidad social.", "muted");
+      print("");
+      setLoader("Sincronizando...");
+      await sleep(2500);
+      setLoader(null);
+    })();
 
     return () => window.removeEventListener("resize", onResize);
   }, []);
