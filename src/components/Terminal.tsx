@@ -898,7 +898,7 @@ export default function Terminal() {
                 {form.fields.map((f, i) => (
                   <div className="inputline" key={i}>
                     <span className="fcaret" aria-hidden="true">
-                      {i === form.active && !form.editing && (
+                      {!loader && i === form.active && !form.editing && (
                         <svg viewBox="9 7 6 10" fill="currentColor">
                           <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
                         </svg>
@@ -925,7 +925,7 @@ export default function Terminal() {
                 {fConnect && (
                   <div className="inputline fconnect-row">
                     <span className="fcaret" aria-hidden="true">
-                      {form.active === form.fields.length && (
+                      {!loader && form.active === form.fields.length && (
                         <svg viewBox="9 7 6 10" fill="currentColor">
                           <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
                         </svg>
@@ -936,7 +936,7 @@ export default function Terminal() {
                 )}
                 <div className={"inputline" + (fConnect ? "" : " fconnect-row")}>
                   <span className="fcaret" aria-hidden="true">
-                    {form.active === fCancelIdx && (
+                    {!loader && form.active === fCancelIdx && (
                       <svg viewBox="9 7 6 10" fill="currentColor">
                         <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
                       </svg>
@@ -951,7 +951,7 @@ export default function Terminal() {
                 {panel.options.map((o, i) => (
                   <div className={"inputline" + (i === 0 ? " fconnect-row" : "")} key={i}>
                     <span className="fcaret" aria-hidden="true">
-                      {i === panel.active && (
+                      {!loader && i === panel.active && (
                         <svg viewBox="9 7 6 10" fill="currentColor">
                           <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
                         </svg>
@@ -1013,7 +1013,7 @@ export default function Terminal() {
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
-          <div className="chin-buttons">
+          <div className={"chin-buttons" + (loader ? " is-blocked" : "")}>
             <button
               type="button"
               className={"chin-btn chin-kb" + (showKeyboard ? " is-on" : "")}
@@ -1055,7 +1055,7 @@ export default function Terminal() {
       </div>
 
       {showKeyboard && (
-      <div className="keyboard">
+      <div className={"keyboard" + (loader ? " is-blocked" : "")}>
         {!numMode ? (
         <>
         <div className="krow">
