@@ -265,9 +265,8 @@ export default function Terminal() {
   // Secuencia de conexion: "Conectado con el servidor" + loader ASCII (min 3s; el login real va rapido,
   // asi que fingimos el timing). Bloquea el input mientras dura.
   const connectFlow = async (username: string, password: string) => {
-    setConnecting(true); // muestra el loader (SVG girando)
+    setConnecting(true); // muestra el loader inline (SVG girando + "Conectando...")
     print("");
-    print("Conectado con el servidor");
     const start = Date.now();
     const res = await loginCharacter(username, password);
     const elapsed = Date.now() - start;
@@ -820,6 +819,7 @@ export default function Terminal() {
                 <svg className="loader-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M14 23H10V19H14V23ZM7 21H3L3 17H7V21ZM21 20H18V17H21V20ZM6 14H1L1 9H6V14ZM23 13H20V10H23V13ZM13 7H7L7 1L13 1V7ZM20 6H18V4L20 4V6Z" />
                 </svg>
+                Conectando con el servidor...
               </div>
             )}
             {showInput && !form && (
