@@ -276,7 +276,7 @@ export default function Terminal() {
       sys("OK", "Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
     } else {
-      sys("ERROR", "Credenciales incorrectas", "d");
+      sys("ERROR", "Tu cuenta de usuario y/o contraseña son incorrectos\nInténtelo nuevamente", "d");
     }
     print("");
   };
