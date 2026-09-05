@@ -242,7 +242,8 @@ body{
 .spinner-cell{ display:inline-flex;align-items:center }
 .spinner-cell .loader-svg{ margin-right:0;width:1.1em;height:1.1em;vertical-align:0 }
 
-.banner-wrap{ overflow:hidden;margin:0 0 8px }
+.banner-frame{ border:1.5px solid rgba(31,158,94,.65);border-radius:4px;padding:10px 12px;margin:0 0 8px }   /* marco CSS del logo (como el tooltip), en vez del +--+ ASCII */
+.banner-wrap{ overflow:hidden }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }

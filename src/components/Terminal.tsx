@@ -747,7 +747,9 @@ export default function Terminal() {
     }
 
     if (bannerRef.current) {
-      bannerRef.current.textContent = frameArt(BANNER);
+      // Sin marco ASCII: el logo se enmarca por CSS (.banner-frame), como el tooltip. Limpiamos
+      // espacios sobrantes por línea y líneas en blanco al inicio/fin para que el fit mida bien.
+      bannerRef.current.textContent = BANNER.replace(/[ \t]+$/gm, "").replace(/^\n+/, "").replace(/\n+$/, "");
       fitBanner();
     }
     const onResize = () => fitBanner();
@@ -765,11 +767,8 @@ export default function Terminal() {
       await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, "", { bullet: true });
       await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true });
       await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true });
-      await spin("Sincronizando...", async () => {
-        await sleep(2500);
-        return { code: "OK", text: "Sistema sincronizado", cls: "b" };
-      });
-      setBooted(true); // ahora sí: aparece el prompt
+      print(""); // línea en blanco entre las directivas y el prompt
+      setBooted(true); // ahora sí: aparece el prompt (sin spinner de sincronización)
     })();
 
     return () => window.removeEventListener("resize", onResize);
@@ -922,8 +921,10 @@ export default function Terminal() {
           </div>
           <div className="crt-body">
           <div className="content" ref={scrollRef}>
-            <div className="banner-wrap" hidden={account}>
-              <pre className="banner" ref={bannerRef}></pre>
+            <div className="banner-frame" hidden={account}>
+              <div className="banner-wrap">
+                <pre className="banner" ref={bannerRef}></pre>
+              </div>
             </div>
             {lines.map((l) =>
               l.chev ? (
