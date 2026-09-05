@@ -20,10 +20,10 @@ const prefersReduced = () =>
 const finePointer = () =>
   typeof matchMedia !== "undefined" && matchMedia("(hover:hover) and (pointer:fine)").matches;
 
-// Warp CRT (abombado 3D via filtro SVG) DESACTIVADO siempre: en iOS Safari congela la pantalla
-// como un bitmap (feImage/feDisplacementMap no se re-evalua al cambiar el contenido). Todo el
-// codigo del filtro queda intacto; para reactivarlo, pon esto en true.
-const WARP_ENABLED = false;
+// Warp CRT (abombado 3D via filtro SVG). En iOS Safari el filtro se congela como un bitmap
+// (feImage/feDisplacementMap no se re-evalua al cambiar el contenido); lo mantenemos vivo con un
+// "empujoncito" al scale del desplazamiento en bucle (ver efecto mas abajo). WARP_ENABLED corta todo.
+const WARP_ENABLED = true;
 
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
 function frameArt(text: string): string {
@@ -59,6 +59,7 @@ export default function Terminal() {
   const handleKeyRef = useRef<(k: string) => void>(() => {});
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
+  const feDispRef = useRef<SVGFEDisplacementMapElement>(null); // para pinchar el filtro en iOS (evita el congelado)
   const didBoot = useRef(false);
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
@@ -455,6 +456,24 @@ export default function Terminal() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
+  // iOS Safari cachea la salida del filtro SVG y NO la re-evalua cuando cambia el contenido: la
+  // pantalla se congela como un bitmap y parece que nada funciona (React actualiza el DOM por
+  // debajo pero no se ve). En tactiles le damos un empujon imperceptible al scale del desplazamiento
+  // en bucle para forzar el re-render (y de paso mantener vivos flicker y aberracion). En PC no hace
+  // falta: se repinta solo con las animaciones CSS.
+  useEffect(() => {
+    if (!WARP_ENABLED || !warpReady) return;
+    if (typeof matchMedia === "undefined" || !matchMedia("(pointer:coarse)").matches) return;
+    const fe = feDispRef.current;
+    if (!fe) return;
+    let big = false;
+    const id = window.setInterval(() => {
+      big = !big;
+      fe.setAttribute("scale", big ? "26" : "25.9");
+    }, 80);
+    return () => window.clearInterval(id);
+  }, [warpReady]);
+
   // Teclado físico (PC): enruta al mismo manejador que el teclado en pantalla.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -523,7 +542,7 @@ export default function Terminal() {
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <filter id="barrel" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feImage ref={feImageRef} result="map" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" />
-          <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
+          <feDisplacementMap ref={feDispRef} in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
 
