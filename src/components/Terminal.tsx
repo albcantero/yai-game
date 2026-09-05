@@ -113,7 +113,7 @@ export default function Terminal() {
     addLine({ text, cls, mark: "" });
   };
   const echo = (text: string) => {
-    addLine({ text, cls: "", mark: "" });
+    addLine({ text: text ? "#" + text : "", cls: "", mark: "" }); // eco del comando del usuario, con prefijo #
   };
   // Linea de sistema: codigo entre corchetes (span propio) + mensaje. sys("ACCESS_DENIED", "...", "d").
   const sys = (code: string, text: string, cls: LineClass = "") => {
@@ -343,6 +343,7 @@ export default function Terminal() {
             }),
           );
           setForm(null);
+          print(""); // <br> antes del mensaje (como el hueco que tenian Conectar/Salir)
           print("Se ha cancelado su solicitud");
           print("");
         } else {
@@ -843,6 +844,7 @@ export default function Terminal() {
             {showInput && !form && (
               <div className="inputline">
                 <span className="field">
+                  <span className="uprompt">#</span>
                   <span className="mirror">{input}</span>
                   <span className="cursor" />
                 </span>

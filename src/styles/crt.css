@@ -256,6 +256,7 @@ body{
 .term-svg{ height:1.1em;width:auto;vertical-align:-.1em;fill:currentColor }
 .hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em }   /* cursor de raton: pegado a "Click" */
 .field{ position:relative;flex:1;min-width:0 }
+.uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
 .crt.idle .cursor{ opacity:.35;animation:none }
