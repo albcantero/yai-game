@@ -317,10 +317,12 @@ export default function Terminal() {
       return;
     }
     const allFilled = f.fields.every((x) => x.value.length > 0);
-    const count = f.fields.length + (allFilled && f.submitLabel ? 1 : 0); // +1 por "Conectar"
+    const connectAvail = allFilled && !!f.submitLabel;
+    const cancelIndex = f.fields.length + (connectAvail ? 1 : 0); // "Cancelar" siempre al final
+    const count = cancelIndex + 1;
 
     if (!f.editing) {
-      // NAVEGACION: el caret se mueve con las flechas; Enter selecciona campo (o pulsa "Conectar").
+      // NAVEGACION: flechas mueven el caret; Enter selecciona campo / Conectar / Cancelar.
       if (k === "ArrowUp") {
         keyTick();
         setForm({ ...f, active: Math.max(0, f.active - 1) });
@@ -331,8 +333,10 @@ export default function Terminal() {
         keyTick();
         if (f.active < f.fields.length) {
           setForm({ ...f, editing: true }); // es un campo: a editar
+        } else if (f.active === cancelIndex) {
+          setForm(null); // "Cancelar": salir del comando
         } else {
-          const values = f.fields.map((x) => x.value); // es "Conectar": envia
+          const values = f.fields.map((x) => x.value); // "Conectar": envia
           setForm(null);
           f.onSubmit(values);
         }
@@ -757,6 +761,10 @@ export default function Terminal() {
   };
 
   const showInput = booted && !dialog && !loader;
+  // Acciones del formulario: "Conectar" (si todos los campos llenos) y "Cancelar" (siempre, al final).
+  const fAllFilled = form ? form.fields.every((x) => x.value.length > 0) : false;
+  const fConnect = !!form?.submitLabel && fAllFilled;
+  const fCancelIdx = form ? form.fields.length + (fConnect ? 1 : 0) : 0;
 
   return (
     <>
@@ -859,7 +867,7 @@ export default function Terminal() {
                     </span>
                   </div>
                 ))}
-                {form.submitLabel && form.fields.every((x) => x.value.length > 0) && (
+                {fConnect && (
                   <div className="inputline fconnect-row">
                     <span className="fcaret" aria-hidden="true">
                       {form.active === form.fields.length && (
@@ -868,9 +876,19 @@ export default function Terminal() {
                         </svg>
                       )}
                     </span>
-                    <span className="fconnect">{form.submitLabel}</span>
+                    <span className="faction">{form.submitLabel}</span>
                   </div>
                 )}
+                <div className={"inputline" + (fConnect ? "" : " fconnect-row")}>
+                  <span className="fcaret" aria-hidden="true">
+                    {form.active === fCancelIdx && (
+                      <svg viewBox="9 7 6 10" fill="currentColor">
+                        <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
+                      </svg>
+                    )}
+                  </span>
+                  <span className="faction">Cancelar</span>
+                </div>
               </div>
             )}
             {showInput && (

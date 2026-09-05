@@ -241,8 +241,8 @@ body{
 .fcheck{ flex:none;white-space:nowrap }   /* checkbox [ ]: brackets de texto + check svg dentro si tiene texto */
 .fcheck-gap{ display:inline-block;width:.85em }   /* hueco del bracket vacio, mismo ancho que el check */
 .fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
-.fconnect{ flex:none;color:#b8ffd6 }   /* accion final "Conectar" (aparece con todos los campos llenos) */
-.fconnect-row{ margin-top:1.2em }   /* hueco (salto de linea) antes de "Conectar" */
+.faction{ flex:none;color:#37f07d }   /* acciones del form (Conectar, Cancelar): verde base */
+.fconnect-row{ margin-top:1.2em }   /* hueco (salto de linea) antes de la primera accion */
 /* loader de conexion: SVG pixelart girando en bucle, inline con el texto */
 .loader-svg{ width:1.2em;height:1.2em;fill:currentColor;vertical-align:-.25em;margin-right:.5ch;animation:spin .8s steps(8) infinite }
 @keyframes spin{ to{ transform:rotate(360deg) } }
