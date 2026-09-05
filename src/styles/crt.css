@@ -103,82 +103,6 @@ body{
 /* teclado activo: hundido (relieve colapsado), sin color */
 .chin-btn.is-on{ background-color:#3a3d36;box-shadow:inset 0 2px 4px rgba(0,0,0,.5) }
 .chin-btn.is-on::before{ box-shadow:inset 0 2px 4px rgba(0,0,0,.4) }
-/* interruptor rocker del teclado en el mentón (encendido = teclado en pantalla). Escalado en px para que el móvil no lo infle */
-.kbd-switch{ position:relative;flex:none;width:17px;height:40px }
-.kbd-switch .switch{
-  --hue:85; --sat:7%; --hue2:146;          /* gris-oliva del plástico del monitor + verde fósforo */
-  --td:0.3s; --tt:cubic-bezier(0.83,0,0.17,1);
-  font-size:12px;transform:scale(0.38);transform-origin:top left;
-  display:block;position:relative;-webkit-tap-highlight-color:transparent;
-  width:3.75em;height:8.75em;border-radius:0.375em;
-  background-color:hsl(var(--hue),var(--sat),27%);
-  box-shadow:
-    0 4.375em 2em hsl(var(--hue),var(--sat),18%) inset,
-    0 0.125em 0 hsl(var(--hue),var(--sat),29%) inset,
-    0 0 0.375em hsla(var(--hue),var(--sat),8%,0.6);
-  transition:background-color var(--td) var(--tt), box-shadow var(--td) var(--tt);
-}
-.kbd-switch .switch__input{
-  display:block;position:absolute;cursor:pointer;margin:0;
-  width:100%;height:100%;-webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent;
-}
-.kbd-switch .switch__label{ position:absolute;overflow:hidden;width:1px;height:1px }
-.kbd-switch .switch__lever,.kbd-switch .switch__lever-shadow{ pointer-events:none }
-.kbd-switch .switch__lever{
-  display:block;position:relative;
-  background-color:hsl(var(--hue),var(--sat),19%);border-radius:0.25em;margin:0.375em;
-  width:calc(100% - 0.75em);height:calc(100% - 0.75em);
-  box-shadow:0 0 0.25em hsl(var(--hue),var(--sat),7%) inset, 0.75em 0 0.5em hsl(var(--hue),var(--sat),27%) inset;
-  transition:background-color var(--td) var(--tt), box-shadow var(--td) var(--tt);
-}
-.kbd-switch .switch__lever:before{
-  content:"";display:block;border-radius:inherit;width:100%;height:100%;
-  background-image:linear-gradient(hsla(var(--hue),var(--sat),8%,0),hsla(var(--hue),var(--sat),8%,0.25));
-}
-.kbd-switch .switch__lever-half-top,.kbd-switch .switch__lever-half-bottom{
-  display:flex;justify-content:center;position:absolute;left:0.125em;padding:0.5em;
-  width:calc(100% - 0.25em);height:calc(50% - 0.125em);
-  transition:background-color var(--td) var(--tt), transform var(--td) var(--tt);
-}
-.kbd-switch .switch__lever-half-top{
-  background-color:hsl(var(--hue),var(--sat),23%);border-radius:0.25em 0.25em 0 0;bottom:50%;transform-origin:50% 100%;
-}
-.kbd-switch .switch__lever-half-top:before,.kbd-switch .switch__lever-half-bottom:before{
-  content:"";display:block;transition:background-color var(--td) var(--tt), box-shadow var(--td) var(--tt);
-}
-.kbd-switch .switch__lever-half-top:before{
-  border-radius:50%;width:1em;height:1em;
-  box-shadow:0 0 0 0.125em hsl(var(--hue),var(--sat),15%) inset, 0 0.25em 0 hsl(var(--hue),var(--sat),27%) inset, 0 0.125em 0 hsl(var(--hue),var(--sat),27%);
-}
-.kbd-switch .switch__lever-half-bottom{
-  background-color:hsl(var(--hue),var(--sat),27%);border-radius:0 0 0.25em 0.25em;align-items:flex-end;top:50%;
-  transform:rotateX(-35deg);transform-origin:50% 0;
-}
-.kbd-switch .switch__lever-half-bottom:before{
-  width:0.25em;height:1.125em;background-color:hsl(var(--hue2),8%,18%);
-  box-shadow:0 0.125em 0 hsl(var(--hue2),8%,13%) inset, 0 -0.0625em 0 hsl(var(--hue),var(--sat),27%) inset, 0 0 0.5em hsla(var(--hue2),90%,45%,0);
-}
-.kbd-switch .switch__lever-shadow{
-  display:block;position:absolute;overflow:hidden;border-radius:0.25em;top:0.5em;right:0;width:5em;height:calc(100% - 0.25em);
-}
-.kbd-switch .switch__lever-shadow:before,.kbd-switch .switch__lever-shadow:after{
-  content:"";display:block;position:absolute;background-color:hsla(var(--hue),var(--sat),6%,0.3);
-  left:1.625em;width:3em;height:50%;transition:background-color var(--td) var(--tt), transform var(--td) var(--tt);
-}
-.kbd-switch .switch__lever-shadow:before{ border-radius:1.5em 0 0 0 / 1em 0 0 0;transform-origin:0 100% }
-.kbd-switch .switch__lever-shadow:after{ border-radius:0.25em;bottom:0;transform:skewX(-10deg);transform-origin:0 0 }
-/* ENCENDIDO (checked) = teclado en pantalla */
-.kbd-switch .switch__input:checked ~ .switch__lever .switch__lever-half-top{ background-color:hsl(var(--hue),var(--sat),16%);transform:rotateX(35deg) }
-.kbd-switch .switch__input:checked ~ .switch__lever .switch__lever-half-top:before{
-  box-shadow:0 0 0 0.125em hsl(var(--hue),var(--sat),10%) inset, 0 0.25em 0 hsl(var(--hue),var(--sat),20%) inset, 0 0.125em 0 hsl(var(--hue),var(--sat),20%);
-}
-.kbd-switch .switch__input:checked ~ .switch__lever .switch__lever-half-bottom{ background-color:hsl(var(--hue),var(--sat),23%);transform:rotateX(0) }
-.kbd-switch .switch__input:checked ~ .switch__lever .switch__lever-half-bottom:before{
-  background-color:hsl(var(--hue2),90%,45%);
-  box-shadow:0 0.125em 0 hsl(var(--hue2),90%,20%) inset, 0 -0.0625em 0 hsl(var(--hue),var(--sat),27%) inset, 0 0 0.5em hsla(var(--hue2),90%,45%,1);
-}
-.kbd-switch .switch__input:checked ~ .switch__lever-shadow:before{ transform:rotate(-10deg) }
-.kbd-switch .switch__input:checked ~ .switch__lever-shadow:after{ transform:skewX(0) scaleY(0.85) }
 
 /* pantalla hundida dentro de la carcasa */
 .screen-area{
@@ -326,7 +250,7 @@ body{
   display:flex;flex-direction:column;gap:8px;
   width:100%;max-width:680px;margin:4px auto 0;   /* 4px de aire entre pantalla y teclado */
   padding:14px 12px 10px;
-  background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja gris-oliva (misma materia que las teclas) */
+  background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja de plástico oscuro */
   border-radius:12px;
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,0.30),   /* filo de luz arriba (volumen, como la carcasa) */
@@ -339,45 +263,36 @@ body{
   flex:1 1 0;min-width:0;min-height:0;
   padding:10px 0;
   font-size:24px;font-family:'Determination Sans',"Courier New",monospace;
-  position:relative;
-  color:#20241c;                                        /* label oscuro grabado (como la marca SANTAS OCHOVA) */
-  background-color:#454840;                             /* FLAT gris-oliva del monitor, un poco mas oscuro */
-  border:2px solid #22261f;border-radius:12px;          /* borde oscuro (tono "SANTAS OCHOVA"); el de ARRIBA lo tapa el ::before */
+  color:#20241c;                                        /* letra impresa oscura (como la marca SANTAS OCHOVA) */
+  background:linear-gradient(180deg,#5c6057,#494d44);   /* keycap de plástico, luz arriba */
+  border:0;border-radius:7px;
   box-shadow:
-    -2px -5px 9px rgba(255,255,255,.14),                /* glow claro arriba-izq */
-    -5px 0 9px rgba(255,255,255,.08),
-    2px 6px 9px rgba(0,0,0,.4);                          /* sombra abajo-der */
-  text-shadow:1px 1px 2px rgba(255,255,255,.18);        /* grabado (luz) */
+    inset 0 1px 0 rgba(255,255,255,.20),                /* filo de luz arriba */
+    inset 0 -2px 0 rgba(0,0,0,.35),                      /* grosor del keycap */
+    0 2px 2px rgba(0,0,0,.4);                            /* sombra proyectada */
+  text-shadow:0 1px 0 rgba(255,255,255,.14);            /* grabado en plástico, como la marca */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
   touch-action:manipulation;
-  transition:transform .13s ease-in-out, box-shadow .13s ease-in-out, filter .1s ease;
-}
-/* capa interior (como .button__content): labio inferior + tapa el borde superior con el color del fondo */
-.keyboard button::before{
-  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  box-shadow:
-    inset 0 -4px 0 #22261f,   /* labio inferior interno (grosor de la tecla) */
-    0 -4px 0 #454840;         /* color del fondo: TAPA el borde de arriba -> desaparece (relieve) */
+  transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;
 }
 .keyboard button:focus{ outline:none }
 .keyboard button:hover{ filter:brightness(1.06) }
 .keyboard button:active{
   transform:translateY(1px);
-  box-shadow:none;                                      /* colapsa TODO al pulsar (button-11 :active) */
+  box-shadow:none;                                      /* hundida al pulsar, sin sombra dura arriba */
 }
-.keyboard button:active::before{ box-shadow:none }       /* al pulsar tambien se aplana el labio y el tapa-borde */
-.keyboard button svg{ position:relative;display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
+.keyboard button svg{ display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
 .keyboard button.kmod{ flex:1.5 }                        /* Mayús / Borrar */
 .keyboard button.knum{ flex:1.5 }                        /* 123 / ABC */
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
-.keyboard button.kmod[aria-pressed="true"]{              /* mayus activo: hundido, sin color potente */
-  background-color:#33362f;
-  box-shadow:inset 0 3px 5px rgba(0,0,0,.5);
+.keyboard button.kmod[aria-pressed="true"]{              /* mayús activo: hundido con su sombra, sin color */
+  background:linear-gradient(180deg,#494d44,#3a3e35);
+  box-shadow:inset 0 2px 3px rgba(0,0,0,.5);
 }
-.keyboard button.kmod[aria-pressed="true"]::before{ box-shadow:inset 0 3px 5px rgba(0,0,0,.4) }
+
 
 @media (prefers-reduced-motion:reduce){
   .crt{ animation:none;text-shadow:0 0 3px #37f07d }
