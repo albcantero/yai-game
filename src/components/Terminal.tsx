@@ -348,7 +348,7 @@ export default function Terminal() {
     const arg = parts.slice(1).join(" ");
     const command = lookup.get(cmd);
     if (!command) {
-      print('"' + parts[0] + '" no se reconoce como un comando interno', "d");
+      print('[UNKNOWN_COMMAND] "' + parts[0] + '" no se reconoce como un comando interno', "d");
       print("Escribe help para consultar los comandos disponibles", "muted");
       print("");
       return;
