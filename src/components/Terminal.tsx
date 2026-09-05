@@ -73,7 +73,7 @@ export default function Terminal() {
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
   const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
-  const [connecting, setConnecting] = useState(false); // secuencia de conexion (loader): bloquea el input
+  const [loader, setLoader] = useState<string | null>(null); // texto del loader activo (o null): bloquea el input
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -265,20 +265,24 @@ export default function Terminal() {
   // Secuencia de conexion: "Conectado con el servidor" + loader ASCII (min 3s; el login real va rapido,
   // asi que fingimos el timing). Bloquea el input mientras dura.
   const connectFlow = async (username: string, password: string) => {
-    setConnecting(true); // muestra el loader inline (SVG girando + "Conectando...")
     print("");
+    setLoader("Conectando con el servidor..."); // loader 1
     const start = Date.now();
     const res = await loginCharacter(username, password);
     const elapsed = Date.now() - start;
-    if (elapsed < 3000) await sleep(3000 - elapsed); // minimo 3s de loader (timing fake)
-    setConnecting(false);
-    if (res.ok) {
-      sys("OK", "Acceso concedido, hola " + (res.display_name || username), "b");
-      print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
-    } else {
+    if (elapsed < 3000) await sleep(3000 - elapsed); // minimo 3s (timing fake)
+    setLoader(null);
+    if (!res.ok) {
       sys("ERROR", "Tu cuenta de usuario y/o contraseña son incorrectos. Inténtelo nuevamente", "d");
+      print("");
+      return;
     }
+    sys("OK", "Sesión iniciada correctamente", "b");
     print("");
+    // loader 2: descarga de metadatos (fake); en Fase 2 aqui se abrira el panel de mensajes
+    setLoader("Descargando metadatos de su cuenta...");
+    await sleep(2500);
+    setLoader(null);
   };
 
   // Abre el formulario de login: dos campos con navegacion por flechas.
@@ -368,7 +372,7 @@ export default function Terminal() {
     if (!command) {
       sys(
         "ERROR",
-        '"' + parts[0] + '" no se reconoce como un comando interno\nEscribe "help" para consultar los comandos disponibles',
+        '"' + parts[0] + '" no se reconoce como un comando interno. Escribe "help" para consultar los comandos disponibles',
         "d",
       );
       print("");
@@ -381,7 +385,7 @@ export default function Terminal() {
 
   // Manejador único de teclas (teclado en pantalla + teclado físico).
   const handleKey = (k: string) => {
-    if (connecting) return;
+    if (loader) return;
     if (menuOpen) return;
     if (form) {
       handleFormKey(k);
@@ -752,7 +756,7 @@ export default function Terminal() {
     window.location.href = "/";
   };
 
-  const showInput = booted && !dialog && !connecting;
+  const showInput = booted && !dialog && !loader;
 
   return (
     <>
@@ -810,12 +814,12 @@ export default function Terminal() {
                 </div>
               ),
             )}
-            {connecting && (
+            {loader && (
               <div className="loader">
                 <svg className="loader-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M14 23H10V19H14V23ZM7 21H3L3 17H7V21ZM21 20H18V17H21V20ZM6 14H1L1 9H6V14ZM23 13H20V10H23V13ZM13 7H7L7 1L13 1V7ZM20 6H18V4L20 4V6Z" />
                 </svg>
-                Conectando con el servidor...
+                {loader}
               </div>
             )}
             {showInput && !form && (
