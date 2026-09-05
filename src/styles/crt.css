@@ -249,7 +249,8 @@ body{
 .fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
 .faction{ flex:none;color:#37f07d }   /* acciones del form (Conectar, Cancelar): verde base */
 .fconnect-row{ margin-top:1.2em }   /* hueco (salto de linea) antes de la primera accion */
-/* loader de conexion: SVG pixelart girando en bucle, inline con el texto */
+/* loader (conexion/logout): SVG pixelart girando en bucle, inline con el texto, con hueco arriba */
+.loader{ margin-top:1em }
 .loader-svg{ width:1.2em;height:1.2em;fill:currentColor;vertical-align:-.25em;margin-right:.5ch;animation:spin .8s steps(8) infinite }
 @keyframes spin{ to{ transform:rotate(360deg) } }
 /* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
@@ -319,7 +320,7 @@ body{
 .keyboard{
   flex:none;
   display:flex;flex-direction:column;gap:8px;
-  width:100%;max-width:680px;margin:4px auto 0;   /* 4px de aire entre pantalla y teclado */
+  width:100%;margin:4px auto 0;   /* 4px de aire entre pantalla y teclado. El tope de 480px en escritorio va por media query */
   padding:14px 12px 10px;
   background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja de plástico oscuro */
   border-radius:12px;
