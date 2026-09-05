@@ -72,6 +72,12 @@ body{
     inset 0 -3px 0 rgba(0,0,0,0.50),         /* filo de sombra abajo */
     0 18px 40px -18px rgba(0,0,0,0.72);      /* sombra proyectada grande */
 }
+/* En escritorio (raton) limitamos monitor y teclado a 480px y los centramos (vista tipo movil).
+   En movil (tactil) NO se aplica: ancho completo. */
+@media (hover:hover) and (pointer:fine){
+  .monitor{ width:100%;max-width:480px;align-self:center }
+  .keyboard{ max-width:480px }
+}
 .monitor-chin{
   flex:none;height:46px;margin-top:12px;
   display:flex;align-items:center;justify-content:space-between;
