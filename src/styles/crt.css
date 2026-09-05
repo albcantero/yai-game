@@ -233,6 +233,7 @@ body{
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px }
+.flabel{ flex:none;color:#1f9e5e }   /* etiqueta de campo en formularios (Usuario:, Contraseña:) */
 .field{ position:relative;flex:1;min-width:0 }
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:.6ch;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }

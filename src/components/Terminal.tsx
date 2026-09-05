@@ -16,6 +16,18 @@ interface Line {
   chevMore?: boolean;
 }
 
+// Formulario TUI: varios campos con navegacion por flechas y cursor en el activo.
+interface Field {
+  label: string;
+  value: string;
+  mask?: boolean;
+}
+interface FormState {
+  fields: Field[];
+  active: number;
+  onSubmit: (values: string[]) => void;
+}
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const prefersReduced = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -57,7 +69,7 @@ export default function Terminal() {
   const [powerOn, setPowerOn] = useState(true); // interruptor de encendido de la maquina (switch como el teclado)
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
-  const [auth, setAuth] = useState<{ stage: "user" | "pass"; username: string } | null>(null); // login interactivo
+  const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -94,10 +106,10 @@ export default function Terminal() {
   const setText = (id: number, text: string) =>
     setLines((p) => p.map((x) => (x.id === id ? { ...x, text } : x)));
   const print = (text: string, cls: LineClass = "") => {
-    addLine({ text, cls, mark: text ? "*" : "" });
+    addLine({ text, cls, mark: "" });
   };
   const echo = (text: string) => {
-    addLine({ text, cls: "", mark: ">" });
+    addLine({ text, cls: "", mark: "" });
   };
   const clear = () => setLines([]);
   const setLine = (v: string) => {
@@ -182,7 +194,7 @@ export default function Terminal() {
     }
   };
 
-  const typeLine = async (text: string, cls: LineClass = "", step = 9, mark: Mark = "*") => {
+  const typeLine = async (text: string, cls: LineClass = "", step = 9, mark: Mark = "") => {
     const mk: Mark = text ? mark : "";
     const id = addLine({ text: "", cls, mark: mk });
     if (prefersReduced()) {
@@ -241,29 +253,10 @@ export default function Terminal() {
     print("");
   };
 
-  // Login interactivo: pregunta usuario, luego clave (enmascarada), y llama al RPC.
-  const startLogin = () => {
-    setAuth({ stage: "user", username: "" });
-  };
-  const submitAuth = async (raw: string) => {
-    if (!auth) return;
-    if (auth.stage === "user") {
-      const u = raw.trim();
-      print("usuario: " + u); // eco inline, mismo estilo que el prompt
-      if (!u) {
-        setAuth(null);
-        print("login cancelado.", "muted");
-        print("");
-        return;
-      }
-      setAuth({ stage: "pass", username: u });
-      return;
-    }
-    print("clave: " + "•".repeat(raw.length)); // eco enmascarado, nunca la clave real
-    const username = auth.username;
-    setAuth(null);
+  // Verifica credenciales contra el RPC y muestra el resultado.
+  const doLogin = async (username: string, password: string) => {
     print("verificando...", "muted");
-    const res = await loginCharacter(username, raw);
+    const res = await loginCharacter(username, password);
     if (res.ok) {
       print("acceso concedido. hola, " + (res.display_name || username) + ".", "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
@@ -273,11 +266,70 @@ export default function Terminal() {
     print("");
   };
 
-  const submit = (raw: string) => {
-    if (auth) {
-      submitAuth(raw);
+  // Abre el formulario de login: dos campos con navegacion por flechas.
+  const startLogin = () => {
+    setForm({
+      fields: [
+        { label: "Usuario:", value: "" },
+        { label: "Contraseña:", value: "", mask: true },
+      ],
+      active: 0,
+      onSubmit: (vals) => {
+        // deja el formulario fijado en pantalla (limpio) y verifica
+        addLine({ text: "Usuario: " + vals[0], cls: "", mark: "" });
+        addLine({ text: "Contraseña: " + "•".repeat(vals[1].length), cls: "", mark: "" });
+        doLogin(vals[0].trim(), vals[1]);
+      },
+    });
+  };
+
+  // Teclas cuando hay un formulario en pantalla: flechas navegan campos, Enter avanza/envia.
+  const handleFormKey = (k: string) => {
+    const f = form;
+    if (!f) return;
+    if (k === "Shift") {
+      keyTick();
+      const n = !shiftRef.current;
+      shiftRef.current = n;
+      setShift(n);
       return;
     }
+    if (k === "ArrowUp") {
+      keyTick();
+      setForm({ ...f, active: Math.max(0, f.active - 1) });
+      return;
+    }
+    if (k === "ArrowDown") {
+      keyTick();
+      setForm({ ...f, active: Math.min(f.fields.length - 1, f.active + 1) });
+      return;
+    }
+    if (k === "Enter") {
+      keyTick();
+      if (f.active < f.fields.length - 1) {
+        setForm({ ...f, active: f.active + 1 }); // avanza al siguiente campo
+      } else {
+        const values = f.fields.map((x) => x.value);
+        setForm(null);
+        f.onSubmit(values); // ultimo campo: envia
+      }
+      return;
+    }
+    const setActive = (v: string) => {
+      const fields = f.fields.slice();
+      fields[f.active] = { ...fields[f.active], value: v };
+      setForm({ ...f, fields });
+    };
+    if (k === "Backspace") {
+      keyTick();
+      setActive(f.fields[f.active].value.slice(0, -1));
+    } else if (k.length === 1) {
+      keyTick();
+      setActive(f.fields[f.active].value + (shiftRef.current ? k.toUpperCase() : k));
+    }
+  };
+
+  const submit = (raw: string) => {
     const line = raw.trim();
     echo(line);
     rlog("info", "submit", { line });
@@ -300,6 +352,10 @@ export default function Terminal() {
   // Manejador único de teclas (teclado en pantalla + teclado físico).
   const handleKey = (k: string) => {
     if (menuOpen) return;
+    if (form) {
+      handleFormKey(k);
+      return;
+    }
     if (dialog) {
       if (k === "Enter" || k === " ") {
         keyTick();
@@ -318,7 +374,7 @@ export default function Terminal() {
     if (k === "Enter") {
       keyTick();
       const v = curRef.current;
-      if (!auth && v.trim()) historyRef.current.push(v); // en login no guardamos usuario/clave en el historial
+      if (v.trim()) historyRef.current.push(v);
       hposRef.current = historyRef.current.length;
       setLine("");
       submit(v);
@@ -371,7 +427,7 @@ export default function Terminal() {
   const startHold = (k: string) => {
     handleKey(k); // primer toque: inserta/borra + sonido + vibración
     stopHold();
-    const repeatable = booted && !menuOpen && !dialog && (k === "Backspace" || k.length === 1);
+    const repeatable = booted && !menuOpen && !dialog && !form && (k === "Backspace" || k.length === 1);
     if (!repeatable) return;
     holdTimerRef.current = window.setTimeout(() => {
       holdIntervalRef.current = window.setInterval(() => repeatKey(k), 60); // repeticiones SIN sonido
@@ -542,17 +598,9 @@ export default function Terminal() {
     window.addEventListener("resize", onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBanner);
 
-    void (async () => {
-      await typeLine("sistema interno · nodo trastienda", "muted", 6);
-      await typeLine("inicializando módulos .............. OK", "", 6);
-      await typeLine("enlace cifrado ..................... OK", "", 6);
-      await typeLine("[AVISO] registro de actividad: OFF", "muted", 8);
-      print("");
-      await typeLine("escribe help y pulsa Enter para empezar.", "", 10);
-      print("");
-      setBooted(true);
-      rlog("info", "boot done");
-    })();
+    // Pantalla limpia al arrancar (el "boot tipo linux" vendra despues).
+    setBooted(true);
+    rlog("info", "boot done");
 
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -718,15 +766,25 @@ export default function Terminal() {
                 </div>
               ),
             )}
-            {showInput && (
+            {showInput && !form && (
               <div className="inputline">
-                <span className={auth ? "astk" : "prompt"}>
-                  {auth ? (auth.stage === "user" ? "* usuario:" : "* clave:") : ">"}
-                </span>
                 <span className="field">
-                  <span className="mirror">{auth?.stage === "pass" ? "•".repeat(input.length) : input}</span>
+                  <span className="mirror">{input}</span>
                   <span className="cursor">█</span>
                 </span>
+              </div>
+            )}
+            {form && (
+              <div className="form">
+                {form.fields.map((f, i) => (
+                  <div className="inputline" key={i}>
+                    <span className="flabel">{f.label}</span>
+                    <span className="field">
+                      <span className="mirror">{f.mask ? "•".repeat(f.value.length) : f.value}</span>
+                      {i === form.active && <span className="cursor">█</span>}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
