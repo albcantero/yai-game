@@ -519,10 +519,10 @@ export default function Terminal() {
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
             </button>
             <button type="button" className="chin-btn" aria-label="Arriba" onPointerDown={() => handleKey("ArrowUp")}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2z"/><path d="M15 10H7V8h8zm2 2H5v-2h12z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 15v-2h-2v-2h-2V9h-2v2H9v2H7v2h10Z"/></svg>
             </button>
             <button type="button" className="chin-btn" aria-label="Abajo" onPointerDown={() => handleKey("ArrowDown")}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 9v2h-2v2h-2v2h-2v-2H9v-2H7V9h10Z"/></svg>
             </button>
             <button type="button" className="chin-btn" aria-label="OK" onPointerDown={() => handleKey("Enter")}>
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 9h-2v12h2v2H9V7h4v2Zm2 12h-2v-2h2v2Zm6-2h-6v-2h4v-2h2v4Zm-2-4h-2v-2h2v2ZM5 14H3v-2h2v2Zm12-1h-2v-2h2v2ZM7 12H5v-2h2v2Zm8-1h-2V9h2v2ZM7 7H5V5h2v2Zm10 0h-2V5h2v2ZM5 5H3V3h2v2Zm6 0H9V1h2v4Zm8 0h-2V3h2v2Z"/></svg>
