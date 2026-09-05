@@ -887,7 +887,7 @@ export default function Terminal() {
                       </svg>
                     )}
                   </span>
-                  <span className="faction">Cancelar</span>
+                  <span className="faction">Salir</span>
                 </div>
               </div>
             )}
