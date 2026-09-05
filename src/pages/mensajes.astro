@@ -1,0 +1,20 @@
+---
+import "../styles/messages.css";
+import Messages from "../components/Messages.tsx";
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Mensajes internos de la Librería Santas Ochova." />
+    <title>Mensajes · Santas Ochova</title>
+  </head>
+  <body>
+    <main class="msg-screen">
+      <div class="msg-scan"></div>
+      <Messages client:load />
+    </main>
+  </body>
+</html>
