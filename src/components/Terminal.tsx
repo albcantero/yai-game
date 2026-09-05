@@ -334,7 +334,17 @@ export default function Terminal() {
         if (f.active < f.fields.length) {
           setForm({ ...f, editing: true }); // es un campo: a editar
         } else if (f.active === cancelIndex) {
-          setForm(null); // "Cancelar": salir del comando
+          // "Salir": deja los campos fijados en pantalla (NO limpia) y avisa de la cancelacion
+          f.fields.forEach((fld) =>
+            addLine({
+              text: fld.label + " " + (fld.mask ? "*".repeat(fld.value.length) : fld.value),
+              cls: "",
+              mark: "",
+            }),
+          );
+          setForm(null);
+          print("Se ha cancelado su solicitud");
+          print("");
         } else {
           const values = f.fields.map((x) => x.value); // "Conectar": envia
           setForm(null);
