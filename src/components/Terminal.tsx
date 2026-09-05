@@ -259,27 +259,28 @@ export default function Terminal() {
     print("verificando...", "muted");
     const res = await loginCharacter(username, password);
     if (res.ok) {
-      print("acceso concedido. hola, " + (res.display_name || username) + ".", "b");
+      print("[ACCESS_GRANTED] Acceso concedido, hola " + (res.display_name || username), "b");
       print("(proximamente: aqui se abrira tu panel de mensajes)", "muted");
     } else {
-      print("credenciales incorrectas.", "d");
+      print("[ACCESS_DENIED] Credenciales incorrectas", "d");
     }
     print("");
   };
 
   // Abre el formulario de login: dos campos con navegacion por flechas.
   const startLogin = () => {
+    print("Introduzca sus credenciales para acceder al sistema");
     setForm({
       fields: [
-        { label: "[USUARIO]", value: "" },
-        { label: "[CONTRASEÑA]", value: "", mask: true },
+        { label: "[USER] Cuenta de usuario:", value: "" },
+        { label: "[PASSWORD] Contraseña:", value: "", mask: true },
       ],
       active: 0,
       editing: false,
       onSubmit: (vals) => {
         // deja el formulario fijado en pantalla (limpio) y verifica
-        addLine({ text: "[USUARIO] " + vals[0], cls: "", mark: "" });
-        addLine({ text: "[CONTRASEÑA] " + "*".repeat(vals[1].length), cls: "", mark: "" });
+        addLine({ text: "[USER] Cuenta de usuario: " + vals[0], cls: "", mark: "" });
+        addLine({ text: "[PASSWORD] Contraseña: " + "*".repeat(vals[1].length), cls: "", mark: "" });
         doLogin(vals[0].trim(), vals[1]);
       },
     });
@@ -347,8 +348,8 @@ export default function Terminal() {
     const arg = parts.slice(1).join(" ");
     const command = lookup.get(cmd);
     if (!command) {
-      print("comando no reconocido: " + cmd, "d");
-      print("prueba help", "muted");
+      print("[UNKNOWN_COMMAND] Comando no reconocido: " + cmd, "d");
+      print("Escribe help para ver los comandos disponibles", "muted");
       print("");
       return;
     }
@@ -812,12 +813,12 @@ export default function Terminal() {
             )}
             {showInput && (
               <div className="hint" onPointerDown={confirmClick}>
-                (Pulsa ENTER o haz{" "}
+                Pulsa{" "}
                 <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M9 7h2v16H9zm2 0h2v15h-2zm2 2h2v12h-2zm2 2h2v8h-2zm2 2h2v6h-2zm2 2h2v2h-2z" />
                   <path d="M11 21h2v2h-2zm2-2h2v2h-2zm2-2h6v2h-6zm0-12h2v2h-2zM5 10h2v2H5zm0-5h2v2H5zm4-4h2v4H9zM3 3h2v2H3zm0 9h2v2H3zm14-9h2v2h-2z" />
                 </svg>
-                Click para confirmar)
+                Click en el monitor o ENTER en el teclado
               </div>
             )}
           </div>
