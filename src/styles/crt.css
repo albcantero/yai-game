@@ -260,7 +260,7 @@ body{
 .fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
 .fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
 /* hint clicable bajo el input activo (no navegable con flechas) */
-.hint{ margin-top:12px;color:#1f9e5e;opacity:.65;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1.5px solid;border-radius:4px;padding:8px 11px }   /* enmarcado tipo caja (borde currentColor = verde oscuro; esquinas 4px) */
+.hint{ margin-top:12px;color:#1f9e5e;opacity:.65;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1.5px solid;border-radius:4px;padding:4px }   /* enmarcado tipo caja (borde currentColor = verde oscuro; esquinas 4px) */
 /* MEDIDA UNIVERSAL de los SVG inline del terminal: altura del cuerpo de texto, anchura proporcional,
    alineado con la linea. Usar .term-svg en todo SVG inline. El caret es la unica excepcion (.8em). */
 .term-svg{ height:1.1em;width:auto;vertical-align:-.1em;fill:currentColor }
