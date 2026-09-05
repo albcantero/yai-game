@@ -232,7 +232,6 @@ export default function Terminal() {
     for (let i = 1; i <= text.length; i++) {
       await sleep(step);
       setText(id, text.slice(0, i));
-      if (text[i - 1] !== " ") printTick();
     }
   };
 
@@ -758,7 +757,7 @@ export default function Terminal() {
     // No marcamos booted hasta el final, así el prompt no parpadea mientras se escribe la bienvenida.
     (async () => {
       await typeLine("Bienvenido/a a SANTAS OCHOVA Tu Mejor Librería.", "", 16);
-      await typeLine("Antes de continuar, le recuerdamos nuestras directivas:", "", 16);
+      await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16);
       print("");
       await typeLine("Literatura correcta para ciudadanos correctos.", "muted", 16, "", { bullet: true });
       await typeLine("Una mente condicionada es una mente feliz.", "muted", 16, "", { bullet: true });
