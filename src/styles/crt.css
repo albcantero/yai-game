@@ -312,7 +312,7 @@ body{
   display:flex;flex-direction:column;gap:8px;
   width:100%;max-width:680px;margin:4px auto 0;   /* 4px de aire entre pantalla y teclado */
   padding:14px 12px 10px;
-  background:linear-gradient(180deg,#2b3a30,#212e26);   /* bandeja verdosa oscura (misma materia que las teclas) */
+  background:linear-gradient(180deg,#33362f,#282b25);   /* bandeja gris-oliva (misma materia que las teclas) */
   border-radius:12px;
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,0.30),   /* filo de luz arriba (volumen, como la carcasa) */
@@ -326,14 +326,14 @@ body{
   padding:10px 0;
   font-size:24px;font-family:'Determination Sans',"Courier New",monospace;
   position:relative;
-  color:#7cae8b;                                        /* label verde grabado */
-  background-color:#243028;                             /* FLAT verdoso oscuro (sin gradiente, como button-11) */
-  border:2px solid #18211b;border-radius:12px;          /* borde oscuro; el de ARRIBA lo tapa el ::before (relieve) */
+  color:#20241c;                                        /* label oscuro grabado (como la marca SANTAS OCHOVA) */
+  background-color:#50534a;                             /* FLAT gris-oliva del monitor (sin gradiente) */
+  border:2px solid #2b2e28;border-radius:12px;          /* borde oscuro; el de ARRIBA lo tapa el ::before (relieve) */
   box-shadow:
-    -2px -5px 9px rgba(150,205,175,.12),                /* glow claro arriba-izq (era #fff) */
-    -5px 0 9px rgba(150,205,175,.07),
+    -2px -5px 9px rgba(255,255,255,.14),                /* glow claro arriba-izq */
+    -5px 0 9px rgba(255,255,255,.08),
     2px 6px 9px rgba(0,0,0,.4);                          /* sombra abajo-der */
-  text-shadow:1px 1px 2px rgba(150,205,175,.22);        /* grabado (luz, como el original) */
+  text-shadow:1px 1px 2px rgba(255,255,255,.18);        /* grabado (luz) */
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;              /* sin el rectángulo azul del toque en móvil */
   -webkit-touch-callout:none;                           /* sin menú contextual al mantener pulsado */
@@ -344,8 +344,8 @@ body{
 .keyboard button::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   box-shadow:
-    inset 0 -4px 0 #17211b,   /* labio inferior interno (grosor de la tecla) */
-    0 -4px 0 #243028;         /* color del fondo: TAPA el borde de arriba -> desaparece (relieve) */
+    inset 0 -4px 0 #2b2e28,   /* labio inferior interno (grosor de la tecla) */
+    0 -4px 0 #50534a;         /* color del fondo: TAPA el borde de arriba -> desaparece (relieve) */
 }
 .keyboard button:focus{ outline:none }
 .keyboard button:hover{ filter:brightness(1.06) }
@@ -360,7 +360,7 @@ body{
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
 .keyboard button.kmod[aria-pressed="true"]{              /* mayus activo: hundido, sin color potente */
-  background-color:#1c261f;
+  background-color:#3a3d36;
   box-shadow:inset 0 3px 5px rgba(0,0,0,.5);
 }
 .keyboard button.kmod[aria-pressed="true"]::before{ box-shadow:inset 0 3px 5px rgba(0,0,0,.4) }
