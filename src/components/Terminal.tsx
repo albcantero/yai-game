@@ -480,7 +480,7 @@ export default function Terminal() {
       src.buffer = buf;
       src.loop = true;
       const g = ac.createGain();
-      g.gain.value = 0.38; // 75% de lo anterior
+      g.gain.value = 0.25; // 50%
       src.connect(g);
       g.connect(ac.destination);
       src.start(0);
