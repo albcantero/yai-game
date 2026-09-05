@@ -363,9 +363,11 @@ export default function Terminal() {
   }, []);
 
   // Animacion de pulsado garantizada: con :active (atado a la duracion del toque) un tap ultrarrapido
-  // deja la animacion a medias. En su lugar marcamos .pressing y la mantenemos un minimo de tiempo,
-  // asi la transicion completa (bajada + sostener + subida) se ve entera pulses como pulses. Delegado
-  // a nivel ventana (captura) para no tener que tocar cada boton.
+  // deja la animacion a medias. En su lugar marcamos el boton y lo mantenemos un minimo de tiempo,
+  // asi la transicion completa (bajada + sostener + subida) se ve entera pulses como pulses. Usamos
+  // un ATRIBUTO (data-pressing), no una clase: React solo gestiona `class` (lo del JSX), asi que al
+  // re-renderizar un toggle (kbd/power cambia a is-on) no nos borra la marca. Delegado a nivel
+  // ventana (captura) para no tener que tocar cada boton.
   useEffect(() => {
     const MIN = 130; // ms: >= la transicion mas larga (.08s) con margen
     let cur: HTMLElement | null = null;
@@ -378,10 +380,10 @@ export default function Terminal() {
         clearTimeout(timer);
         timer = 0;
       }
-      if (cur && cur !== btn) cur.classList.remove("pressing");
+      if (cur && cur !== btn) cur.removeAttribute("data-pressing");
       cur = btn;
       at = performance.now();
-      btn.classList.add("pressing");
+      btn.setAttribute("data-pressing", "");
     };
     const up = () => {
       if (!cur) return;
@@ -389,7 +391,7 @@ export default function Terminal() {
       cur = null;
       const wait = Math.max(0, MIN - (performance.now() - at));
       timer = window.setTimeout(() => {
-        btn.classList.remove("pressing");
+        btn.removeAttribute("data-pressing");
         timer = 0;
       }, wait);
     };
