@@ -757,7 +757,7 @@ export default function Terminal() {
     // Menú principal del terminal: saludo + directivas (typewriter, letra a letra) + sincronización.
     // No marcamos booted hasta el final, así el prompt no parpadea mientras se escribe la bienvenida.
     (async () => {
-      await typeLine("Bienvenido/a a SANTAS OCHOVA: Tu Mejor Librería.", "", 16);
+      await typeLine("Bienvenido/a a SANTAS OCHOVA Tu Mejor Librería.", "", 16);
       await typeLine("Antes de continuar, le recuerdamos nuestras directivas:", "", 16);
       print("");
       await typeLine("Literatura correcta para ciudadanos correctos.", "muted", 16, "", { bullet: true });
