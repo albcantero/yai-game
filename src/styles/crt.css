@@ -27,9 +27,6 @@
   font-display:swap;
 }
 
-/* DIAG+fix temporal iOS: elemento fijo que cambia en cada commit para forzar repaint (ver Terminal.tsx) */
-.ios-repaint{ position:fixed;left:2px;bottom:2px;z-index:99999;font:10px/1 monospace;color:#0f0;background:#000;opacity:.55;padding:1px 3px;pointer-events:none }
-
 :root{ color-scheme:dark; }
 *{ box-sizing:border-box }
 html,body{ height:100% }
