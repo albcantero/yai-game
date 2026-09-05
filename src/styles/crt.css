@@ -227,7 +227,8 @@ body{
     inset 0 0 30px 6px rgba(0,0,0,.9);
 }
 
-.row{ white-space:pre-wrap;word-break:break-word;min-height:1em }  /* wrap alineado a la izquierda, sin sangrado */
+.row{ white-space:pre-wrap;word-break:break-word;min-height:1em;margin-bottom:6px }  /* wrap a la izquierda; margin-bottom = "espacio después de párrafo" (independiente de las líneas en blanco) */
+.bulletrow{ padding-left:2ch;text-indent:-2ch }   /* viñeta "* " colgada: va en la misma línea que el texto y el wrap alinea bajo el texto */
 .b{ color:#b8ffd6 }
 .muted{ color:#37f07d }   /* verde base (el oscuro #1f9e5e queda SOLO para el hint) */
 .d{ color:#ff5f5f }

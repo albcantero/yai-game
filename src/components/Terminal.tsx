@@ -949,9 +949,8 @@ export default function Terminal() {
                   <span className="systext">{l.text}</span>
                 </div>
               ) : l.bullet ? (
-                <div className={"row syscode-row" + (l.cls ? " " + l.cls : "")} key={l.id}>
-                  <span className="syscode">*</span>
-                  <span className="systext">{l.text}</span>
+                <div className={"row bulletrow" + (l.cls ? " " + l.cls : "")} key={l.id}>
+                  {"* " + l.text}
                 </div>
               ) : (
                 <div className={"row" + (l.cls ? " " + l.cls : "")} key={l.id}>
