@@ -81,8 +81,8 @@ body{
   position:relative;
   width:32px;height:30px;padding:0;
   display:inline-flex;align-items:center;justify-content:center;
-  background-color:#50534a;color:#20241c;cursor:pointer;   /* mismo gris que las teclas */
-  border:2px solid #2b2e28;border-radius:6px;              /* mas cuadrado; el borde de arriba lo tapa el ::before */
+  background-color:#454840;color:#22261f;cursor:pointer;   /* mismo gris que las teclas (un poco mas oscuro) */
+  border:2px solid #22261f;border-radius:6px;              /* borde oscuro (tono "SANTAS OCHOVA"); el de arriba lo tapa el ::before */
   box-shadow:
     -1px -3px 6px rgba(255,255,255,.14),                   /* glow claro arriba-izq */
     -3px 0 6px rgba(255,255,255,.08),
@@ -93,15 +93,15 @@ body{
 .chin-btn::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   box-shadow:
-    inset 0 -3px 0 #2b2e28,   /* labio inferior interno */
-    0 -3px 0 #50534a;         /* color del fondo: TAPA el borde superior -> relieve */
+    inset 0 -3px 0 #22261f,   /* labio inferior interno */
+    0 -3px 0 #454840;         /* color del fondo: TAPA el borde superior -> relieve */
 }
 .chin-btn:hover{ filter:brightness(1.06) }
 .chin-btn:active{ transform:translateY(1px);box-shadow:none }
 .chin-btn:active::before{ box-shadow:none }
-.chin-btn svg{ position:relative;width:18px;height:18px;display:block }
+.chin-btn svg{ position:relative;width:18px;height:18px;display:block;filter:drop-shadow(0 1px 0 rgba(255,255,255,.16)) }  /* luz/sombra pixelart como "SANTAS OCHOVA" */
 /* teclado activo: hundido (relieve colapsado), sin color */
-.chin-btn.is-on{ background-color:#43463f;box-shadow:inset 0 2px 4px rgba(0,0,0,.5) }
+.chin-btn.is-on{ background-color:#3a3d36;box-shadow:inset 0 2px 4px rgba(0,0,0,.5) }
 .chin-btn.is-on::before{ box-shadow:inset 0 2px 4px rgba(0,0,0,.4) }
 /* interruptor rocker del teclado en el mentón (encendido = teclado en pantalla). Escalado en px para que el móvil no lo infle */
 .kbd-switch{ position:relative;flex:none;width:17px;height:40px }
@@ -341,8 +341,8 @@ body{
   font-size:24px;font-family:'Determination Sans',"Courier New",monospace;
   position:relative;
   color:#20241c;                                        /* label oscuro grabado (como la marca SANTAS OCHOVA) */
-  background-color:#50534a;                             /* FLAT gris-oliva del monitor (sin gradiente) */
-  border:2px solid #2b2e28;border-radius:12px;          /* borde oscuro; el de ARRIBA lo tapa el ::before (relieve) */
+  background-color:#454840;                             /* FLAT gris-oliva del monitor, un poco mas oscuro */
+  border:2px solid #22261f;border-radius:12px;          /* borde oscuro (tono "SANTAS OCHOVA"); el de ARRIBA lo tapa el ::before */
   box-shadow:
     -2px -5px 9px rgba(255,255,255,.14),                /* glow claro arriba-izq */
     -5px 0 9px rgba(255,255,255,.08),
@@ -358,8 +358,8 @@ body{
 .keyboard button::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   box-shadow:
-    inset 0 -4px 0 #2b2e28,   /* labio inferior interno (grosor de la tecla) */
-    0 -4px 0 #50534a;         /* color del fondo: TAPA el borde de arriba -> desaparece (relieve) */
+    inset 0 -4px 0 #22261f,   /* labio inferior interno (grosor de la tecla) */
+    0 -4px 0 #454840;         /* color del fondo: TAPA el borde de arriba -> desaparece (relieve) */
 }
 .keyboard button:focus{ outline:none }
 .keyboard button:hover{ filter:brightness(1.06) }
@@ -374,7 +374,7 @@ body{
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
 .keyboard button.kmod[aria-pressed="true"]{              /* mayus activo: hundido, sin color potente */
-  background-color:#3a3d36;
+  background-color:#33362f;
   box-shadow:inset 0 3px 5px rgba(0,0,0,.5);
 }
 .keyboard button.kmod[aria-pressed="true"]::before{ box-shadow:inset 0 3px 5px rgba(0,0,0,.4) }
