@@ -345,8 +345,8 @@ export default function Terminal() {
         if (!acRef.current) acRef.current = new AC();
         const ac = acRef.current;
         Promise.all(
-          [1, 2, 3, 4].map((n) =>
-            fetch(`/audio/key${n}.mp3`)
+          ["a", "b"].map((n) =>
+            fetch(`/audio/key-${n}.mp3`)
               .then((r) => r.arrayBuffer())
               .then((a) => ac.decodeAudioData(a)),
           ),
