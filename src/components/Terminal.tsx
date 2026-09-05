@@ -56,6 +56,7 @@ export default function Terminal() {
   const historyRef = useRef<string[]>([]);
   const hposRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const crtRef = useRef<HTMLDivElement>(null); // para forzar repintado en iOS tras cada cambio
   const curRef = useRef("");
   const handleKeyRef = useRef<(k: string) => void>(() => {});
   const bannerRef = useRef<HTMLPreElement>(null);
@@ -456,6 +457,21 @@ export default function Terminal() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
+  // iOS Safari deja de repintar la pantalla tras los cambios de estado de React (solo entra un input
+  // y se congela; el panel de diagnostico lo tapaba porque forzaba repintados). Tras cada commit
+  // forzamos un reflow del CRT: display off + lectura de offsetHeight + on, todo SINCRONO en el mismo
+  // turno de JS, asi iOS re-rasteriza y no hay parpadeo visible. Preservamos el scroll del contenido.
+  useEffect(() => {
+    const el = crtRef.current;
+    if (!el) return;
+    const sc = scrollRef.current;
+    const st = sc ? sc.scrollTop : 0;
+    el.style.display = "none";
+    void el.offsetHeight;
+    el.style.display = "";
+    if (sc) sc.scrollTop = st;
+  });
+
   // Teclado físico (PC): enruta al mismo manejador que el teclado en pantalla.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -531,6 +547,7 @@ export default function Terminal() {
       <div className="monitor">
         <div className="screen-area">
         <div
+          ref={crtRef}
           className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "")}
           onPointerDown={onScreenPointerDown}
         >
