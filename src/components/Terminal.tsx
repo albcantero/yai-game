@@ -778,10 +778,16 @@ export default function Terminal() {
               <div className="form">
                 {form.fields.map((f, i) => (
                   <div className="inputline" key={i}>
+                    <span className="fcaret" aria-hidden="true">
+                      {i === form.active && (
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
+                        </svg>
+                      )}
+                    </span>
                     <span className="flabel">{f.label}</span>
                     <span className="field">
                       <span className="mirror">{f.mask ? "•".repeat(f.value.length) : f.value}</span>
-                      {i === form.active && <span className="cursor">█</span>}
                     </span>
                   </div>
                 ))}
