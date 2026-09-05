@@ -238,6 +238,9 @@ body{
 .syscode-row{ display:flex;gap:.5ch;padding-left:0;text-indent:0 }
 .syscode{ flex:none }   /* codigo de sistema [CODE]: columna fija, estilizable aparte (hereda color de la linea) */
 .systext{ flex:1;min-width:0;white-space:pre-wrap;word-break:break-word }   /* columna de texto que envuelve */
+.spinner-row{ align-items:center }   /* el spinner se centra con su texto */
+.spinner-cell{ display:inline-flex;align-items:center }
+.spinner-cell .loader-svg{ margin-right:0;width:1.1em;height:1.1em;vertical-align:0 }
 
 .banner-wrap{ overflow:hidden;margin:0 0 8px }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
@@ -261,7 +264,7 @@ body{
 /* MEDIDA UNIVERSAL de los SVG inline del terminal: altura del cuerpo de texto, anchura proporcional,
    alineado con la linea. Usar .term-svg en todo SVG inline. El caret es la unica excepcion (.8em). */
 .term-svg{ height:1.1em;width:auto;vertical-align:-.1em;fill:currentColor }
-.hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em }   /* cursor de raton: pegado a "Click" */
+.hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em;filter:drop-shadow(.44px 0 0 rgba(0,30,255,.5)) drop-shadow(-.44px 0 0 rgba(255,0,80,.3)) drop-shadow(0 0 1px currentColor) }   /* mismo tratamiento CRT que el texto (aberración azul/rojo + glow verde) para que el icono no se vea como un verde plano más brillante */
 .field{ position:relative;flex:1;min-width:0 }
 .uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
 .mirror{ white-space:pre-wrap;word-break:break-word }

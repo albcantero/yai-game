@@ -14,6 +14,7 @@ interface Line {
   mark: Mark;
   code?: string; // codigo de sistema entre corchetes ([ACCESS_DENIED], etc.), como span propio
   bullet?: boolean; // viñeta "*" en columna propia (dos columnas, como [ERROR]): el texto envuelve alineado
+  spinner?: boolean; // línea de carga: al terminar se sustituye en su sitio por su [OK]/[ERROR]
   chev?: boolean;
   chevMore?: boolean;
 }
@@ -84,7 +85,7 @@ export default function Terminal() {
   const [shift, setShift] = useState(false);
   const [numMode, setNumMode] = useState(false);
   const [form, setForm] = useState<FormState | null>(null); // formulario TUI (login, etc.)
-  const [loader, setLoader] = useState<string | null>(null); // texto del loader activo (o null): bloquea el input
+  const [loader, setLoader] = useState(false); // hay una carga en curso: bloquea el input (el spinner es una línea propia)
   const [panel, setPanel] = useState<PanelState | null>(null); // menu del panel (Mis mensajes / Salir)
   const [account, setAccount] = useState(false); // dentro de la cuenta: oculta el logo del inicio
 
@@ -280,15 +281,42 @@ export default function Terminal() {
     print("");
   };
 
-  // Verifica credenciales contra el RPC y muestra el resultado.
-  // Secuencia de conexion: "Conectado con el servidor" + loader ASCII (min 3s; el login real va rapido,
-  // asi que fingimos el timing). Bloquea el input mientras dura.
-  // Cierra sesion: loader "Cerrando sesion..." (bajo el menu) y vuelta a la pantalla de inicio.
+  // Spinner UNIVERSAL. Regla: un spinner SIEMPRE deja un \n antes (aire), muestra el texto de carga con
+  // el spinner girando, y al terminar la tarea SUSTITUYE el spinner por su salida [OK]/[ERROR] en la
+  // MISMA línea. La tarea devuelve { code:"OK"|"ERROR", text, cls }. minMs fuerza una duración mínima.
+  const spin = async (
+    loadingText: string,
+    task: () => Promise<{ code: "OK" | "ERROR"; text: string; cls?: LineClass }>,
+    minMs = 0,
+  ): Promise<{ code: "OK" | "ERROR"; text: string; cls?: LineClass }> => {
+    print(""); // el \n que "gana espacio" antes del spinner
+    const id = addLine({ text: loadingText, cls: "", mark: "", spinner: true });
+    setLoader(true);
+    const start = Date.now();
+    let res: { code: "OK" | "ERROR"; text: string; cls?: LineClass };
+    try {
+      res = await task();
+    } catch {
+      res = { code: "ERROR", text: "Se ha producido un error inesperado", cls: "d" };
+    }
+    const elapsed = Date.now() - start;
+    if (elapsed < minMs) await sleep(minMs - elapsed);
+    // la salida sustituye al spinner en su misma línea (respeta el \n de antes)
+    setLines((p) =>
+      p.map((x) =>
+        x.id === id ? { ...x, spinner: false, code: res.code, text: res.text, cls: res.cls ?? "" } : x,
+      ),
+    );
+    setLoader(false);
+    return res;
+  };
+
   const logoutFlow = async () => {
-    setLoader("Cerrando sesión...");
-    await sleep(2000);
-    setLoader(null);
-    setPanel(null);
+    setPanel(null); // quita el menú antes de mostrar el spinner
+    await spin("Cerrando sesión...", async () => {
+      await sleep(2000);
+      return { code: "OK", text: "Se ha cerrado su sesión correctamente", cls: "b" };
+    });
     setAccount(false); // salimos de la cuenta: el logo vuelve a la pantalla de inicio
     clear(); // vuelve a la pantalla de inicio (con el logo)
   };
@@ -305,22 +333,28 @@ export default function Terminal() {
   };
 
   const connectFlow = async (username: string, password: string) => {
-    setLoader("Conectando con el servidor..."); // loader 1 (el hueco lo da el margen del loader)
-    const start = Date.now();
-    const res = await loginCharacter(username, password);
-    const elapsed = Date.now() - start;
-    if (elapsed < 3000) await sleep(3000 - elapsed); // minimo 3s (timing fake)
-    setLoader(null);
-    if (!res.ok) {
-      sys("ERROR", "Tu cuenta de usuario y/o contraseña son incorrectos. Inténtelo nuevamente", "d");
+    const res = await spin(
+      "Conectando con el servidor...",
+      async () => {
+        const r = await loginCharacter(username, password);
+        if (!r.ok)
+          return {
+            code: "ERROR" as const,
+            text: "Tu cuenta de usuario y/o contraseña son incorrectos. Inténtelo nuevamente",
+            cls: "d" as LineClass,
+          };
+        return { code: "OK" as const, text: "Sesión iniciada correctamente", cls: "b" as LineClass };
+      },
+      3000, // mínimo 3s (el login real va rápido; fingimos el timing)
+    );
+    if (res.code === "ERROR") {
       print("");
       return;
     }
-    sys("OK", "Sesión iniciada correctamente", "b");
-    // loader 2: descarga de metadatos (fake)
-    setLoader("Descargando metadatos de su cuenta...");
-    await sleep(2500);
-    setLoader(null);
+    await spin("Descargando metadatos de su cuenta...", async () => {
+      await sleep(2500);
+      return { code: "OK" as const, text: "Metadatos sincronizados", cls: "b" as LineClass };
+    });
     clear(); // limpia la pantalla tras la descarga
     setAccount(true); // entramos a la cuenta: a partir de aqui el logo NO aparece
     openPanel(); // abre el panel del personaje
@@ -729,10 +763,10 @@ export default function Terminal() {
       await typeLine("Literatura correcta para ciudadanos correctos.", "muted", 16, "", { bullet: true });
       await typeLine("Una mente condicionada es una mente feliz.", "muted", 16, "", { bullet: true });
       await typeLine("La lectura sin propósito produce inestabilidad social.", "muted", 16, "", { bullet: true });
-      print("");
-      setLoader("Sincronizando...");
-      await sleep(2500);
-      setLoader(null);
+      await spin("Sincronizando...", async () => {
+        await sleep(2500);
+        return { code: "OK", text: "Sistema sincronizado", cls: "b" };
+      });
       setBooted(true); // ahora sí: aparece el prompt
     })();
 
@@ -897,6 +931,15 @@ export default function Terminal() {
                     {l.chevMore ? "  toca o Enter para continuar" : "  fin del mensaje"}
                   </span>
                 </div>
+              ) : l.spinner ? (
+                <div className="row syscode-row spinner-row" key={l.id}>
+                  <span className="syscode spinner-cell">
+                    <svg className="loader-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M14 23H10V19H14V23ZM7 21H3L3 17H7V21ZM21 20H18V17H21V20ZM6 14H1L1 9H6V14ZM23 13H20V10H23V13ZM13 7H7L7 1L13 1V7ZM20 6H18V4L20 4V6Z" />
+                    </svg>
+                  </span>
+                  <span className="systext">{l.text}</span>
+                </div>
               ) : l.code ? (
                 <div className={"row syscode-row" + (l.cls ? " " + l.cls : "")} key={l.id}>
                   <span className="syscode">[{l.code}]</span>
@@ -990,14 +1033,6 @@ export default function Terminal() {
                     <span className="faction">{o.label}</span>
                   </div>
                 ))}
-              </div>
-            )}
-            {loader && (
-              <div className="loader">
-                <svg className="loader-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M14 23H10V19H14V23ZM7 21H3L3 17H7V21ZM21 20H18V17H21V20ZM6 14H1L1 9H6V14ZM23 13H20V10H23V13ZM13 7H7L7 1L13 1V7ZM20 6H18V4L20 4V6Z" />
-                </svg>
-                {loader}
               </div>
             )}
             {showInput && (
