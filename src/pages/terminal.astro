@@ -13,40 +13,6 @@ import Terminal from "../components/Terminal.tsx";
     <title>Santas Ochova · Sistema interno</title>
   </head>
   <body>
-    <!-- DIAGNOSTICO TEMPORAL: panel de estado + errores (incl. fallos de carga) para depurar iOS -->
-    <script is:inline>
-      (function () {
-        var d = document.createElement("div");
-        d.id = "__err";
-        d.style.cssText =
-          "position:fixed;top:0;left:0;right:0;z-index:99999;background:#012;color:#9f9;font:11px/1.4 monospace;padding:6px;white-space:pre-wrap;max-height:70vh;overflow:auto";
-        function ready() { if (document.body) document.body.appendChild(d); else setTimeout(ready, 10); }
-        ready();
-        function show(msg) { d.textContent += msg + "\n"; }
-        window.__diag = show;
-        show("diag: inline OK  ·  UA: " + navigator.userAgent);
-        window.addEventListener("error", function (e) {
-          if (e.target && (e.target.tagName === "SCRIPT" || e.target.tagName === "LINK")) {
-            show("RESOURCE FAIL: " + (e.target.src || e.target.href || "?"));
-          } else {
-            show("ERROR: " + (e.message || "") + " @ " + (e.filename || "") + ":" + (e.lineno || "") + (e.error && e.error.stack ? "\n" + e.error.stack : ""));
-          }
-        }, true);
-        window.addEventListener("unhandledrejection", function (e) {
-          show("PROMISE: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
-        });
-        setTimeout(function () { show("t+2s: react " + (window.__reactMounted ? "MONTO OK" : "NO monto") ); }, 2000);
-        var taps = 0;
-        ["pointerdown", "touchstart", "click"].forEach(function (t) {
-          window.addEventListener(t, function (e) {
-            if (taps++ > 30) return;
-            var el = e.target || {};
-            var cls = el.className && el.className.toString ? el.className.toString().slice(0, 40) : "";
-            show(t + " -> " + (el.tagName || "?") + " ." + cls);
-          }, true);
-        });
-      })();
-    </script>
     <main class="stage">
       <Terminal client:load />
     </main>
