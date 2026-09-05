@@ -508,33 +508,32 @@ export default function Terminal() {
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
-          <span className="kbd-switch">
-            <label className="switch" title={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}>
-              <input
-                className="switch__input"
-                type="checkbox"
-                role="switch"
-                aria-label="Mostrar u ocultar el teclado en pantalla"
-                checked={showKeyboard}
-                onChange={() => {
-                  setShowKeyboard((v) => !v);
-                  try {
-                    new Audio(SWITCH_SFX).play().catch(() => {});
-                  } catch {
-                    /* sin audio */
-                  }
-                  if (navigator.vibrate) navigator.vibrate(50);
-                }}
-              />
-              <span className="switch__lever-shadow"></span>
-              <span className="switch__lever">
-                <span className="switch__lever-sides"></span>
-                <span className="switch__lever-half-top"></span>
-                <span className="switch__lever-half-bottom"></span>
-              </span>
-              <span className="switch__label">Teclado</span>
-            </label>
-          </span>
+          <div className="chin-buttons">
+            <button
+              type="button"
+              className={"chin-btn" + (showKeyboard ? " is-on" : "")}
+              aria-pressed={showKeyboard}
+              aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
+              onClick={() => {
+                setShowKeyboard((v) => !v);
+                try {
+                  new Audio(SWITCH_SFX).play().catch(() => {});
+                } catch {
+                  /* sin audio */
+                }
+                if (navigator.vibrate) navigator.vibrate(50);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
+            </button>
+            <button type="button" className="chin-btn" aria-label="Arriba" onPointerDown={() => handleKey("ArrowUp")}>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ transform: "rotate(-90deg)" }}><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z"/></svg>
+            </button>
+            <button type="button" className="chin-btn" aria-label="Abajo" onPointerDown={() => handleKey("ArrowDown")}>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ transform: "rotate(90deg)" }}><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z"/></svg>
+            </button>
+            <button type="button" className="chin-btn chin-ok" aria-label="OK" onPointerDown={() => handleKey("Enter")}>OK</button>
+          </div>
           <button type="button" className="crt-toggle" onClick={() => setGeomLike((v) => !v)}>
             {geomLike ? "crt-geom" : "actual"}
           </button>
