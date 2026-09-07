@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { MutableRefObject } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import type { ScreenHandle, ScreenServices } from "./types";
 import { commands } from "../../terminal/commands";
 import { editText, menuNav } from "../../terminal/input";
 import type { Command, Ctx, LineClass } from "../../terminal/types";
@@ -56,28 +56,14 @@ const BOOT_MS = 4000; // duración de la barra de carga
 const prefersReduced = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
 
-// El CONTENIDO del terminal (líneas, login, chat, boot...). Vive como componente propio dentro del
-// armazón ("el PC"): se MONTA al entrar y se DESMONTA al salir, así reiniciar = remontar y React
-// limpia todo (estado + async) solo. El audio/teclado/warp los pone el padre y llegan por props.
-export interface TerminalProps {
-  playSfx: (src: string, vol?: number) => void;
-  shiftModeRef: MutableRefObject<"off" | "shift" | "caps">;
-  consumeShift: () => void;
-  keyHandlerRef: MutableRefObject<(k: string) => void>; // el terminal registra aquí su handleKey
-  runCmdRef: MutableRefObject<(cmd: string) => void>; // ...y su submit (para el menú lateral del armazón)
-  loaderRef: MutableRefObject<boolean>; // expone si hay un loader (el armazón bloquea sus botones)
-  pauseRef: MutableRefObject<(v: boolean) => void>; // el armazón pausa/reanuda el terminal (menú/diálogo abiertos)
-}
-
-export default function Terminal({
-  playSfx,
-  shiftModeRef,
-  consumeShift,
-  keyHandlerRef,
-  runCmdRef,
-  loaderRef,
-  pauseRef,
-}: TerminalProps) {
+// Pantalla-terminal (líneas, login, chat, boot...). Se MONTA al entrar y se DESMONTA al salir, así
+// reiniciar = remontar y React limpia todo (estado + async) solo. Recibe los servicios del armazón por
+// props (ScreenServices) y le EXPONE su ScreenHandle vía useImperativeHandle (más abajo), en vez de
+// que el armazón le asigne refs sueltos en el render.
+const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
+  { playSfx, shiftModeRef, consumeShift },
+  ref,
+) {
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
@@ -104,8 +90,6 @@ export default function Terminal({
   const mountedRef = useRef(true); // false tras desmontar: corta subscripciones/pintados de awaits en vuelo
   const seenMsgIdsRef = useRef<Set<number>>(new Set()); // ids ya pintados: dedup entre historial, echo local y realtime
 
-  loaderRef.current = loader; // el armazón usa esto para bloquear los botones del monitor durante un loader
-
   // ---- PAUSA del terminal (la impone el armazón al abrir menú/diálogo) ----
   // Todo lo animado pasa por sleep(); mientras paused, sleep aparca en la "compuerta" (gate) y no
   // resuelve hasta despausar. Así se congelan boot, typeLine y spinners sin tocar cada bucle, esté como esté.
@@ -125,7 +109,6 @@ export default function Terminal({
       ? new Promise<void>((res) => resumeWaitersRef.current.push(res))
       : Promise.resolve();
   const sleep = (ms: number) => rawSleep(ms).then(gate); // sleep consciente de la pausa (sombrea al de módulo)
-  pauseRef.current = setPaused; // el armazón llama pauseRef.current(true/false)
 
   const lookup = useMemo(() => {
     const m = new Map<string, Command>();
@@ -483,7 +466,6 @@ export default function Terminal({
     command.run(ctx);
     if (!command.names.includes("login")) print(""); // login no lleva línea en blanco extra (la gestiona startLogin)
   };
-  runCmdRef.current = submit; // el menú lateral del armazón ejecuta comandos aquí
 
   const handlePanelKey = (k: string) => {
     const p = panel;
@@ -547,7 +529,15 @@ export default function Terminal({
       }
     }
   };
-  keyHandlerRef.current = handleKey; // el teclado/físico del armazón despacha aquí en vista "terminal"
+  // Handle que el armazón usa para hablar con esta pantalla (teclas, comandos del menú, loader, pausa).
+  // Sin dep-array: se recrea en cada commit (como useLayoutEffect), así los closures van siempre frescos
+  // sin asignar refs en el cuerpo del render.
+  useImperativeHandle(ref, () => ({
+    handleKey,
+    runCmd: submit,
+    isLoading: () => loader,
+    setPaused,
+  }));
 
   // Click en el hint = confirmar (equivale a Enter), con sonido de ratón.
   const confirmClick = () => {
@@ -774,4 +764,6 @@ export default function Terminal({
       )}
     </div>
   );
-}
+});
+
+export default Terminal;

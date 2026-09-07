@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
 import { menuNav } from "../terminal/input";
-import Terminal from "./screens/Terminal";
+import { SCREENS, type ScreenId } from "./screens";
+import type { ScreenHandle } from "./screens/types";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -10,8 +11,13 @@ const WARP_ENABLED = true;
 const AUDIO_ENABLED = true;
 // Sello de build (SHA) visible en una esquina (dev). Poner en false para la versión final.
 const SHOW_BUILD = true;
-// Opciones del menú de inicio (vista "home" dentro del CRT). Terminal entra; Tienda/Fases: próximamente.
-const HOME_OPTS = ["Terminal", "Tienda", "Fases"];
+// Opciones del menú de inicio (vista "home" dentro del CRT). Cada una apunta (o no aún) a una pantalla
+// del registro SCREENS. Tienda/Fases todavía sin pantalla: se muestran pero no hacen nada.
+const HOME_OPTS: { label: string; screen?: ScreenId }[] = [
+  { label: "Terminal", screen: "terminal" },
+  { label: "Tienda" },
+  { label: "Fases" },
+];
 
 // EL ARMAZÓN ("el PC"): monitor, teclado, AUDIO, warp y la vista de inicio. Persiste siempre; cada
 // pantalla (screens/Terminal, y en el futuro Shop, Lobby...) se monta encima como un componente.
@@ -24,7 +30,7 @@ export default function Computer() {
   const [powerOn, setPowerOn] = useState(true);
   const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
-  const [view, setView] = useState<"home" | "terminal">("home");
+  const [view, setView] = useState<"home" | ScreenId>("home");
   const [homeActive, setHomeActive] = useState(0);
 
   const feImageRef = useRef<SVGFEImageElement>(null);
@@ -38,11 +44,9 @@ export default function Computer() {
   const shiftModeRef = useRef<"off" | "shift" | "caps">("off");
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
-  const termKeyRef = useRef<(k: string) => void>(() => {}); // handleKey del terminal montado
-  const runCmdRef = useRef<(cmd: string) => void>(() => {}); // submit del terminal (menú lateral)
-  const loaderRef = useRef(false); // hay un loader en el terminal (bloquea los botones del monitor)
+  const screenRef = useRef<ScreenHandle | null>(null); // handle de la pantalla activa (null en home; React lo pone null al desmontar)
   const dispatchRef = useRef<(k: string) => void>(() => {}); // dispatchKey estable para el teclado físico
-  const termPauseRef = useRef<(v: boolean) => void>(() => {}); // pausa/reanuda el terminal (lo registra el hijo)
+  const isScreenLoading = () => screenRef.current?.isLoading() ?? false; // ¿la pantalla activa está en un loader?
 
   // ---------- Audio (Web Audio, compartido con el terminal por props) ----------
   const keyTick = () => {
@@ -103,7 +107,8 @@ export default function Computer() {
 
   // ---------- Enrutado de teclas (teclado en pantalla + físico + botones del monitor) ----------
   const homeSelect = (i: number) => {
-    if (i === 0) setView("terminal");
+    const s = HOME_OPTS[i].screen;
+    if (s) setView(s); // "Tienda"/"Fases" aún sin pantalla: no hacen nada
   };
   const handleHomeKey = (k: string) => {
     if (k === "Enter") homeSelect(homeActive);
@@ -122,19 +127,19 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    termKeyRef.current(k);
+    screenRef.current?.handleKey(k);
   };
   dispatchRef.current = dispatchKey;
 
-  // Menú lateral o diálogo de cierre abiertos => PAUSA el terminal (congela boot/typeLine/spinners,
-  // esté como esté). Al cerrarlos, reanuda donde iba. Lo ejecuta el hijo vía termPauseRef.
+  // Menú lateral o diálogo de cierre abiertos => PAUSA la pantalla activa (congela boot/typeLine/
+  // spinners, esté como esté). Al cerrarlos, reanuda donde iba. Vía screenRef.setPaused.
   useEffect(() => {
-    termPauseRef.current(menuOpen || confirmClose);
+    screenRef.current?.setPaused(menuOpen || confirmClose);
   }, [menuOpen, confirmClose]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. Bloqueados si hay loader en el terminal.
   const chinKey = (k: string) => {
-    if (loaderRef.current) return;
+    if (isScreenLoading()) return;
     playSfx("/audio/terminal-simple-button.mp3");
     suppressTickRef.current = true;
     dispatchKey(k);
@@ -173,7 +178,7 @@ export default function Computer() {
 
   const runFromMenu = (cmd: string) => {
     setMenuOpen(false);
-    if (view === "terminal") runCmdRef.current(cmd);
+    if (view !== "home") screenRef.current?.runCmd?.(cmd);
   };
   const chromeClick = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
@@ -411,6 +416,8 @@ export default function Computer() {
     };
   }, []);
 
+  const Active = view !== "home" ? SCREENS[view].Component : null; // componente de la pantalla activa (registro)
+
   return (
     <>
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
@@ -447,28 +454,25 @@ export default function Computer() {
             <div className="home-screen">
               <div className="home-title">EL libro PERDIDO</div>
               <div className="home-menu">
-                {HOME_OPTS.map((label, i) => (
+                {HOME_OPTS.map((opt, i) => (
                   <div className="inputline" key={i}>
                     <span className="fcaret" aria-hidden="true">
                       {homeActive === i && (
                         <svg viewBox="9 7 6 10" fill="currentColor"><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" /></svg>
                       )}
                     </span>
-                    <span className="faction" onPointerDown={() => { setHomeActive(i); homeSelect(i); }}>{label}</span>
+                    <span className="faction" onPointerDown={() => { setHomeActive(i); homeSelect(i); }}>{opt.label}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
-          {view === "terminal" && (
-            <Terminal
+          {Active && (
+            <Active
+              ref={screenRef}
               playSfx={playSfx}
               shiftModeRef={shiftModeRef}
               consumeShift={consumeShift}
-              keyHandlerRef={termKeyRef}
-              runCmdRef={runCmdRef}
-              loaderRef={loaderRef}
-              pauseRef={termPauseRef}
             />
           )}
           {confirmClose && (
@@ -522,11 +526,11 @@ export default function Computer() {
               aria-pressed={showKeyboard}
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
               onPointerDown={() => {
-                if (loaderRef.current) return;
+                if (isScreenLoading()) return;
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
-              onClick={() => { if (loaderRef.current) return; setShowKeyboard((v) => !v); }}
+              onClick={() => { if (isScreenLoading()) return; setShowKeyboard((v) => !v); }}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
             </button>
@@ -545,11 +549,11 @@ export default function Computer() {
               aria-pressed={powerOn}
               aria-label={powerOn ? "Apagar" : "Encender"}
               onPointerDown={() => {
-                if (loaderRef.current) return;
+                if (isScreenLoading()) return;
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
-              onClick={() => { if (loaderRef.current) return; setPowerOn((v) => !v); }}
+              onClick={() => { if (isScreenLoading()) return; setPowerOn((v) => !v); }}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
             </button>
