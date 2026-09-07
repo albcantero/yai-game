@@ -20,7 +20,7 @@ export const SCREENS = {
   terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", Component: Terminal },
   tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet-sm.png", Component: Placeholder },
   notas: { label: "Notas", title: "Notas", icon: "/icons/notepad-sm.png", Component: Placeholder },
-  registro: { label: "Registro", title: "Registro", icon: "/icons/printer-sm.png", Component: Placeholder },
+  registro: { label: "Fax electrónico", title: "Fax electrónico", icon: "/icons/printer-sm.png", Component: Placeholder },
   fases: { label: "Libro de juego", title: "Libro de juego", icon: "/icons/fases-sm.png", Component: Placeholder },
 } satisfies Record<string, ScreenDef>;
 
