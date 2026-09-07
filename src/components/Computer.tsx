@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
+import { initRemoteLog, BUILD } from "../lib/rlog";
 import { menuNav } from "../terminal/input";
 import { usePressAnimation } from "./usePressAnimation";
+import { useWarpFilter } from "./useWarpFilter";
+import { useTerminalAudio } from "./useTerminalAudio";
 import { SCREENS, type ScreenId } from "./screens";
 import type { ScreenHandle } from "./screens/types";
 
@@ -24,7 +26,6 @@ const HOME_OPTS: { label: string; screen?: ScreenId }[] = [
 // pantalla (screens/Terminal, y en el futuro Shop, Lobby...) se monta encima como un componente.
 // Reiniciar una pantalla = salir de su vista → el hijo se desmonta y React lo limpia todo.
 export default function Computer() {
-  const [warpReady, setWarpReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(true);
@@ -34,14 +35,6 @@ export default function Computer() {
   const [view, setView] = useState<"home" | ScreenId>("home");
   const [homeActive, setHomeActive] = useState(0);
 
-  const feImageRef = useRef<SVGFEImageElement>(null);
-  const didBoot = useRef(false);
-  const acRef = useRef<AudioContext | null>(null);
-  const keyBuffersRef = useRef<AudioBuffer[]>([]);
-  const humBufferRef = useRef<AudioBuffer | null>(null);
-  const humSrcRef = useRef<AudioBufferSourceNode | null>(null);
-  const sfxBuffersRef = useRef<Record<string, AudioBuffer>>({});
-  const suppressTickRef = useRef(false); // silencia el tic de tecla cuando el sonido lo dispara otra cosa
   const shiftModeRef = useRef<"off" | "shift" | "caps">("off");
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
@@ -49,54 +42,10 @@ export default function Computer() {
   const dispatchRef = useRef<(k: string) => void>(() => {}); // dispatchKey estable para el teclado físico
   const isScreenLoading = () => screenRef.current?.isLoading() ?? false; // ¿la pantalla activa está en un loader?
 
-  // ---------- Audio (Web Audio, compartido con el terminal por props) ----------
-  const keyTick = () => {
-    if (suppressTickRef.current) return;
-    if (!AUDIO_ENABLED) return;
-    if (navigator.vibrate) navigator.vibrate(8);
-    try {
-      const ac = acRef.current;
-      const bufs = keyBuffersRef.current;
-      if (!ac || bufs.length === 0) return;
-      if (ac.state === "suspended") ac.resume();
-      const src = ac.createBufferSource();
-      src.buffer = bufs[Math.floor(Math.random() * bufs.length)];
-      const g = ac.createGain();
-      g.gain.value = 0.55;
-      src.connect(g);
-      g.connect(ac.destination);
-      src.start(0);
-    } catch {
-      /* sin audio */
-    }
-  };
-  const playSfx = (src: string, vol = 1) => {
-    if (!AUDIO_ENABLED) return;
-    const ac = acRef.current;
-    const buf = sfxBuffersRef.current[src];
-    if (ac && buf) {
-      try {
-        if (ac.state === "suspended") ac.resume();
-        const s = ac.createBufferSource();
-        s.buffer = buf;
-        const g = ac.createGain();
-        g.gain.value = vol;
-        s.connect(g);
-        g.connect(ac.destination);
-        s.start(0);
-        return;
-      } catch {
-        /* cae al fallback */
-      }
-    }
-    try {
-      const a = new Audio(src);
-      a.volume = vol;
-      a.play().catch(() => {});
-    } catch {
-      /* sin audio */
-    }
-  };
+  // Motores del armazón extraídos a hooks: el warp (mapa del filtro SVG) y el audio (un AudioContext
+  // persistente + buffers + hum). suppressTickRef silencia el tic de tecla cuando el sonido lo dispara otra cosa.
+  const { feImageRef, warpReady } = useWarpFilter();
+  const { keyTick, playSfx, suppressTickRef } = useTerminalAudio(AUDIO_ENABLED);
 
   const setShiftState = (m: "off" | "shift" | "caps") => {
     shiftModeRef.current = m;
@@ -200,90 +149,6 @@ export default function Computer() {
 
   usePressAnimation(); // animación de pulsado por-botón + red de seguridad (ver hook)
 
-  // Arranque del PC (una vez): mapa de curvatura del warp + precarga de samples de audio.
-  useEffect(() => {
-    if (didBoot.current) return;
-    didBoot.current = true;
-
-    const makeMap = (strength: number): string | null => {
-      const g = document.createElement("canvas");
-      if (!g.getContext) return null;
-      const size = 96;
-      g.width = g.height = size;
-      const ctx2d = g.getContext("2d");
-      if (!ctx2d) return null;
-      const im = ctx2d.createImageData(size, size);
-      const d = im.data;
-      for (let y = 0; y < size; y++)
-        for (let x = 0; x < size; x++) {
-          const nx = (x / (size - 1)) * 2 - 1;
-          const ny = (y / (size - 1)) * 2 - 1;
-          const f = strength * (nx * nx + ny * ny);
-          const i = (y * size + x) * 4;
-          d[i] = Math.max(0, Math.min(255, 128 + nx * f * 127));
-          d[i + 1] = Math.max(0, Math.min(255, 128 + ny * f * 127));
-          d[i + 2] = 128;
-          d[i + 3] = 255;
-        }
-      ctx2d.putImageData(im, 0, 0);
-      return g.toDataURL();
-    };
-    const setHref = (fe: SVGFEImageElement | null, u: string | null) => {
-      if (!fe || !u) return;
-      fe.setAttribute("href", u);
-      fe.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", u);
-    };
-    try {
-      const url = makeMap(0.4);
-      setHref(feImageRef.current, url);
-      if (url) setWarpReady(true);
-    } catch {
-      /* navegador sin soporte: se queda plano */
-    }
-
-    // Precarga los samples de tecleo, el zumbido y los SFX de click en buffers.
-    try {
-      const AC = window.AudioContext || (window as any).webkitAudioContext;
-      if (AUDIO_ENABLED && AC) {
-        if (!acRef.current) acRef.current = new AC();
-        const ac = acRef.current;
-        Promise.all(
-          ["a", "b"].map((n) =>
-            fetch(`/audio/key-${n}.mp3`)
-              .then((r) => r.arrayBuffer())
-              .then((a) => ac.decodeAudioData(a)),
-          ),
-        )
-          .then((bufs) => {
-            keyBuffersRef.current = bufs;
-          })
-          .catch(() => {});
-        fetch("/audio/terminal-humming.mp3")
-          .then((r) => r.arrayBuffer())
-          .then((a) => ac.decodeAudioData(a))
-          .then((b) => {
-            humBufferRef.current = b;
-          })
-          .catch(() => {});
-        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3"].forEach(
-          (src) => {
-            fetch(src)
-              .then((r) => r.arrayBuffer())
-              .then((a) => ac.decodeAudioData(a))
-              .then((b) => {
-                sfxBuffersRef.current[src] = b;
-              })
-              .catch(() => {});
-          },
-        );
-      }
-    } catch {
-      /* sin audio */
-    }
-
-    rlog("info", "PC arrancado");
-  }, []);
-
   // Teclado físico (PC): enruta al mismo dispatch que el teclado en pantalla.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -301,68 +166,6 @@ export default function Computer() {
   }, []);
 
   useEffect(() => stopHold, []);
-
-  // Calienta los buffers en el primer gesto (iOS prepara cada buffer en su primera reproducción).
-  useEffect(() => {
-    if (!AUDIO_ENABLED) return;
-    const warm = () => {
-      const ac = acRef.current;
-      if (!ac) return;
-      try {
-        if (ac.state === "suspended") ac.resume();
-        const g = ac.createGain();
-        g.gain.value = 0;
-        g.connect(ac.destination);
-        const all = [...keyBuffersRef.current, ...Object.values(sfxBuffersRef.current)];
-        if (humBufferRef.current) all.push(humBufferRef.current);
-        for (const b of all) {
-          const s = ac.createBufferSource();
-          s.buffer = b;
-          s.connect(g);
-          s.start(0);
-          s.stop(ac.currentTime + 0.02);
-        }
-      } catch {
-        /* sin audio */
-      }
-      window.removeEventListener("pointerdown", warm, true);
-      window.removeEventListener("keydown", warm, true);
-    };
-    window.addEventListener("pointerdown", warm, true);
-    window.addEventListener("keydown", warm, true);
-    return () => {
-      window.removeEventListener("pointerdown", warm, true);
-      window.removeEventListener("keydown", warm, true);
-    };
-  }, []);
-
-  // Zumbido de fondo del CRT (Web Audio; bypassa el silencio de iOS). Loop; arranca en la 1ª interacción.
-  useEffect(() => {
-    const start = () => {
-      const ac = acRef.current;
-      const buf = humBufferRef.current;
-      if (!ac || !buf || humSrcRef.current) return;
-      if (ac.state === "suspended") ac.resume();
-      const src = ac.createBufferSource();
-      src.buffer = buf;
-      src.loop = true;
-      const g = ac.createGain();
-      g.gain.value = 0.075;
-      src.connect(g);
-      g.connect(ac.destination);
-      src.start(0);
-      humSrcRef.current = src;
-      rlog("audio", "hum started", { state: ac.state });
-      window.removeEventListener("pointerdown", start);
-      window.removeEventListener("keydown", start);
-    };
-    window.addEventListener("pointerdown", start);
-    window.addEventListener("keydown", start);
-    return () => {
-      window.removeEventListener("pointerdown", start);
-      window.removeEventListener("keydown", start);
-    };
-  }, []);
 
   const Active = view !== "home" ? SCREENS[view].Component : null; // componente de la pantalla activa (registro)
 
