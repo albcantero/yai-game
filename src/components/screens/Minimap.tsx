@@ -17,9 +17,18 @@ const ROOMS: Room[] = [
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 30.0, discovered: false },
   { id: "r9", x: 10.0, y: 69.0, w: 13.0, h: 17.0, discovered: false },
 ];
-const LINKS: [string, string][] = [
-  ["r9", "vthin"], ["r4", "r3"], ["r3", "r1"], ["r2", "r6"], ["r6", "r8"],
-  ["hub", "r2"], ["hub", "r1"], ["big", "hub"], ["big", "vthin"],
+// Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
+// que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
+const LINKS: { from: string; to: string; pts: [number, number][] }[] = [
+  { from: "r9", to: "vthin", pts: [[16.0, 68.0], [15.9, 58.5], [26.0, 54.9]] },
+  { from: "r4", to: "r3", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
+  { from: "r3", to: "r1", pts: [[30.5, 15.7], [39.6, 15.6]] },
+  { from: "r2", to: "r6", pts: [[88.9, 21.9], [88.9, 31.1]] },
+  { from: "r6", to: "r8", pts: [[86.1, 48.0], [86.1, 57.1]] },
+  { from: "hub", to: "r6", pts: [[73, 49], [81, 49], [81, 40]] }, // corregido a r6 (tu path acababa en r2); L provisional, retócala en Affinity si quieres otra ruta
+  { from: "hub", to: "r1", pts: [[52.6, 47.9], [58.8, 39.0]] },
+  { from: "big", to: "hub", pts: [[71.5, 64.2], [67.2, 56.2]] },
+  { from: "big", to: "vthin", pts: [[39.0, 86.0], [30.0, 76.3], [30.0, 65.8]] },
 ];
 const CURRENT = "hub"; // sala donde está el grupo ahora (demo)
 
@@ -32,14 +41,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   return (
     <div className="minimap-screen">
       <svg className="minimap-svg" viewBox="-2 -2 104 104" preserveAspectRatio="xMidYMid meet">
-        {/* conexiones: en gris si ambas salas están descubiertas, apagadas si no */}
-        {LINKS.map(([a, b], i) => {
-          const ra = byId[a], rb = byId[b];
+        {/* corredores: se pintan con sus ESQUINAS (polilínea), en gris si ambas salas están descubiertas */}
+        {LINKS.map((lk, i) => {
+          const ra = byId[lk.from], rb = byId[lk.to];
           if (!ra || !rb) return null;
           const shown = ra.discovered && rb.discovered;
           return (
-            <line key={i} x1={cx(ra)} y1={cy(ra)} x2={cx(rb)} y2={cy(rb)}
-              stroke={shown ? "#8a938a" : "#26302a"} strokeWidth={2.4} shapeRendering="crispEdges" />
+            <polyline key={i} points={lk.pts.map((p) => p.join(",")).join(" ")}
+              fill="none" stroke={shown ? "#8a938a" : "#26302a"} strokeWidth={2.4}
+              strokeLinecap="round" strokeLinejoin="round" />
           );
         })}
         {/* salas: descubierta = clara; no descubierta = oscura con "?"; actual = resaltada + punto del grupo */}
