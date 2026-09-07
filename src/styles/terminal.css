@@ -31,9 +31,7 @@
 .spinner-cell .loader-svg{ margin-right:0;width:1.1em;height:1.1em;vertical-align:0 }
 
 .banner-wrap{ overflow:hidden }
-.home-screen{ height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6em;padding:24px;text-align:center;overflow:auto }   /* vista "home" dentro del CRT */
-.home-title{ font-size:2.2em;line-height:1.1;color:#b8ffd6;letter-spacing:1px }
-.home-menu{ display:flex;flex-direction:column;gap:.5em;align-items:flex-start }
+/* La pantalla HOME (fondo pixelart + título wavy + botones pixel) vive en home.css */
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
 /* Splash de carga inicial: logo centrado en la pantalla + barra de bloques desnuda debajo. Solo en el arranque. */
 .content>.boot-splash{ flex:1 1 auto;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4em;width:100%;max-width:none }

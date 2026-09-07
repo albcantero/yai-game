@@ -1,5 +1,6 @@
 import type { ComponentType, RefAttributes } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
+import Home from "./Home";
 import Terminal from "./Terminal";
 
 // Registro de pantallas montables sobre el armazón. Añadir una pantalla = un componente
@@ -11,6 +12,7 @@ export interface ScreenDef {
 }
 
 export const SCREENS = {
+  home: { label: "Home", Component: Home },
   terminal: { label: "Terminal", Component: Terminal },
   // tienda: { label: "Tienda", Component: Shop },
   // fases:  { label: "Fases",   Component: Lobby },

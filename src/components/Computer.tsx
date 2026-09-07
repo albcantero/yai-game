@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { initRemoteLog, BUILD } from "../lib/rlog";
-import { menuNav } from "../terminal/input";
 import { usePressAnimation } from "./usePressAnimation";
 import { useWarpFilter } from "./useWarpFilter";
 import { useTerminalAudio } from "./useTerminalAudio";
@@ -19,13 +18,6 @@ const SHOW_BUILD = true;
 // la API, así que en iPhone es un no-op (cero vibración, cero calor); en Android son pulsos de pocos ms,
 // sin consumo apreciable. Sube el valor para un golpe más firme.
 const BUZZ_MS = 10;
-// Opciones del menú de inicio (vista "home" dentro del CRT). Cada una apunta (o no aún) a una pantalla
-// del registro SCREENS. Tienda/Fases todavía sin pantalla: se muestran pero no hacen nada.
-const HOME_OPTS: { label: string; screen?: ScreenId }[] = [
-  { label: "Terminal", screen: "terminal" },
-  { label: "Tienda" },
-  { label: "Fases" },
-];
 
 // EL ARMAZÓN ("el PC"): monitor, teclado, AUDIO, warp y la vista de inicio. Persiste siempre; cada
 // pantalla (screens/Terminal, y en el futuro Shop, Lobby...) se monta encima como un componente.
@@ -37,13 +29,12 @@ export default function Computer() {
   const [powerOn, setPowerOn] = useState(true);
   const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
-  const [view, setView] = useState<"home" | ScreenId>("home");
-  const [homeActive, setHomeActive] = useState(0);
+  const [view, setView] = useState<ScreenId>("home"); // pantalla activa; arranca en "home" (todas son screens del registro)
 
   const shiftModeRef = useRef<"off" | "shift" | "caps">("off");
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
-  const screenRef = useRef<ScreenHandle | null>(null); // handle de la pantalla activa (null en home; React lo pone null al desmontar)
+  const screenRef = useRef<ScreenHandle | null>(null); // handle de la pantalla activa (React lo pone null al desmontar)
   const dispatchRef = useRef<(k: string) => void>(() => {}); // dispatchKey estable para el teclado físico
   const suppressBuzzRef = useRef(false); // silencia SOLO la vibración en las repeticiones de tecla mantenida (el primer toque sí vibra)
 
@@ -62,15 +53,11 @@ export default function Computer() {
   };
 
   // ---------- Enrutado de teclas (teclado en pantalla + físico + botones del monitor) ----------
-  const homeSelect = (i: number) => {
-    const s = HOME_OPTS[i].screen;
-    if (s) setView(s); // "Tienda"/"Fases" aún sin pantalla: no hacen nada
+  // Navegación entre pantallas: cada screen (Home, y en el futuro Shop...) pide saltar a otra por su id.
+  const navigate = (id: string) => {
+    if (id in SCREENS) setView(id as ScreenId);
   };
-  const handleHomeKey = (k: string) => {
-    if (k === "Enter") homeSelect(homeActive);
-    else setHomeActive((a) => menuNav(a, HOME_OPTS.length, k));
-  };
-  // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega según la vista.
+  // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega en la pantalla activa.
   const dispatchKey = (k: string) => {
     keyTick(); // el TECLADO es INDEPENDIENTE: SIEMPRE suena, aunque haya menú/diálogo abierto o un loader
     if (!suppressBuzzRef.current) buzz(); // y SIEMPRE vibra (salvo repeticiones de tecla mantenida)
@@ -79,12 +66,8 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    if (menuOpen || confirmClose) return; // menú/diálogo abiertos = terminal en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
-    if (view === "home") {
-      handleHomeKey(k);
-      return;
-    }
-    screenRef.current?.handleKey(k);
+    if (menuOpen || confirmClose) return; // menú/diálogo abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
+    screenRef.current?.handleKey(k); // delega en la pantalla activa (home incluido: su menú navega con flechas + OK)
   };
   dispatchRef.current = dispatchKey;
 
@@ -137,7 +120,7 @@ export default function Computer() {
 
   const runFromMenu = (cmd: string) => {
     setMenuOpen(false);
-    if (view !== "home") screenRef.current?.runCmd?.(cmd);
+    screenRef.current?.runCmd?.(cmd); // home no implementa runCmd (no-op); terminal ejecuta el comando
   };
   const chromeClick = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
@@ -176,7 +159,7 @@ export default function Computer() {
 
   useEffect(() => stopHold, []);
 
-  const Active = view !== "home" ? SCREENS[view].Component : null; // componente de la pantalla activa (registro)
+  const Active = SCREENS[view].Component; // componente de la pantalla activa (registro; "home" incluido)
 
   return (
     <>
@@ -210,31 +193,14 @@ export default function Computer() {
             </div>
           </div>
           <div className="crt-body">
-          {view === "home" && (
-            <div className="home-screen">
-              <div className="home-title">EL libro PERDIDO</div>
-              <div className="home-menu">
-                {HOME_OPTS.map((opt, i) => (
-                  <div className="inputline" key={i}>
-                    <span className="fcaret" aria-hidden="true">
-                      {homeActive === i && (
-                        <svg viewBox="9 7 6 10" fill="currentColor"><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" /></svg>
-                      )}
-                    </span>
-                    <span className="faction">{opt.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {Active && (
-            <Active
-              ref={screenRef}
-              playSfx={playSfx}
-              shiftModeRef={shiftModeRef}
-              consumeShift={consumeShift}
-            />
-          )}
+          <Active
+            key={view}
+            ref={screenRef}
+            playSfx={playSfx}
+            shiftModeRef={shiftModeRef}
+            consumeShift={consumeShift}
+            navigate={navigate}
+          />
           {confirmClose && (
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
               <div className="window confirm-dialog">

@@ -5,6 +5,7 @@ export interface ScreenServices {
   playSfx: (src: string, vol?: number) => void;
   shiftModeRef: MutableRefObject<"off" | "shift" | "caps">;
   consumeShift: () => void;
+  navigate: (id: string) => void; // saltar a otra pantalla del registro por su id (lo usa el menú de Home)
 }
 
 // Formulario TUI (login, y el compose del chat): campos + acción (Enviar/Conectar) + Salir, navegable
