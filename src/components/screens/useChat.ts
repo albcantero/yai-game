@@ -3,6 +3,7 @@ import type { MutableRefObject } from "react";
 import {
   allCharacters,
   currentCharacter,
+  fetchInbox,
   fetchThread,
   sendMessage,
   subscribeMessages,
@@ -17,7 +18,34 @@ interface PanelOption {
   run: () => void;
   icon?: "user" | "room"; // icono a la izquierda (roster del chat)
   gapBefore?: boolean; // deja un hueco (línea en blanco) antes de esta opción
+  unread?: number; // nº de mensajes nuevos (roster); si está definido, se pinta el contador a la derecha
 }
+
+// ---- No leídos por conversación (guardado en el móvil; cada jugadora usa su propio teléfono) ----
+// Por conversación guardamos el MAYOR id de mensaje ya visto; no leídos = mensajes de otros con id mayor.
+// Por id (no por fecha) para ser inmune a desajustes de reloj entre cliente y servidor.
+const READ_KEY = (me: string) => "chat_read_v1:" + me;
+const getReads = (me: string): Record<string, number> => {
+  try {
+    return JSON.parse(localStorage.getItem(READ_KEY(me)) || "{}");
+  } catch {
+    return {};
+  }
+};
+const markReadId = (me: string, key: string, id: number) => {
+  try {
+    const cur = getReads(me);
+    if (id > (cur[key] ?? 0)) {
+      cur[key] = id;
+      localStorage.setItem(READ_KEY(me), JSON.stringify(cur));
+    }
+  } catch {
+    /* localStorage no disponible */
+  }
+};
+// Clave de conversación de un mensaje visto por `me`: "room" (sala común) o el OTRO usuario en un DM.
+const threadKeyOf = (from: string, to: string | null, me: string) =>
+  to === null ? "room" : from === me ? to : from;
 interface PanelState {
   options: PanelOption[];
   active: number;
@@ -105,36 +133,53 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
     print(name, "muted");
     print("");
     const me = meRef.current?.username ?? "";
+    const key = target === null ? "room" : target; // clave de "no leído" de este hilo
     // Carga (o recarga, tras una reconexión) el historial del hilo; el dedup por id evita repetir
     // lo ya pintado, así que en un resync solo se añaden los mensajes que se perdieron durante la caída.
     const backfill = async () => {
       const msgs = await fetchThread(me, target);
       if (!mountedRef.current || threadRef.current !== t) return; // desmontado o el usuario cambió de hilo
       for (const m of msgs) printMsg(m);
+      const maxId = msgs.reduce((a, m) => Math.max(a, m.id), 0);
+      if (maxId) markReadId(me, key, maxId); // abrir/recargar el hilo = leído hasta el último mensaje
     };
     await backfill();
     if (!mountedRef.current || threadRef.current !== t) return; // no suscribir sobre un hilo ya abandonado/desmontado
     if (chatUnsubRef.current) chatUnsubRef.current();
     chatUnsubRef.current = subscribeMessages(
       (m) => {
-        if (threadRef.current === t && belongsToThread(m, target, meRef.current?.username ?? "")) printMsg(m);
+        if (threadRef.current === t && belongsToThread(m, target, me)) {
+          printMsg(m);
+          markReadId(me, key, m.id); // entrante mientras miras el hilo = leído
+        }
       },
       () => void backfill(), // reconexión del realtime: recupera lo perdido durante la caída
     );
   };
   const openMessages = async () => {
-    const chars = (await allCharacters()).filter((c) => c.username !== meRef.current?.username);
+    const me = meRef.current?.username ?? "";
+    const [allChars, inbox] = await Promise.all([allCharacters(), fetchInbox()]);
+    const reads = getReads(me);
+    const unread: Record<string, number> = {};
+    for (const m of inbox) {
+      if (m.from_char === me) continue; // los míos no cuentan como no leídos
+      const key = threadKeyOf(m.from_char, m.to_char, me);
+      if (m.id > (reads[key] ?? 0)) unread[key] = (unread[key] ?? 0) + 1;
+    }
     setPanel({
       active: 0,
       options: [
-        { label: "Sala común", icon: "room", run: () => void openThread(null, "Sala común") },
-        ...chars.map(
-          (c): PanelOption => ({
-            label: c.display_name,
-            icon: "user",
-            run: () => void openThread(c.username, c.display_name),
-          }),
-        ),
+        { label: "Sala común", icon: "room", unread: unread["room"] ?? 0, run: () => void openThread(null, "Sala común") },
+        ...allChars
+          .filter((c) => c.username !== me)
+          .map(
+            (c): PanelOption => ({
+              label: c.display_name,
+              icon: "user",
+              unread: unread[c.username] ?? 0,
+              run: () => void openThread(c.username, c.display_name),
+            }),
+          ),
         { label: "Salir", gapBefore: true, run: () => openPanel() },
       ],
     });

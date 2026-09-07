@@ -95,6 +95,14 @@ export async function fetchThread(me: string, target: string | null): Promise<Ms
   return (data as Msg[]) ?? [];
 }
 
+// Todos los mensajes visibles para mí (la RLS ya filtra a sala común + mis DMs). Solo ids/remitente/
+// destinatario: se usa para CONTAR no leídos por conversación en el roster, sin traer los cuerpos.
+export async function fetchInbox(): Promise<Pick<Msg, "id" | "from_char" | "to_char">[]> {
+  await ensureSession().catch(() => {});
+  const { data } = await supabase.from("messages").select("id,from_char,to_char");
+  return data ?? [];
+}
+
 // Envia un mensaje (a la sala si target null, o DM al username target).
 export async function sendMessage(
   from: string,

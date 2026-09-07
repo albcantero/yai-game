@@ -35,7 +35,6 @@ interface FormState {
 
 const rawSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const BOOT_WIDTH = 24; // bloques de la barra de carga inicial
-const BOOT_MS = 4000; // duración de la barra de carga
 const prefersReduced = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
 
@@ -434,10 +433,25 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
         setBootFill(BOOT_WIDTH); // movimiento reducido: barra llena de golpe, sin esperar los 4s
         await sleep(400);
       } else {
-        for (let i = 1; i <= BOOT_WIDTH; i++) {
-          await sleep(BOOT_MS / BOOT_WIDTH);
+        // Llenado en ráfagas irregulares (más real que velocidad constante): a veces varios bloques de
+        // golpe, a veces uno; con pausas cortas (ráfaga seguida) o largas (parón), al azar.
+        let fill = 0;
+        while (fill < BOOT_WIDTH) {
+          const burst =
+            Math.random() < 0.22 ? 4 + Math.floor(Math.random() * 4) : 1 + Math.floor(Math.random() * 3); // casi siempre 1-3, a veces 4-7 de golpe
+          fill = Math.min(BOOT_WIDTH, fill + burst);
+          setBootFill(fill);
           if (!alive) return;
-          setBootFill(i);
+          const r = Math.random();
+          const pause =
+            r < 0.35
+              ? 15 + Math.random() * 45 // ráfaga: casi instantáneo
+              : r < 0.7
+                ? 120 + Math.random() * 130 // ritmo normal
+                : r < 0.9
+                  ? 320 + Math.random() * 180 // parón corto
+                  : 520 + Math.random() * 260; // parón largo
+          await sleep(pause);
         }
       }
       if (!alive) return;
@@ -596,7 +610,11 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       {panel && (
         <div className="form">
           {panel.options.map((o, i) => (
-            <div className={"inputline" + (o.gapBefore ? " fconnect-row" : "")} key={i}>
+            <div
+              className={"inputline" + (o.gapBefore ? " fconnect-row" : "") + (o.unread !== undefined ? " roster-item" : "")}
+              key={i}
+              onPointerDown={() => o.run()}
+            >
               <span className="fcaret" aria-hidden="true">
                 {!loader && i === panel.active && (
                   <svg viewBox="9 7 6 10" fill="currentColor">
@@ -604,7 +622,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
                   </svg>
                 )}
               </span>
-              <span className="faction" onPointerDown={() => o.run()}>
+              <span className="faction">
                 {o.icon === "room" ? (
                   <svg className="chat-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16h2v2h2v4H0v-4h2v-2h2v-2h8v2Zm10 2h2v4h-6v-6h-2v-2h4v2h2v2ZM11 4h2v6h-2v2H5v-2H3V4h2V2h6v2Zm8 0h2v6h-2v2h-4V2h4v2Z" /></svg>
                 ) : o.icon === "user" ? (
@@ -612,6 +630,12 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
                 ) : null}
                 {o.label}
               </span>
+              {o.unread !== undefined && (
+                <>
+                  <span className="roster-dots" aria-hidden="true" />
+                  <span className={"unread" + (o.unread > 0 ? " has" : "")}>{o.unread}</span>
+                </>
+              )}
             </div>
           ))}
         </div>

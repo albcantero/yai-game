@@ -17,7 +17,6 @@ export const commands: Command[] = [
         print("  " + sig + (c.desc ?? ""));
       }
       print("");
-      print("...y no todos los comandos están en esta lista", "muted");
     },
   },
   {
