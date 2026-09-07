@@ -522,6 +522,18 @@ export default function TerminalContent({
 
     let alive = true;
     (async () => {
+      // Arranque tipo carga de sistema: barra de bloques bajo el logo (~4s). Se re-ejecuta en cada entrada.
+      const label = "Cargando sistema";
+      const width = 22;
+      const barId = addLine({ text: label + " [" + "░".repeat(width) + "]", cls: "", mark: "" });
+      for (let i = 1; i <= width; i++) {
+        await sleep(4000 / width);
+        if (!alive) return;
+        setText(barId, label + " [" + "█".repeat(i) + "░".repeat(width - i) + "]");
+      }
+      if (!alive) return;
+      await sleep(350);
+      setLines([]); // retira la barra de carga (el logo va aparte y se queda)
       await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16, "", {}, () => alive);
       if (!alive) return;
       await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16, "", {}, () => alive);
