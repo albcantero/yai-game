@@ -14,7 +14,13 @@ los DMs ajenos. En un escape room con pistas secretas por rol, eso rompe el jueg
 **Qué debe garantizar la RLS de `public.messages`:**
 - **SELECT**: solo devolver una fila si `to_char IS NULL` (sala común) **o** el usuario actual es
   `from_char` **o** `to_char`.
-- **INSERT**: `from_char` debe ser el username del usuario actual (que no pueda insertar en nombre de otra).
+- **INSERT**: `from_char` debe ser el username del usuario actual. No es solo privacidad: es
+  **anti-suplantación**. Sin esta política, cualquier jugador puede forjar mensajes de cualquier
+  personaje (mensajes falsos del "librero", pistas envenenadas) a cualquiera.
+- **Nota para el echo local**: el cliente hace `insert(...).select().single()` para pintar tu propio
+  mensaje al instante. La política de SELECT debe permitir leer tu **propia fila recién insertada** (la
+  de abajo lo hace, vía `from_char = current_username()`); si no, el envío parecerá fallar aunque se
+  haya guardado (y el mensaje aparecería luego por realtime).
 - **Realtime**: hereda la RLS de SELECT (Supabase la aplica a `postgres_changes`), así que cerrando
   SELECT se cierra también lo que llega por la suscripción. Verifícalo.
 
@@ -45,6 +51,24 @@ const { data } = await supabase.from('messages')
 // data debe venir VACÍO. Si trae el mensaje, la RLS está abierta.
 ```
 Repite suscribiéndote por realtime y comprobando que NO te llegan INSERT de DMs ajenos.
+
+### 1.1. Tamaño y tasa de mensajes
+
+Aunque la suplantación esté cerrada, un jugador legítimo puede abusar: `sendMessage` inserta `body`
+sin cap de longitud (spam de varios MB / bloat de BD) y un `to_char` arbitrario (DM a un personaje
+inexistente). Añade a la policy de INSERT un límite de tamaño, y valida el destinatario:
+
+```sql
+create policy messages_insert on public.messages
+  for insert with check (
+    from_char = public.current_username()
+    and char_length(body) between 1 and 500
+    and (to_char is null or exists (select 1 from public.characters c where c.username = to_char))
+  );
+```
+
+Para limitar la **tasa** (evitar flood): cuenta los mensajes recientes del usuario en un trigger o en
+la RPC de envío y rechaza tras N por minuto. Con 6 jugadoras es opcional, pero barato de añadir.
 
 ## 2. `characters` y `debug_logs`
 

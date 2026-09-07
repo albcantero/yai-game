@@ -120,34 +120,41 @@ export function subscribeMessages(onInsert: (m: Msg) => void, onResync?: () => v
   let ch: ReturnType<typeof supabase.channel> | null = null;
   let retry: ReturnType<typeof setTimeout> | null = null;
   const join = () => {
-    ch = supabase
+    const channel = supabase
       .channel("rt-messages-" + Math.random().toString(36).slice(2, 8)) // nombre unico: evita colision con un canal saliente
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p) =>
         onInsert(p.new as Msg),
-      )
-      .subscribe((status) => {
-        if (closed) return;
-        if (status === "SUBSCRIBED") {
-          if (!firstJoin && onResync) onResync(); // reconexion (no la primera): recupera el hueco
-          firstJoin = false;
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-          scheduleRejoin();
-        }
-      });
+      );
+    ch = channel;
+    channel.subscribe((status) => {
+      // Ignora callbacks de un canal ya cerrado o reemplazado. CLAVE: removeChannel emite CLOSED al
+      // propio callback; sin este guard (y sin excluir CLOSED abajo) nuestro teardown encenderia un
+      // bucle de rejoin+refetch cada 2s.
+      if (closed || channel !== ch) return;
+      if (status === "SUBSCRIBED") {
+        if (!firstJoin && onResync) onResync(); // reconexion real (incl. la auto de realtime-js): recupera el hueco
+        firstJoin = false;
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        scheduleRejoin(); // NO CLOSED: lo dispara nuestro propio removeChannel
+      }
+    });
   };
   const scheduleRejoin = () => {
     if (closed || retry) return;
     retry = setTimeout(() => {
       retry = null;
       if (closed) return;
-      if (ch) void supabase.removeChannel(ch);
+      const old = ch;
+      ch = null; // invalida el canal viejo: su CLOSED (por removeChannel) cae en el guard channel!==ch
+      if (old) void supabase.removeChannel(old);
       join();
     }, 2000);
   };
   const onVis = () => {
-    if (document.visibilityState !== "visible" || closed) return;
-    if (ch) void supabase.removeChannel(ch);
-    join(); // al volver a primer plano, rejoin inmediato (+ onResync por el status SUBSCRIBED)
+    // Al volver a primer plano: solo recupera el hueco (backfill). NO se toca el canal (evita el churn
+    // de removeChannel en cada foreground); si el canal murio de verdad, ya lo reconecta CHANNEL_ERROR/
+    // TIMED_OUT o la auto-reconexion del socket de realtime-js (que reemite SUBSCRIBED -> onResync).
+    if (document.visibilityState === "visible" && !closed && !firstJoin && onResync) onResync();
   };
   join();
   if (typeof document !== "undefined") document.addEventListener("visibilitychange", onVis);

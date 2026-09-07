@@ -200,18 +200,28 @@ export default function Computer() {
     const presses = new Map<number, { btn: HTMLElement; at: number }>(); // pointerId -> pulsación viva
     const timers = new Map<HTMLElement, number>(); // botón -> timer de "levantar"
     const down = (e: PointerEvent) => {
+      const now = performance.now();
+      // Red de seguridad: libera pulsaciones fantasma (nunca llegó pointerup/cancel, p. ej. un gesto del
+      // sistema iOS secuestró el toque) para que ese botón no quede bloqueado el resto de la sesión.
+      // 8s es más largo que cualquier mantener-pulsado real, así que no interfiere con el hold-to-repeat.
+      for (const [pid, p] of presses) {
+        if (now - p.at > 8000) {
+          presses.delete(pid);
+          const st = timers.get(p.btn);
+          if (st) {
+            clearTimeout(st);
+            timers.delete(p.btn);
+          }
+          p.btn.removeAttribute("data-pressing");
+        }
+      }
       const btn = (e.target as HTMLElement)?.closest?.(".chin-btn, .keyboard button") as HTMLElement | null;
       if (!btn) return;
       if (btn.hasAttribute("data-pressing")) {
         e.stopPropagation(); // MISMO botón aún animando: corta el handler de React (ni acción ni sonido)
-        return;
+        return; // (re-pulsar la misma tecla dentro de su ventana de animación se descarta a propósito)
       }
-      const t = timers.get(btn);
-      if (t) {
-        clearTimeout(t); // reusa un botón cuyo "levantar" estaba pendiente
-        timers.delete(btn);
-      }
-      presses.set(e.pointerId, { btn, at: performance.now() });
+      presses.set(e.pointerId, { btn, at: now });
       btn.setAttribute("data-pressing", "");
     };
     const up = (e: PointerEvent) => {

@@ -383,6 +383,7 @@ export default function Terminal({
       print(""); // sin identidad no se entra al chat (evita un panel con me=null que traga los envíos)
       return;
     }
+    if (!mountedRef.current) return; // el terminal se cerró durante los ~5,5s de spins: no toques estado
     clear();
     openPanel();
   };
@@ -461,6 +462,7 @@ export default function Terminal({
   };
 
   const submit = (raw: string) => {
+    if (loader) return; // guard unico: cubre tanto handleKey como el menu lateral (runFromMenu) durante un spin
     const line = raw.trim();
     echo(line);
     rlog("info", "submit", { line });
@@ -563,6 +565,7 @@ export default function Terminal({
 
   // Arranque del terminal: se ejecuta al MONTAR (cada vez que se entra) y se cancela al DESMONTAR.
   useEffect(() => {
+    mountedRef.current = true; // re-arma por si el efecto se re-ejecuta (StrictMode/dev), tras el cleanup previo
     ensureSession().catch(() => {});
     if (bannerRef.current) {
       bannerRef.current.textContent = BANNER.replace(/[ \t]+$/gm, "").replace(/^\n+/, "").replace(/\n+$/, "");
