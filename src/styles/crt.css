@@ -189,11 +189,13 @@ body{
 }
 .content>*{ width:100%;max-width:760px;flex:none }  /* que las filas NO se encojan: desbordan y hacen scroll, no se solapan */
 /* abombado 3D en toda la pantalla (como antes): convexo + overscan para llenar sin huecos */
-.crt.warp{ filter:url(#barrel) }   /* warp DESACTIVADO desde el JS (WARP_ENABLED=false): esta clase ya no se aplica. Regla intacta para reactivar */
+.crt.warp{ filter:url(#barrel) }   /* warp ACTIVO (WARP_ENABLED=true en Computer.tsx): abombado 3D. La clase se aplica cuando warpReady && WARP_ENABLED */
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
-/* ESCALERA DE CAPAS (z-index dentro de .screen-area; .crt no crea contexto propio con el warp off):
+/* ESCALERA DE CAPAS. Con el warp ON, .crt crea contexto de apilado (por el filtro), así que las capas
+   de pantalla ordenan DENTRO de .crt (vía .crt-body, que no crea contexto propio) contra ::before/::after;
+   y .curve-overlay es HERMANO de .crt en .screen-area, por eso su z6 gana sobre todo lo de dentro:
    1  contenido de pantalla  .content / .home-screen / .win-sidebar
    2  diálogo de confirmación .confirm-overlay  (tapa el contenido, pero vive DENTRO de la pantalla)
    3  rejilla + flicker       .crt::before / .crt::after  (fósforo por encima de TODO lo de pantalla, diálogo incluido)
@@ -286,9 +288,7 @@ body{
 .chat-back{ display:inline-block;cursor:pointer;color:#1f9e5e;opacity:.65;margin:4px 0 8px;user-select:none;-webkit-tap-highlight-color:transparent }   /* volver del hilo al roster */
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
-.crt.idle .cursor{ opacity:.35;animation:none }
 @keyframes blink{ 0%,50%{opacity:1} 50.01%,100%{opacity:0} }
-.field input{ position:absolute;inset:0;width:100%;height:100%;background:transparent;border:0;outline:0;margin:0;padding:0;font:inherit;color:transparent;caret-color:transparent }
 .chev{ display:inline-block;color:#37f07d;animation:bob .62s steps(3) infinite alternate }
 @keyframes bob{ from{transform:translateY(0)} to{transform:translateY(6px)} }
 
@@ -394,4 +394,6 @@ body{
   .crt::after{ animation:none;opacity:.14 }
   .cursor{ animation:none }
   .chev{ animation:none }
+  .loader-svg{ animation:none }   /* spinner de carga: no gira */
+  .fcaret svg{ animation:none }   /* caret del formulario: no parpadea */
 }

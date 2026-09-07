@@ -548,10 +548,15 @@ export default function Terminal({
     (async () => {
       // Splash de carga inicial: logo centrado + barra de bloques desnuda debajo (sin texto/%/brackets).
       // El logo SOLO aparece aquí; al terminar se retira el splash y la bienvenida ya va sin logo.
-      for (let i = 1; i <= BOOT_WIDTH; i++) {
-        await sleep(BOOT_MS / BOOT_WIDTH);
-        if (!alive) return;
-        setBootFill(i);
+      if (prefersReduced()) {
+        setBootFill(BOOT_WIDTH); // movimiento reducido: barra llena de golpe, sin esperar los 4s
+        await sleep(400);
+      } else {
+        for (let i = 1; i <= BOOT_WIDTH; i++) {
+          await sleep(BOOT_MS / BOOT_WIDTH);
+          if (!alive) return;
+          setBootFill(i);
+        }
       }
       if (!alive) return;
       await sleep(350);

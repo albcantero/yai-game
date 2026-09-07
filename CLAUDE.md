@@ -1,7 +1,8 @@
 # Escape room "EL libro PERDIDO" — Santas Ochova
 
-App de escape room narrativo (Astro 5 + React island `Terminal.tsx`). Se despliega con
-`git push origin main` → Vercel (host `yai-game.vercel.app`).
+App de escape room narrativo (Astro 5 + isla de React `Computer.tsx` = armazón; las pantallas viven
+en `src/components/screens/`, hoy `Terminal.tsx`). Se despliega con `git push origin main` → Vercel
+(host `yai-game.vercel.app`).
 
 ## Textos del terminal (REGLA FIJA)
 
