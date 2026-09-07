@@ -117,6 +117,7 @@ export default function Terminal() {
   const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
   const didWelcome = useRef(false); // la bienvenida se escribe al ENTRAR al terminal, no en el arranque oculto
+  const bootRunRef = useRef(0); // token de "sesión" de arranque: al reiniciar se invalida la bienvenida en curso
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
   const humBufferRef = useRef<AudioBuffer | null>(null); // buffer del zumbido (Web Audio: suena en movil aunque este en silencio)
@@ -251,6 +252,7 @@ export default function Terminal() {
     step = 9,
     mark: Mark = "",
     extra: { bullet?: boolean } = {},
+    alive?: () => boolean,
   ) => {
     const mk: Mark = text ? mark : "";
     const id = addLine({ text: "", cls, mark: mk, ...extra });
@@ -260,6 +262,7 @@ export default function Terminal() {
     }
     for (let i = 1; i <= text.length; i++) {
       await sleep(step);
+      if (alive && !alive()) return; // cancelado (p.ej. se cerró el terminal a mitad de la bienvenida)
       setText(id, text.slice(0, i));
     }
   };
@@ -763,9 +766,15 @@ export default function Terminal() {
     let at = 0;
     let min = 130; // ms que se sostiene el pulsado: >= la transicion mas larga (.08s) con margen
     let timer = 0;
+    let locked = false; // mientras una pulsación anima, se ignoran las nuevas (ni acción, ni sonido, ni re-anima)
     const down = (e: PointerEvent) => {
       const btn = (e.target as HTMLElement)?.closest?.(".chin-btn, .keyboard button") as HTMLElement | null;
       if (!btn) return;
+      if (locked) {
+        // pulsación aún animándose: bloquea esta. stopPropagation corta el handler de React (ni acción ni sonido)
+        e.stopPropagation();
+        return;
+      }
       if (timer) {
         clearTimeout(timer);
         timer = 0;
@@ -775,6 +784,7 @@ export default function Terminal() {
       at = performance.now();
       // los toggle (kbd/power) sostienen la sombra un pelin mas para que se aprecie la fase intermedia
       min = btn.classList.contains("chin-kb") ? 200 : 130;
+      locked = true;
       btn.setAttribute("data-pressing", "");
     };
     const up = () => {
@@ -784,6 +794,7 @@ export default function Terminal() {
       const wait = Math.max(0, min - (performance.now() - at));
       timer = window.setTimeout(() => {
         btn.removeAttribute("data-pressing");
+        locked = false; // desbloquea al terminar la animación
         timer = 0;
       }, wait);
     };
@@ -902,14 +913,19 @@ export default function Terminal() {
     if (view !== "terminal" || didWelcome.current) return;
     didWelcome.current = true;
     fitBanner(); // .content ya es visible: ahora sí mide bien el banner
+    const run = ++bootRunRef.current;
+    const alive = () => bootRunRef.current === run; // false si se reinició el terminal a mitad
     (async () => {
-      await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16);
-      await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16);
-      await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, "", { bullet: true });
-      await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true });
-      await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true });
+      await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16, "", {}, alive);
+      if (!alive()) return;
+      await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16, "", {}, alive);
+      if (!alive()) return;
+      await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, "", { bullet: true }, alive);
+      await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true }, alive);
+      await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true }, alive);
+      if (!alive()) return;
       print(""); // línea en blanco entre las directivas y el prompt
-      setBooted(true); // ahora sí: aparece el prompt
+      setBooted(true); // ahora sí: aparece el prompt (solo si esta sesión sigue viva)
     })();
   }, [view]);
 
@@ -1040,6 +1056,7 @@ export default function Terminal() {
     setLines([]);
     setBooted(false);
     didWelcome.current = false; // la bienvenida se re-escribe al volver a entrar
+    bootRunRef.current++; // invalida cualquier bienvenida aún escribiéndose (evita el # prematuro)
   };
   const closeAttempt = () => {
     setConfirmClose(false);
