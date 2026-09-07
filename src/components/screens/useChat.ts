@@ -56,6 +56,7 @@ type SpinResult = { code: "OK" | "ERROR"; text: string; cls?: LineClass };
 // Primitivas que el terminal le presta al chat: pintar líneas, spin, sleep pausable y el flag de montaje.
 export interface ChatDeps {
   print: (text: string, cls?: LineClass) => void;
+  printHead: (name: string) => void; // cabecera "Mensajes con <nombre en negrita>" al abrir un DM
   clear: () => void;
   setForm: (f: FormState | null) => void; // el compose del hilo es un formulario (campo + Enviar + Salir)
   sys: (code: string, text: string, cls?: LineClass) => void;
@@ -67,7 +68,7 @@ export interface ChatDeps {
 // Subsistema de CUENTA + CHAT de la pantalla-terminal: identidad (loadIdentity/meRef), panel (roster de
 // cuenta + lista de conversaciones), hilos (DMs 1-a-1 + sala común) con realtime resiliente, dedup por id
 // y echo local. El terminal le pasa sus primitivas de pintado y lo que produce vuelve por el return.
-export function useChat({ print, clear, setForm, sys, spin, sleep, mountedRef }: ChatDeps) {
+export function useChat({ print, printHead, clear, setForm, sys, spin, sleep, mountedRef }: ChatDeps) {
   const [panel, setPanel] = useState<PanelState | null>(null);
   const [thread, setThread] = useState<{ target: string | null; name: string } | null>(null);
   const meRef = useRef<Character | null>(null);
@@ -146,7 +147,8 @@ export function useChat({ print, clear, setForm, sys, spin, sleep, mountedRef }:
     setThread(t);
     clear();
     seenMsgIdsRef.current = new Set(); // hilo nuevo: reinicia el dedup
-    print(name, "muted");
+    if (target === null) print(name, "muted"); // sala común: "Chat general"
+    else printHead(name); // DM: cabecera "Mensajes con <nombre>"
     print("");
     const me = meRef.current?.username ?? "";
     const key = target === null ? "room" : target; // clave de "no leído" de este hilo

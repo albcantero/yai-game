@@ -19,6 +19,7 @@ interface Line {
   spinner?: boolean;
   chev?: boolean;
   chevMore?: boolean;
+  head?: string; // cabecera del hilo: "Mensajes con <nombre en negrita>"
 }
 const rawSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const BOOT_WIDTH = 24; // bloques de la barra de carga inicial
@@ -95,6 +96,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   const sys = (code: string, text: string, cls: LineClass = "") => {
     addLine({ text, cls, mark: "", code });
   };
+  const printHead = (name: string) => addLine({ text: "", cls: "", mark: "", head: name }); // cabecera "Mensajes con <nombre>"
   const clear = () => setLines([]);
   const setLine = (v: string) => {
     curRef.current = v;
@@ -196,7 +198,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   // Cuenta + chat extraídos a su propio hook (identidad, panel, hilos, realtime, dedup, echo local);
   // se le prestan las primitivas de pintado del terminal (print/clear/setLine/sys), el spin y el sleep pausable.
   const { panel, thread, meRef, openPanel, handlePanelKey, loadIdentity, unsubscribe } =
-    useChat({ print, clear, sys, spin, sleep, mountedRef, setForm });
+    useChat({ print, printHead, clear, sys, spin, sleep, mountedRef, setForm });
 
   const connectFlow = async (username: string, password: string) => {
     const res = await spin(
@@ -490,7 +492,11 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
         </div>
       )}
       {lines.map((l) =>
-        l.chev ? (
+        l.head ? (
+          <div className="row" key={l.id}>
+            Mensajes con <span className="ftbold">{l.head}</span>
+          </div>
+        ) : l.chev ? (
           <div className="row" key={l.id}>
             <span className="chev">▾</span>
             <span className="muted">

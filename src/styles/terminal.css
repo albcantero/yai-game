@@ -21,6 +21,7 @@
 .astk{ color:#1f9e5e }
 .row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
 .prompt{ color:#1f9e5e }
+.ftbold{ text-shadow:1px 0 0 currentColor }   /* negrita FAUX para la fuente de píxel: copia 1px a la derecha, on-grid = nítida (como el sello de build) */
 /* Linea de sistema en DOS COLUMNAS flex: [CODE] fijo | texto que hace wrap alineado bajo si mismo */
 .syscode-row{ display:flex;gap:.5ch;padding-left:0;text-indent:0 }
 .syscode{ flex:none }   /* codigo de sistema [CODE]: columna fija, estilizable aparte (hereda color de la linea) */
