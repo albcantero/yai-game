@@ -15,6 +15,8 @@ import type { LineClass } from "../../terminal/types";
 interface PanelOption {
   label: string;
   run: () => void;
+  icon?: "user" | "room"; // icono a la izquierda (roster del chat)
+  gapBefore?: boolean; // deja un hueco (línea en blanco) antes de esta opción
 }
 interface PanelState {
   options: PanelOption[];
@@ -125,9 +127,15 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
     setPanel({
       active: 0,
       options: [
-        { label: "Sala común", run: () => void openThread(null, "Sala común") },
-        ...chars.map((c) => ({ label: c.display_name, run: () => void openThread(c.username, c.display_name) })),
-        { label: "Salir", run: () => openPanel() },
+        { label: "Sala común", icon: "room", run: () => void openThread(null, "Sala común") },
+        ...chars.map(
+          (c): PanelOption => ({
+            label: c.display_name,
+            icon: "user",
+            run: () => void openThread(c.username, c.display_name),
+          }),
+        ),
+        { label: "Salir", gapBefore: true, run: () => openPanel() },
       ],
     });
   };

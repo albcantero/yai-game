@@ -245,7 +245,7 @@ body{
 .syscode-row{ display:flex;gap:.5ch;padding-left:0;text-indent:0 }
 .syscode{ flex:none }   /* codigo de sistema [CODE]: columna fija, estilizable aparte (hereda color de la linea) */
 .systext{ flex:1;min-width:0;white-space:pre-wrap;word-break:break-word }   /* columna de texto que envuelve */
-.spinner-row{ align-items:center }   /* el spinner se centra con su texto */
+.spinner-row{ align-items:flex-start }   /* el spinner queda arriba, alineado con la 1ª línea (no se centra aunque el texto ocupe varias líneas) */
 .spinner-cell{ display:inline-flex;align-items:center }
 .spinner-cell .loader-svg{ margin-right:0;width:1.1em;height:1.1em;vertical-align:0 }
 
@@ -264,7 +264,8 @@ body{
 .fcheck{ flex:none;white-space:nowrap }   /* checkbox [ ]: brackets de texto + check svg dentro si tiene texto */
 .fcheck-gap{ display:inline-block;width:.85em }   /* hueco del bracket vacio, mismo ancho que el check */
 .fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
-.faction{ flex:none;color:#37f07d }   /* acciones del form (Conectar, Cancelar): verde base */
+.faction{ flex:none;color:#37f07d;cursor:pointer;-webkit-tap-highlight-color:transparent }   /* acciones del form/roster (tocables) */
+.chat-icon{ height:1.05em;width:auto;vertical-align:-.12em;fill:currentColor;margin-right:.55ch }   /* icono a la izquierda del nombre en el roster */
 .fconnect-row{ margin-top:1.2em }   /* hueco (salto de linea) antes de la primera accion */
 /* loader (conexion/logout): SVG pixelart girando en bucle, inline con el texto */
 .loader-svg{ width:1.2em;height:1.2em;fill:currentColor;vertical-align:-.25em;margin-right:.5ch;animation:spin .8s steps(8) infinite }
@@ -283,7 +284,8 @@ body{
 .field{ position:relative;flex:1;min-width:0 }
 .uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
 .cprompt{ color:#37f07d;margin-right:.4ch }   /* prompt del compose de chat (›) */
-.chat-back{ display:inline-block;cursor:pointer;color:#1f9e5e;opacity:.65;margin:4px 0 8px;user-select:none;-webkit-tap-highlight-color:transparent }   /* volver del hilo al roster */
+.chat-back{ display:inline-block;cursor:pointer;color:#37f07d;margin:2px 0 10px;padding:4px 10px;border:1.5px solid;border-radius:4px;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation }   /* volver del hilo al roster: botón claro y tocable */
+.chat-back:active{ background:rgba(55,240,125,.12) }   /* feedback al tocar */
 .mirror{ white-space:pre-wrap;word-break:break-word }
 .cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
 @keyframes blink{ 0%,50%{opacity:1} 50.01%,100%{opacity:0} }
