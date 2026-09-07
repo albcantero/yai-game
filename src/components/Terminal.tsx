@@ -1013,7 +1013,8 @@ export default function Terminal() {
   };
 
   const closeAttempt = () => {
-    window.location.href = "/";
+    setConfirmClose(false);
+    setView("home"); // cerrar la terminal = volver al menú principal (una sola página, no recarga)
   };
 
   const showInput = booted && !dialog && !loader && !panel && !thread;
@@ -1223,6 +1224,28 @@ export default function Terminal() {
               </div>
             )}
           </div>
+          {confirmClose && (
+            <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
+              <div className="window confirm-dialog">
+                <div className="title-bar">
+                  <div className="title-bar-text">Cerrar sesión</div>
+                  <div className="title-bar-controls">
+                    <button type="button" aria-label="Close" onClick={() => setConfirmClose(false)}></button>
+                  </div>
+                </div>
+                <div className="window-body">
+                  <div className="confirm-row">
+                    <img className="confirm-icon" src="/icons/msg_question.png" alt="" />
+                    <p>¿Seguro que quieres salir del sistema?</p>
+                  </div>
+                  <div className="confirm-buttons">
+                    <button type="button" onClick={closeAttempt}>Sí</button>
+                    <button type="button" onClick={() => setConfirmClose(false)}>No</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {menuOpen && (
             <aside className="win98 win-sidebar" onPointerDownCapture={chromeClick}>
               <div className="window">
@@ -1365,29 +1388,6 @@ export default function Terminal() {
         </>
         )}
       </div>
-      )}
-
-      {confirmClose && (
-        <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
-          <div className="window confirm-dialog">
-            <div className="title-bar">
-              <div className="title-bar-text">Cerrar sesión</div>
-              <div className="title-bar-controls">
-                <button type="button" aria-label="Close" onClick={() => setConfirmClose(false)}></button>
-              </div>
-            </div>
-            <div className="window-body">
-              <div className="confirm-row">
-                <img className="confirm-icon" src="/icons/msg_question.png" alt="" />
-                <p>¿Seguro que quieres salir del sistema?</p>
-              </div>
-              <div className="confirm-buttons">
-                <button type="button" onClick={closeAttempt}>Sí</button>
-                <button type="button" onClick={() => setConfirmClose(false)}>No</button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </>
   );

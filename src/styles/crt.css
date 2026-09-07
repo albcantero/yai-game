@@ -318,7 +318,7 @@ body{
 /* .win-sidebar .window-body button{ width:100%;padding:12px;text-align:left;font-size:16px } */  /* botones del menú nativos de 98.css */
 
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
-.confirm-overlay{ position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }
+.confirm-overlay{ position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* dentro del monitor: cubre la pantalla del CRT, no toda la ventana */
 .confirm-dialog{ min-width:260px;max-width:90vw;margin:0 }
 .confirm-dialog .window-body{ margin:14px 16px 16px }
 .confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
