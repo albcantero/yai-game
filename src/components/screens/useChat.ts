@@ -127,7 +127,7 @@ export function useChat({ print, clear, setForm, sys, spin, sleep, mountedRef }:
   // texto) + "Salir" (vuelve al roster). Tras enviar, se reabre vacío para seguir escribiendo.
   const openCompose = (target: string | null) => {
     setForm({
-      fields: [{ label: "[MESSAGE] Texto:", value: "", nocheck: true }],
+      fields: [{ label: "[TEXT] Mensaje:", value: "", nocheck: true }],
       active: 0,
       editing: false,
       submitLabel: "Enviar",
