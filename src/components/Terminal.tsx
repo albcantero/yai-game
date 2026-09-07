@@ -116,6 +116,7 @@ export default function Terminal() {
   const bannerRef = useRef<HTMLPreElement>(null);
   const feImageRef = useRef<SVGFEImageElement>(null);
   const didBoot = useRef(false);
+  const didWelcome = useRef(false); // la bienvenida se escribe al ENTRAR al terminal, no en el arranque oculto
   const acRef = useRef<AudioContext | null>(null);
   const keyBuffersRef = useRef<AudioBuffer[]>([]);
   const humBufferRef = useRef<AudioBuffer | null>(null); // buffer del zumbido (Web Audio: suena en movil aunque este en silencio)
@@ -892,8 +893,15 @@ export default function Terminal() {
 
     rlog("info", "boot done");
 
-    // Menú principal del terminal: saludo + directivas (typewriter, letra a letra) + sincronización.
-    // No marcamos booted hasta el final, así el prompt no parpadea mientras se escribe la bienvenida.
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Bienvenida del terminal: se escribe al ENTRAR (view -> terminal) la primera vez, no en el arranque
+  // oculto. Así el "encendido" se ve delante del jugador y el banner se re-ajusta ya visible.
+  useEffect(() => {
+    if (view !== "terminal" || didWelcome.current) return;
+    didWelcome.current = true;
+    fitBanner(); // .content ya es visible: ahora sí mide bien el banner
     (async () => {
       await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16);
       await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16);
@@ -901,11 +909,9 @@ export default function Terminal() {
       await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true });
       await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true });
       print(""); // línea en blanco entre las directivas y el prompt
-      setBooted(true); // ahora sí: aparece el prompt (sin spinner de sincronización)
+      setBooted(true); // ahora sí: aparece el prompt
     })();
-
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [view]);
 
   useEffect(() => {
     const el = scrollRef.current;
