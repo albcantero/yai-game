@@ -422,6 +422,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       } else {
         // Llenado en ráfagas irregulares (más real que velocidad constante): a veces varios bloques de
         // golpe, a veces uno; con pausas cortas (ráfaga seguida) o largas (parón), al azar.
+        const startFill = Date.now();
         let fill = 0;
         while (fill < BOOT_WIDTH) {
           const burst =
@@ -440,9 +441,11 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
                   : 520 + Math.random() * 260; // parón largo
           await sleep(pause);
         }
+        if (!alive) return;
+        // MÍNIMO 2s de carga: si las ráfagas terminaron antes, la barra se queda al 100% hasta completar 2s (siempre ≥300ms al final)
+        await sleep(Math.max(300, 2000 - (Date.now() - startFill)));
       }
       if (!alive) return;
-      await sleep(350);
       setBooting(false); // fuera el splash (y el logo con él)
       await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16, "", {}, () => alive);
       if (!alive) return;
