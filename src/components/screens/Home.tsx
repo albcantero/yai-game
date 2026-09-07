@@ -5,10 +5,9 @@ import { menuNav } from "../../terminal/input";
 
 // Opciones del menú de inicio. target = id de una pantalla del registro SCREENS; sin target = aún sin
 // pantalla (Tienda/Fases): se muestran pero no navegan.
-const HOME_OPTS: { label: string; target?: string }[] = [
-  { label: "Terminal", target: "terminal" },
-  { label: "Tienda" },
-  { label: "Fases" },
+const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
+  { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" },
+  { label: "Internet", icon: "/icons/internet.png" },
 ];
 
 // Pantalla HOME: fondo pixelart (SVG) + título "EL libro PERDIDO" ("PERDIDO" ondula letra a letra con
@@ -79,6 +78,7 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ playSfx, n
                 select(i);
               }}
             >
+              <img className="home__menu-icon" src={opt.icon} alt="" />
               {opt.label}
             </button>
           ))}

@@ -36,7 +36,8 @@
   display:flex;flex-direction:column;gap:10px;
   width:min(220px,70%);   /* el menú lo centra .home__content; los botones van a ancho uniforme */
 }
-.home__menu button{ font-size:15px }   /* legible dentro del CRT (el tamaño nativo de 98.css es pequeño) */
+.home__menu button{ display:flex;align-items:center;gap:8px;font-size:15px }   /* icono Win98 a la izquierda + etiqueta (estilo lanzador) */
+.home__menu-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }   /* icono nativo 32px, nítido también en pantallas retina */
 .home__menu button.is-active{ outline:1px dotted #000;outline-offset:-4px }   /* opción seleccionada (flechas + OK): rectángulo de foco Win98 */
 
 @media (prefers-reduced-motion:reduce){
