@@ -196,7 +196,7 @@ export default function Computer() {
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
               <div className="window confirm-dialog">
                 <div className="title-bar">
-                  <div className="title-bar-text">Cerrar programa</div>
+                  <div className="title-bar-text">Cerrar</div>
                   <div className="title-bar-controls">
                     <button type="button" aria-label="Close" onClick={() => setConfirmClose(false)}></button>
                   </div>
@@ -207,7 +207,8 @@ export default function Computer() {
                     <p>¿Seguro que quieres salir del programa? Se perderán todos los cambios que no se hayan guardado.</p>
                   </div>
                   <div className="confirm-buttons">
-                    <button type="button" onClick={closeAttempt}>Cerrar</button>
+                    <button type="button" onClick={closeAttempt}>Sí</button>
+                    <button type="button" onClick={() => setConfirmClose(false)}>No</button>
                   </div>
                 </div>
               </div>
