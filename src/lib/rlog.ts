@@ -2,14 +2,10 @@
 // consola). Gateado tras ?debug=1 (se recuerda en localStorage; ?debug=0 lo apaga). En juego
 // normal no hace nada: cero red, cero ruido. Requiere la tabla public.debug_logs (ver README/SQL).
 
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config";
+
 declare const __BUILD_SHA__: string; // inyectado por vite.define (astro.config.mjs)
 export const BUILD = typeof __BUILD_SHA__ !== "undefined" ? __BUILD_SHA__ : "?";
-
-const URL =
-  (import.meta.env.PUBLIC_SUPABASE_URL as string) || "https://uydwufnirtivbsckiisx.supabase.co";
-const KEY =
-  (import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string) ||
-  "sb_publishable_aKwQwWy_mxKwZ2lvh8Ajcg_9Bevj4As";
 
 let enabled = false;
 let session = "";
@@ -21,11 +17,11 @@ export function rlogEnabled() {
 export function rlog(level: string, msg: string, data?: unknown) {
   if (!enabled) return;
   try {
-    fetch(URL + "/rest/v1/debug_logs", {
+    fetch(SUPABASE_URL + "/rest/v1/debug_logs", {
       method: "POST",
       headers: {
-        apikey: KEY,
-        Authorization: "Bearer " + KEY,
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },

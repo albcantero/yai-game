@@ -480,7 +480,7 @@ export default function Terminal({
     }
     const ctx: Ctx = { print, sys, clear, startDialog: runDialog, startLogin, arg, raw: line };
     command.run(ctx);
-    if (!command.names.includes("contacto") && !command.names.includes("login")) print("");
+    if (!command.names.includes("login")) print(""); // login no lleva línea en blanco extra (la gestiona startLogin)
   };
   runCmdRef.current = submit; // el menú lateral del armazón ejecuta comandos aquí
 

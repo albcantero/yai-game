@@ -1,13 +1,8 @@
 // Cliente de Supabase para el chat: identidad anonima, login contra nuestra tabla, y datos.
 import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config";
 
-const URL =
-  (import.meta.env.PUBLIC_SUPABASE_URL as string) || "https://uydwufnirtivbsckiisx.supabase.co";
-const KEY =
-  (import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string) ||
-  "sb_publishable_aKwQwWy_mxKwZ2lvh8Ajcg_9Bevj4As";
-
-export const supabase = createClient(URL, KEY, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
 });
 
