@@ -6,24 +6,22 @@ import type { ScreenHandle, ScreenServices } from "./types";
 // Coordenadas en un viewBox 0..100, calcadas del plano PNG (pendiente de afinar a mano con Alberto).
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean };
 const ROOMS: Room[] = [
-  { id: "r1", x: 41, y: 4, w: 20, h: 36, discovered: true },
-  { id: "r3", x: 21, y: 12, w: 9, h: 17, discovered: true },
-  { id: "r2", x: 71, y: 8, w: 15, h: 17, discovered: false },
-  { id: "r4", x: 8, y: 27, w: 13, h: 15, discovered: false },
-  { id: "r5", x: 21, y: 31, w: 10, h: 9, discovered: true },
-  { id: "r6", x: 71, y: 31, w: 13, h: 19, discovered: false },
-  { id: "vthin", x: 29, y: 41, w: 8, h: 31, discovered: true },
-  { id: "hub", x: 40, y: 44, w: 31, h: 16, discovered: true },
-  { id: "big", x: 39, y: 63, w: 36, h: 29, discovered: false },
-  { id: "r8", x: 79, y: 56, w: 15, h: 30, discovered: false },
-  { id: "r9", x: 10, y: 69, w: 13, h: 17, discovered: false },
+  { id: "r1", x: 37.8, y: 6.4, w: 28.3, h: 32.6, discovered: true },
+  { id: "r3", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false },
+  { id: "r2", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false },
+  { id: "r4", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false },
+  { id: "r6", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false },
+  { id: "vthin", x: 26.0, y: 45.7, w: 8.0, h: 20.2, discovered: true },
+  { id: "hub", x: 42.0, y: 45.7, w: 33.0, h: 12.2, discovered: true },
+  { id: "big", x: 39.0, y: 63.0, w: 36.0, h: 29.0, discovered: true },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 30.0, discovered: false },
+  { id: "r9", x: 10.0, y: 69.0, w: 13.0, h: 17.0, discovered: false },
 ];
 const LINKS: [string, string][] = [
-  ["r3", "r5"], ["r5", "r4"], ["r5", "r1"], ["r5", "vthin"], ["r5", "hub"],
-  ["r1", "hub"], ["hub", "r6"], ["r6", "r2"], ["hub", "big"], ["hub", "vthin"],
-  ["vthin", "r9"], ["big", "r9"], ["big", "r8"], ["r6", "r8"],
+  ["r9", "vthin"], ["r4", "r3"], ["r3", "r1"], ["r2", "r6"], ["r6", "r8"],
+  ["hub", "r2"], ["hub", "r1"], ["big", "hub"], ["big", "vthin"],
 ];
-const CURRENT = "hub"; // sala donde está el grupo ahora
+const CURRENT = "hub"; // sala donde está el grupo ahora (demo)
 
 const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 const cx = (r: Room) => r.x + r.w / 2;
