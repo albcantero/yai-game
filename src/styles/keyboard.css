@@ -33,12 +33,10 @@
   transition:transform .06s ease, box-shadow .06s ease, filter .1s ease;   /* transform y sombra a la MISMA duración/easing: la letra y el brillo bajan en SYNC, se ve viajar sin descuadre (recuperado de d7e0661) */
 }
 .keyboard button:focus{ outline:none }
-.keyboard button:hover{ filter:brightness(1.06) }
 .keyboard button:active,
-.keyboard button[data-pressing]{                        /* pulsado táctil (recuperado de d7e0661): baja 2px, se oscurece y COLAPSA el relieve (fuera glow de arriba, labio y sombra proyectada) a una sola sombra interior = tecla hundida/plana. [data-pressing] mantiene el pulsado entero en toques rápidos */
+.keyboard button[data-pressing]{                        /* pulsado táctil: baja 2px y COLAPSA todo el relieve a PLANO (fuera glow de arriba, labio y sombras). MISMO color que en reposo: solo pierde relieve, sombra y luz. [data-pressing] mantiene el pulsado entero en toques rápidos */
   transform:translateY(2px);
-  background:linear-gradient(180deg,#4a4e45,#3c3f37);   /* un pelín más oscura al hundirse */
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.5);            /* hundida: solo sombra interior, sin relieve */
+  box-shadow:none;                                       /* PLANA del todo: sin sombra ni relieve; el color NO cambia */
 }
 .keyboard button svg{ display:block;width:18px;height:18px;margin:0 auto;fill:currentColor }
 .keyboard button.kmod svg{ width:24px;height:24px }   /* Mayús / Borrar: iconos más grandes */
@@ -46,7 +44,7 @@
 .keyboard button.knum{ flex:1.5 }                        /* 123 / ABC */
 .keyboard button.kspace{ flex:6 }                        /* Space ancho */
 .keyboard button.kreturn{ flex:2.2 }
-.keyboard button.kmod[aria-pressed="true"]{              /* mayús activo: hundido con su sombra, sin color */
-  background:linear-gradient(180deg,#494d44,#3a3e35);
-  box-shadow:inset 0 2px 3px rgba(0,0,0,.5);
+.keyboard button.kmod[aria-pressed="true"]{              /* MAYÚS BLOQUEADO (caps, 3er estado): la tecla se queda PULSADA = plana y hundida 2px, sin relieve ni cambio de color, como físicamente presionada. (off = icono de contorno; shift-1-letra = icono relleno con la tecla arriba; caps = icono relleno con la tecla hundida) */
+  transform:translateY(2px);
+  box-shadow:none;
 }
