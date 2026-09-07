@@ -267,7 +267,7 @@ body{
 .fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
 .faction{ flex:none;color:#37f07d;cursor:pointer;-webkit-tap-highlight-color:transparent }   /* acciones del form/roster (tocables) */
 .chat-icon{ height:1.05em;width:auto;vertical-align:-.12em;fill:currentColor;margin-right:.55ch }   /* icono a la izquierda del nombre en el roster */
-.faction.locked{ color:#1f9e5e;opacity:.6 }   /* acción bloqueada (con candado): atenuada hasta que se pueda usar */
+.faction.locked{ color:#1f9e5e;opacity:.65 }   /* acción bloqueada (con candado): atenuada como el hint "¿Necesitas ayuda?" */
 .flock-icon{ height:1em;width:auto;vertical-align:-.12em;fill:currentColor;margin-right:.5ch }   /* candado antes de "Conectar" mientras falta rellenar */
 /* Fila del roster: nombre | puntos guía (dot leader) | contador de no leídos a la derecha */
 .roster-item{ cursor:pointer;-webkit-tap-highlight-color:transparent }
