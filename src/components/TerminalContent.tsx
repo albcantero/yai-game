@@ -49,7 +49,9 @@ interface PanelState {
   active: number;
 }
 
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const rawSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const BOOT_WIDTH = 24; // bloques de la barra de carga inicial
+const BOOT_MS = 4000; // duración de la barra de carga
 const prefersReduced = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
 
@@ -63,6 +65,7 @@ export interface TerminalContentProps {
   keyHandlerRef: MutableRefObject<(k: string) => void>; // el terminal registra aquí su handleKey
   runCmdRef: MutableRefObject<(cmd: string) => void>; // ...y su submit (para el menú lateral del armazón)
   loaderRef: MutableRefObject<boolean>; // expone si hay un loader (el armazón bloquea sus botones)
+  pauseRef: MutableRefObject<(v: boolean) => void>; // el armazón pausa/reanuda el terminal (menú/diálogo abiertos)
 }
 
 export default function TerminalContent({
@@ -72,10 +75,13 @@ export default function TerminalContent({
   keyHandlerRef,
   runCmdRef,
   loaderRef,
+  pauseRef,
 }: TerminalContentProps) {
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
+  const [booting, setBooting] = useState(true); // splash de carga inicial (logo centrado + barra); solo en el arranque
+  const [bootFill, setBootFill] = useState(0); // bloques llenos de la barra de carga (0..BOOT_WIDTH)
   const [dialog, setDialog] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
   const [loader, setLoader] = useState(false);
@@ -97,6 +103,27 @@ export default function TerminalContent({
   const chatUnsubRef = useRef<null | (() => void)>(null);
 
   loaderRef.current = loader; // el armazón usa esto para bloquear los botones del monitor durante un loader
+
+  // ---- PAUSA del terminal (la impone el armazón al abrir menú/diálogo) ----
+  // Todo lo animado pasa por sleep(); mientras paused, sleep aparca en la "compuerta" (gate) y no
+  // resuelve hasta despausar. Así se congelan boot, typeLine y spinners sin tocar cada bucle, esté como esté.
+  const pausedRef = useRef(false);
+  const resumeWaitersRef = useRef<Array<() => void>>([]);
+  const setPaused = (v: boolean) => {
+    if (pausedRef.current === v) return;
+    pausedRef.current = v;
+    if (!v) {
+      const ws = resumeWaitersRef.current; // al reanudar, libera a todos los que esperaban en la compuerta
+      resumeWaitersRef.current = [];
+      ws.forEach((fn) => fn());
+    }
+  };
+  const gate = () =>
+    pausedRef.current
+      ? new Promise<void>((res) => resumeWaitersRef.current.push(res))
+      : Promise.resolve();
+  const sleep = (ms: number) => rawSleep(ms).then(gate); // sleep consciente de la pausa (sombrea al de módulo)
+  pauseRef.current = setPaused; // el armazón llama pauseRef.current(true/false)
 
   const lookup = useMemo(() => {
     const m = new Map<string, Command>();
@@ -522,18 +549,16 @@ export default function TerminalContent({
 
     let alive = true;
     (async () => {
-      // Arranque tipo carga de sistema: barra de bloques bajo el logo (~4s). Se re-ejecuta en cada entrada.
-      const label = "Cargando sistema";
-      const width = 22;
-      const barId = addLine({ text: label + " [" + "░".repeat(width) + "]", cls: "", mark: "" });
-      for (let i = 1; i <= width; i++) {
-        await sleep(4000 / width);
+      // Splash de carga inicial: logo centrado + barra de bloques desnuda debajo (sin texto/%/brackets).
+      // El logo SOLO aparece aquí; al terminar se retira el splash y la bienvenida ya va sin logo.
+      for (let i = 1; i <= BOOT_WIDTH; i++) {
+        await sleep(BOOT_MS / BOOT_WIDTH);
         if (!alive) return;
-        setText(barId, label + " [" + "█".repeat(i) + "░".repeat(width - i) + "]");
+        setBootFill(i);
       }
       if (!alive) return;
       await sleep(350);
-      setLines([]); // retira la barra de carga (el logo va aparte y se queda)
+      setBooting(false); // fuera el splash (y el logo con él)
       await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16, "", {}, () => alive);
       if (!alive) return;
       await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16, "", {}, () => alive);
@@ -565,11 +590,16 @@ export default function TerminalContent({
 
   return (
     <div className="content" ref={scrollRef}>
-      <div className="banner-frame" hidden={account}>
-        <div className="banner-wrap">
-          <pre className="banner" ref={bannerRef}></pre>
+      {booting && (
+        <div className="boot-splash">
+          <div className="banner-wrap">
+            <pre className="banner" ref={bannerRef}></pre>
+          </div>
+          <div className="boot-bar" aria-hidden="true">
+            {"█".repeat(bootFill) + "░".repeat(BOOT_WIDTH - bootFill)}
+          </div>
         </div>
-      </div>
+      )}
       {lines.map((l) =>
         l.chev ? (
           <div className="row" key={l.id}>

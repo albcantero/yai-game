@@ -41,6 +41,7 @@ export default function Terminal() {
   const runCmdRef = useRef<(cmd: string) => void>(() => {}); // submit del terminal (menú lateral)
   const loaderRef = useRef(false); // hay un loader en el terminal (bloquea los botones del monitor)
   const dispatchRef = useRef<(k: string) => void>(() => {}); // dispatchKey estable para el teclado físico
+  const termPauseRef = useRef<(v: boolean) => void>(() => {}); // pausa/reanuda el terminal (lo registra el hijo)
 
   // ---------- Audio (Web Audio, compartido con el terminal por props) ----------
   const keyTick = () => {
@@ -110,7 +111,7 @@ export default function Terminal() {
   };
   // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega según la vista.
   const dispatchKey = (k: string) => {
-    if (menuOpen) return;
+    if (menuOpen || confirmClose) return; // menú/diálogo abiertos = terminal en pausa, no acepta teclas
     keyTick();
     if (view === "home") {
       handleHomeKey(k);
@@ -124,6 +125,12 @@ export default function Terminal() {
     termKeyRef.current(k);
   };
   dispatchRef.current = dispatchKey;
+
+  // Menú lateral o diálogo de cierre abiertos => PAUSA el terminal (congela boot/typeLine/spinners,
+  // esté como esté). Al cerrarlos, reanuda donde iba. Lo ejecuta el hijo vía termPauseRef.
+  useEffect(() => {
+    termPauseRef.current(menuOpen || confirmClose);
+  }, [menuOpen, confirmClose]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. Bloqueados si hay loader en el terminal.
   const chinKey = (k: string) => {
@@ -453,6 +460,7 @@ export default function Terminal() {
               keyHandlerRef={termKeyRef}
               runCmdRef={runCmdRef}
               loaderRef={loaderRef}
+              pauseRef={termPauseRef}
             />
           )}
           {confirmClose && (

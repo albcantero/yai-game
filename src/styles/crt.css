@@ -253,6 +253,10 @@ body{
 .home-title{ font-size:2.2em;line-height:1.1;color:#b8ffd6;letter-spacing:1px }
 .home-menu{ display:flex;flex-direction:column;gap:.5em;align-items:flex-start }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
+/* Splash de carga inicial: logo centrado en la pantalla + barra de bloques desnuda debajo. Solo en el arranque. */
+.content>.boot-splash{ flex:1 1 auto;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4em;width:100%;max-width:none }
+.boot-splash .banner-wrap{ width:100%;max-width:min(90%,520px);display:flex;justify-content:center }   /* fitBanner escala el logo para caber aquí */
+.boot-bar{ font:1.1em/1 'Courier Pixel',"Courier New",monospace;letter-spacing:2px;color:#37f07d;white-space:pre;text-shadow:0 0 4px rgba(55,240,125,.5) }   /* sin texto/%/[]: solo █ llenos + ░ vacíos */
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
 .flabel{ flex:none;color:#37f07d }   /* etiqueta de campo: mismo verde base que el resto */
