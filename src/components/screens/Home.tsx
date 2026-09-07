@@ -10,7 +10,7 @@ const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
   { label: "Notas", target: "notas", icon: "/icons/notepad.png" },
   { label: "Registro", target: "registro", icon: "/icons/printer.png" },   // chat con el informante (tipo Lifeline)
   { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" },
-  { label: "Fases", target: "fases", icon: "/icons/fases.png" },           // icono helpbook
+  { label: "Libro de juego", target: "fases", icon: "/icons/fases.png" },  // icono helpbook
 ];
 
 // Pantalla HOME: escritorio Win98 (fondo teal liso) con un menú de botones centrado, navegable SOLO con
