@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
-import TerminalContent from "./TerminalContent";
+import Terminal from "./screens/Terminal";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -12,10 +12,10 @@ const SHOW_BUILD = true;
 // Opciones del menú de inicio (vista "home" dentro del CRT). Terminal entra; Tienda/Fases: próximamente.
 const HOME_OPTS = ["Terminal", "Tienda", "Fases"];
 
-// EL ARMAZÓN ("el PC"): monitor, teclado, AUDIO, warp y la vista de inicio. Persiste siempre; el
-// contenido de la pantalla es un componente que se monta encima (por ahora <TerminalContent>).
-// Reiniciar el terminal = salir de la vista "terminal" → el hijo se desmonta y React lo limpia todo.
-export default function Terminal() {
+// EL ARMAZÓN ("el PC"): monitor, teclado, AUDIO, warp y la vista de inicio. Persiste siempre; cada
+// pantalla (screens/Terminal, y en el futuro Shop, Lobby...) se monta encima como un componente.
+// Reiniciar una pantalla = salir de su vista → el hijo se desmonta y React lo limpia todo.
+export default function Computer() {
   const [warpReady, setWarpReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
@@ -184,7 +184,7 @@ export default function Terminal() {
   };
   const closeAttempt = () => {
     setConfirmClose(false);
-    setView("home"); // salir del sistema: el hijo <TerminalContent> se desmonta → reinicio limpio
+    setView("home"); // salir del sistema: el hijo <Terminal> se desmonta → reinicio limpio
   };
 
   // ---------- Efectos del armazón ----------
@@ -453,7 +453,7 @@ export default function Terminal() {
             </div>
           )}
           {view === "terminal" && (
-            <TerminalContent
+            <Terminal
               playSfx={playSfx}
               shiftModeRef={shiftModeRef}
               consumeShift={consumeShift}

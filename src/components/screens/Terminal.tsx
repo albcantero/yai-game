@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
-import { commands } from "../terminal/commands";
-import type { Command, Ctx, LineClass } from "../terminal/types";
-import BANNER from "../terminal/banner.txt?raw";
-import { rlog } from "../lib/rlog";
+import { commands } from "../../terminal/commands";
+import type { Command, Ctx, LineClass } from "../../terminal/types";
+import BANNER from "../../terminal/banner.txt?raw";
+import { rlog } from "../../lib/rlog";
 import {
   loginCharacter,
   ensureSession,
@@ -14,7 +14,7 @@ import {
   subscribeMessages,
   type Character,
   type Msg,
-} from "../lib/supabase";
+} from "../../lib/supabase";
 
 type Mark = "*" | ">" | "";
 interface Line {
@@ -58,7 +58,7 @@ const prefersReduced = () =>
 // El CONTENIDO del terminal (líneas, login, chat, boot...). Vive como componente propio dentro del
 // armazón ("el PC"): se MONTA al entrar y se DESMONTA al salir, así reiniciar = remontar y React
 // limpia todo (estado + async) solo. El audio/teclado/warp los pone el padre y llegan por props.
-export interface TerminalContentProps {
+export interface TerminalProps {
   playSfx: (src: string, vol?: number) => void;
   shiftModeRef: MutableRefObject<"off" | "shift" | "caps">;
   consumeShift: () => void;
@@ -68,7 +68,7 @@ export interface TerminalContentProps {
   pauseRef: MutableRefObject<(v: boolean) => void>; // el armazón pausa/reanuda el terminal (menú/diálogo abiertos)
 }
 
-export default function TerminalContent({
+export default function Terminal({
   playSfx,
   shiftModeRef,
   consumeShift,
@@ -76,7 +76,7 @@ export default function TerminalContent({
   runCmdRef,
   loaderRef,
   pauseRef,
-}: TerminalContentProps) {
+}: TerminalProps) {
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
