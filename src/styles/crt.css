@@ -175,7 +175,7 @@ body{
   animation:textShadow 4s infinite;   /* aberración ralentizada (a Alberto le iba muy rápida a 1.6s) */
 }
 .crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
-.win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222 }  /* Determination Sans: proporcional y con acentos */
+.win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222;text-shadow:none }  /* Determination Sans: proporcional y con acentos. text-shadow:none = el chrome Win98 (header/diálogo/sidebar) NO hereda la aberración cromática animada de .crt: es UI del SO, no fósforo. El verde del terminal (.crt-body, sin .win98) la conserva */
 /* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Sans, con acentos) */
 .win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif }  /* solo la fuente (acentos); tamaño NATIVO de 98.css (quitado el 16px forzado) */
 .win98 .title-bar-text{ letter-spacing:.5px }  /* Determination en negrita sintética queda muy junta; la soltamos un poco */
@@ -193,10 +193,15 @@ body{
 .content::-webkit-scrollbar{ width:8px }
 .content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
 
-/* máscara RGB de subpíxel (z2, sobre el texto) */
+/* ESCALERA DE CAPAS (z-index dentro de .screen-area; .crt no crea contexto propio con el warp off):
+   1  contenido de pantalla  .content / .home-screen / .win-sidebar
+   2  diálogo de confirmación .confirm-overlay  (tapa el contenido, pero vive DENTRO de la pantalla)
+   3  rejilla + flicker       .crt::before / .crt::after  (fósforo por encima de TODO lo de pantalla, diálogo incluido)
+   6  cristal / viñeta        .curve-overlay  (la luna del tubo, siempre lo más alto) */
+/* máscara RGB de subpíxel (z3, sobre el texto y el diálogo) */
 /* scanlines + RGB sutil (aleclownes ::before) */
 .crt::before{
-  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   background:
     linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,.25) 50%),
     linear-gradient(90deg, rgba(255,0,0,.06), rgba(0,255,0,.02), rgba(0,0,255,.06));
@@ -205,7 +210,7 @@ body{
 /* flicker (aleclownes ::after) */
 /* flicker aleclownes estándar */
 .crt::after{
-  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   background:rgba(18,16,16,var(--flicker-alpha));opacity:0;
   animation:flicker .15s infinite;
 }
@@ -318,7 +323,7 @@ body{
 /* .win-sidebar .window-body button{ width:100%;padding:12px;text-align:left;font-size:16px } */  /* botones del menú nativos de 98.css */
 
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
-.confirm-overlay{ position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* dentro del monitor: cubre la pantalla del CRT, no toda la ventana */
+.confirm-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* z2: tapa el contenido de pantalla (z1) pero queda POR DEBAJO de la rejilla (z3) y del cristal (z6): el diálogo vive dentro del CRT, no flotando sobre él */
 .confirm-dialog{ min-width:260px;max-width:90vw;margin:0 }
 .confirm-dialog .window-body{ margin:14px 16px 16px }
 .confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
