@@ -5,9 +5,13 @@ import { menuNav } from "../../terminal/input";
 
 // Opciones del menú de inicio. target = id de una pantalla del registro SCREENS; sin target = aún sin
 // pantalla (Tienda/Fases): se muestran pero no navegan.
+const OPEN_DELAY = 250; // ms que la opción se queda en AZUL antes de abrir el programa (para que se vea la selección)
 const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
+  { label: "Tienda", icon: "/icons/internet.png" },      // tienda online del juego (icono html)
+  { label: "Notas", icon: "/icons/notepad.png" },
+  { label: "Registro", icon: "/icons/printer.png" },     // chat con el informante (tipo Lifeline)
   { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" },
-  { label: "Internet", icon: "/icons/internet.png" },
+  { label: "Fases", icon: "/icons/fases.png" },          // icono helpbook
 ];
 
 // Pantalla HOME: fondo pixelart (SVG) + título "EL libro PERDIDO" ("PERDIDO" ondula letra a letra con
@@ -23,8 +27,10 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ playSfx, n
     setActive(i);
   };
   const select = (i: number) => {
+    setActiveBoth(i); // marca la opción en azul (selección Win98)
     const t = HOME_OPTS[i].target;
-    if (t) navigate(t); // "Tienda"/"Fases" aún sin pantalla: no hacen nada
+    if (!t) return; // sin pantalla aún (placeholder): solo se queda seleccionada
+    window.setTimeout(() => navigate(t), OPEN_DELAY); // espera para que se VEA el azul y luego abre el programa
   };
 
   // El armazón nos despacha las teclas aquí: las flechas mueven la selección, OK/Enter entra.
@@ -74,8 +80,7 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ playSfx, n
               className={active === i ? "is-active" : undefined}
               onPointerDown={() => {
                 playSfx("/audio/mouse-click.mp3");
-                setActiveBoth(i);
-                select(i);
+                select(i); // select ya marca el azul y abre tras OPEN_DELAY
               }}
             >
               <img className="home__menu-icon" src={opt.icon} alt="" />

@@ -34,11 +34,11 @@
 
 .home__menu{
   display:flex;flex-direction:column;gap:10px;
-  width:min(220px,70%);   /* el menú lo centra .home__content; los botones van a ancho uniforme */
+  width:min(280px,88%);   /* más ancho: el icono no llega al borde */
 }
-.home__menu button{ display:flex;align-items:center;gap:8px;font-size:15px }   /* icono Win98 a la izquierda + etiqueta (estilo lanzador) */
+.home__menu button{ display:flex;align-items:center;gap:10px;font-size:15px;padding:6px 16px }   /* icono Win98 a la izquierda + etiqueta; padding para que el icono no toque el borde */
 .home__menu-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }   /* icono nativo 32px, nítido también en pantallas retina */
-.home__menu button.is-active{ outline:1px dotted #000;outline-offset:-4px }   /* opción seleccionada (flechas + OK): rectángulo de foco Win98 */
+.home__menu button.is-active{ background:navy;color:#fff;text-shadow:none;outline:1px dotted #fff;outline-offset:-4px }   /* seleccionado/pulsado: azul de selección Win98 (navy, como en 98.css) + texto blanco (98.css pinta el texto del botón con text-shadow, hay que anularlo) + foco punteado */
 
 @media (prefers-reduced-motion:reduce){
   .home__title .ch{ transform:none !important }   /* sin ondular */
