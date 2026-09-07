@@ -56,7 +56,6 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ playSfx, n
 
   return (
     <div className="home-screen">
-      <img className="home__bg" src="/desktop.png" alt="" />
       <div className="home__content">
         <h1 className="home__title" ref={titleRef}>
           <span className="line">EL libro</span>
