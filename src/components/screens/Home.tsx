@@ -6,11 +6,11 @@ import { menuNav } from "../../terminal/input";
 // pantalla (Tienda/Notas/Registro/Fases): se muestran pero no navegan.
 const OPEN_DELAY = 250; // ms que la opción se queda en AZUL antes de abrir el programa (para que se vea la selección)
 const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
-  { label: "Tienda", icon: "/icons/internet.png" },      // tienda online del juego (icono html)
-  { label: "Notas", icon: "/icons/notepad.png" },
-  { label: "Registro", icon: "/icons/printer.png" },     // chat con el informante (tipo Lifeline)
+  { label: "Tienda", target: "tienda", icon: "/icons/internet.png" },      // tienda online del juego (icono html)
+  { label: "Notas", target: "notas", icon: "/icons/notepad.png" },
+  { label: "Registro", target: "registro", icon: "/icons/printer.png" },   // chat con el informante (tipo Lifeline)
   { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" },
-  { label: "Fases", icon: "/icons/fases.png" },          // icono helpbook
+  { label: "Fases", target: "fases", icon: "/icons/fases.png" },           // icono helpbook
 ];
 
 // Pantalla HOME: escritorio Win98 (fondo teal liso) con un menú de botones centrado, navegable SOLO con

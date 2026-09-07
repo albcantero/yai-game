@@ -23,7 +23,6 @@ const BUZZ_MS = 10;
 // pantalla (screens/Terminal, y en el futuro Shop, Lobby...) se monta encima como un componente.
 // Reiniciar una pantalla = salir de su vista → el hijo se desmonta y React lo limpia todo.
 export default function Computer() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
   const [powerOn, setPowerOn] = useState(true);
@@ -66,16 +65,16 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    if (menuOpen || confirmClose) return; // menú/diálogo abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
+    if (confirmClose) return; // diálogo abierto = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
     screenRef.current?.handleKey(k); // delega en la pantalla activa (home incluido: su menú navega con flechas + OK)
   };
   dispatchRef.current = dispatchKey;
 
-  // Menú lateral o diálogo de cierre abiertos => PAUSA la pantalla activa (congela boot/typeLine/
-  // spinners, esté como esté). Al cerrarlos, reanuda donde iba. Vía screenRef.setPaused.
+  // Diálogo de cierre abierto => PAUSA la pantalla activa (congela boot/typeLine/spinners, esté como
+  // esté). Al cerrarlo, reanuda donde iba. Vía screenRef.setPaused.
   useEffect(() => {
-    screenRef.current?.setPaused(menuOpen || confirmClose);
-  }, [menuOpen, confirmClose]);
+    screenRef.current?.setPaused(confirmClose);
+  }, [confirmClose]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
@@ -118,16 +117,8 @@ export default function Computer() {
     onPointerCancel: stopHold,
   });
 
-  const runFromMenu = (cmd: string) => {
-    setMenuOpen(false);
-    screenRef.current?.runCmd?.(cmd); // home no implementa runCmd (no-op); terminal ejecuta el comando
-  };
   const chromeClick = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
-  };
-  const onScreenPointerDown = (e: ReactPointerEvent) => {
-    if ((e.target as HTMLElement).closest(".win98")) return;
-    if (menuOpen) setMenuOpen(false);
   };
   const closeAttempt = () => {
     setConfirmClose(false);
@@ -178,18 +169,14 @@ export default function Computer() {
 
       <div className="monitor">
         <div className="screen-area">
-        <div
-          className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")}
-          onPointerDown={onScreenPointerDown}
-        >
+        <div className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")}>
           {view !== "home" && (
             <div className="win98 win-header" onPointerDownCapture={chromeClick}>
               <div className="title-bar">
-                <img className="title-icon" src="/icons/term.png" alt="" />
-                <div className="title-bar-text">santasochova-term.exe</div>
+                <img className="title-icon" src={SCREENS[view].icon} alt="" />
+                <div className="title-bar-text">{SCREENS[view].title}</div>
                 <div className="title-bar-controls">
-                  <button type="button" className="win-cog" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>⚙</button>
-                  <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
+                  <button type="button" aria-label="Close" onClick={() => (SCREENS[view].confirm ? setConfirmClose(true) : setView("home"))}></button>
                 </div>
               </div>
             </div>
@@ -224,22 +211,6 @@ export default function Computer() {
                 </div>
               </div>
             </div>
-          )}
-          {menuOpen && (
-            <aside className="win98 win-sidebar" onPointerDownCapture={chromeClick}>
-              <div className="window">
-                <div className="title-bar">
-                  <div className="title-bar-text">Menú</div>
-                  <div className="title-bar-controls">
-                    <button type="button" aria-label="Close" onClick={() => setMenuOpen(false)}></button>
-                  </div>
-                </div>
-                <div className="window-body">
-                  <button type="button" onClick={() => runFromMenu("help")}>Ayuda</button>
-                  <button type="button" onClick={() => runFromMenu("limpiar")}>Limpiar pantalla</button>
-                </div>
-              </div>
-            </aside>
           )}
           </div>
         </div>
