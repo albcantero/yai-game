@@ -71,6 +71,9 @@ const AUDIO_ENABLED = true;
 // actual o en uno cacheado (sin necesidad de ?debug=1). Poner en false para la version final.
 const SHOW_BUILD = true;
 
+// Opciones del menú de inicio (vista "home" dentro del CRT). Terminal entra; Tienda/Fases: próximamente.
+const HOME_OPTS = ["Terminal", "Tienda", "Fases"];
+
 /** Enmarca un bloque de texto ASCII con líneas +--+ (ancho automático). */
 function frameArt(text: string): string {
   const lines = text.replace(/^\n+/, "").replace(/\s+$/, "").split("\n");
@@ -99,6 +102,8 @@ export default function Terminal() {
   const [panel, setPanel] = useState<PanelState | null>(null); // menu del panel (Mis mensajes / Salir)
   const [account, setAccount] = useState(false); // dentro de la cuenta: oculta el logo del inicio
   const [thread, setThread] = useState<{ target: string | null; name: string } | null>(null); // hilo de chat abierto (null = ninguno)
+  const [view, setView] = useState<"home" | "terminal">("home"); // qué se muestra DENTRO del monitor (marco/teclado/audio/warp persisten)
+  const [homeActive, setHomeActive] = useState(0); // opción resaltada en el menú de inicio
 
   const idRef = useRef(0);
   const busyRef = useRef(false);
@@ -577,9 +582,30 @@ export default function Terminal() {
     }
   };
 
+  // Menú de inicio (vista "home"): flechas + Enter, o tocando.
+  const homeSelect = (i: number) => {
+    if (i === 0) setView("terminal"); // Terminal: entra en el sistema (Tienda/Fases aún sin vista)
+  };
+  const handleHomeKey = (k: string) => {
+    if (k === "ArrowUp") {
+      keyTick();
+      setHomeActive((a) => Math.max(0, a - 1));
+    } else if (k === "ArrowDown") {
+      keyTick();
+      setHomeActive((a) => Math.min(HOME_OPTS.length - 1, a + 1));
+    } else if (k === "Enter") {
+      keyTick();
+      homeSelect(homeActive);
+    }
+  };
+
   const handleKey = (k: string) => {
     // El teclado es INDEPENDIENTE del estado del terminal: NO se bloquea con el loader/spinner.
     if (menuOpen) return;
+    if (view === "home") {
+      handleHomeKey(k);
+      return;
+    }
     if (k === "Shift") {
       // Ciclo tipo teclado móvil: minúsculas → mayús de 1 letra → bloq mayús → minúsculas
       keyTick();
@@ -1028,7 +1054,24 @@ export default function Terminal() {
             </div>
           </div>
           <div className="crt-body">
-          <div className="content" ref={scrollRef}>
+          {view === "home" && (
+            <div className="home-screen">
+              <div className="home-title">EL libro PERDIDO</div>
+              <div className="home-menu">
+                {HOME_OPTS.map((label, i) => (
+                  <div className="inputline" key={i}>
+                    <span className="fcaret" aria-hidden="true">
+                      {homeActive === i && (
+                        <svg viewBox="9 7 6 10" fill="currentColor"><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" /></svg>
+                      )}
+                    </span>
+                    <span className="faction" onPointerDown={() => { setHomeActive(i); homeSelect(i); }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="content" ref={scrollRef} hidden={view !== "terminal"}>
             <div className="banner-frame" hidden={account}>
               <div className="banner-wrap">
                 <pre className="banner" ref={bannerRef}></pre>

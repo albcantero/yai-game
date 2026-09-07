@@ -244,6 +244,9 @@ body{
 
 .banner-frame{ border:1.5px solid rgba(31,158,94,.65);border-radius:4px;padding:10px 12px;margin:0 0 8px }   /* marco CSS del logo (como el tooltip), en vez del +--+ ASCII */
 .banner-wrap{ overflow:hidden }
+.home-screen{ height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6em;padding:24px;text-align:center;overflow:auto }   /* vista "home" dentro del CRT */
+.home-title{ font-size:2.2em;line-height:1.1;color:#b8ffd6;letter-spacing:1px }
+.home-menu{ display:flex;flex-direction:column;gap:.5em;align-items:flex-start }
 .banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
 
 .inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
