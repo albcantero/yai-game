@@ -123,7 +123,7 @@ export default function Computer() {
   };
   const closeAttempt = () => {
     setConfirmClose(false);
-    setView("home"); // salir del sistema: el hijo <Terminal> se desmonta → reinicio limpio
+    setView("home"); // cierra el programa: el screen activo se desmonta → vuelve a la home (reinicio limpio)
   };
 
   // ---------- Efectos del armazón ----------
@@ -178,7 +178,7 @@ export default function Computer() {
                 <div className="title-bar-text">{SCREENS[view].title}</div>
                 <div className="title-bar-controls">
                   <button type="button" aria-label="Help" onClick={() => setInfoOpen(true)}></button>
-                  <button type="button" aria-label="Close" onClick={() => (SCREENS[view].confirm ? setConfirmClose(true) : setView("home"))}></button>
+                  <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
                 </div>
               </div>
             </div>
@@ -196,15 +196,15 @@ export default function Computer() {
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
               <div className="window confirm-dialog">
                 <div className="title-bar">
-                  <div className="title-bar-text">Cerrar sesión</div>
+                  <div className="title-bar-text">Cerrar programa</div>
                   <div className="title-bar-controls">
                     <button type="button" aria-label="Close" onClick={() => setConfirmClose(false)}></button>
                   </div>
                 </div>
                 <div className="window-body">
                   <div className="confirm-row">
-                    <img className="confirm-icon" src="/icons/msg_question.png" alt="" />
-                    <p>¿Seguro que quieres salir del sistema?</p>
+                    <img className="confirm-icon" src="/icons/msg_error.png" alt="" />
+                    <p>¿Seguro que quieres salir del programa? Se perderán todos los cambios que no se hayan guardado.</p>
                   </div>
                   <div className="confirm-buttons">
                     <button type="button" onClick={closeAttempt}>Sí</button>

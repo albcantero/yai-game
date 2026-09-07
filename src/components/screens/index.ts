@@ -12,13 +12,12 @@ export interface ScreenDef {
   label: string;
   title?: string; // texto de la barra de título de la ventana; home no tiene ventana (no se pinta)
   icon?: string; // icono (16px) de la barra de título
-  confirm?: boolean; // la X pide confirmación (terminal = cerrar sesión) en vez de cerrar directo
   Component: ComponentType<ScreenServices & RefAttributes<ScreenHandle>>;
 }
 
 export const SCREENS = {
   home: { label: "Home", Component: Home },
-  terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", confirm: true, Component: Terminal },
+  terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", Component: Terminal },
   tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet-sm.png", Component: Placeholder },
   notas: { label: "Notas", title: "Notas", icon: "/icons/notepad-sm.png", Component: Placeholder },
   registro: { label: "Registro", title: "Registro", icon: "/icons/printer-sm.png", Component: Placeholder },

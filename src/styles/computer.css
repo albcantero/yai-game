@@ -55,6 +55,7 @@ body{
 .win-header .title-bar-text{ flex:1 }   /* el tamaño (16px) va en la base .win98 .title-bar-text (unificado) */
 /* controles del header cuadrados y consistentes (cog + X del mismo tamaño), con el bisel nativo de 98.css */
 .win98 .title-bar-controls button{ width:18px;height:18px;min-width:0;min-height:0;padding:0;background-position:center;background-repeat:no-repeat }
+.win98 .title-bar-controls button[aria-label]{ background-position:center }   /* centra el icono (X / ?) en el recuadro: gana a la posición top/left que 98.css fija por aria-label */
 
 /* ---------- Área de pantalla (carcasa del monitor + mentón) ---------- */
 .monitor{
@@ -165,10 +166,10 @@ body{
 
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
 .confirm-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* z2: tapa el contenido de pantalla (z1) pero queda POR DEBAJO de la rejilla (z3) y del cristal (z6): el diálogo vive dentro del CRT, no flotando sobre él */
-.confirm-dialog{ min-width:260px;max-width:90vw;margin:0 }
+.confirm-dialog{ width:min(300px,90vw);margin:0 }   /* ancho fijo: el texto largo crece en VERTICAL (envuelve), no ensancha el diálogo */
 .confirm-dialog .window-body{ margin:14px 16px 16px }
 .confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
 .confirm-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }
-.confirm-row p{ margin:0;font-size:16px }   /* mensaje del diálogo a 16px */
+.confirm-row p{ margin:0;font-size:16px;flex:1;min-width:0 }   /* mensaje del diálogo a 16px; flex+min-width:0 = envuelve dentro del ancho fijo */
 .confirm-buttons{ display:flex;gap:10px;justify-content:center }
-.confirm-buttons button{ font-size:12px }   /* botones Sí/No a 12px */
+.confirm-buttons button{ font-size:16px }   /* botones Sí/No al MISMO tamaño que el mensaje (16px) */
