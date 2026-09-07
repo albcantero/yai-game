@@ -1018,9 +1018,33 @@ export default function Terminal() {
     }
   };
 
+  // "Salir del sistema": deja el terminal como recién encendido (al volver a entrar, arranca de cero).
+  const resetTerminal = () => {
+    if (chatUnsubRef.current) {
+      chatUnsubRef.current();
+      chatUnsubRef.current = null;
+    }
+    threadRef.current = null;
+    setThread(null);
+    setPanel(null);
+    setForm(null);
+    setAccount(false);
+    setLoader(false);
+    setMenuOpen(false);
+    setNumMode(false);
+    shiftModeRef.current = "off";
+    setShiftMode("off");
+    historyRef.current = [];
+    hposRef.current = 0;
+    setLine("");
+    setLines([]);
+    setBooted(false);
+    didWelcome.current = false; // la bienvenida se re-escribe al volver a entrar
+  };
   const closeAttempt = () => {
     setConfirmClose(false);
-    setView("home"); // cerrar la terminal = volver al menú principal (una sola página, no recarga)
+    resetTerminal();
+    setView("home"); // cerrar = volver al menú principal, con el terminal reiniciado
   };
 
   const showInput = booted && !dialog && !loader && !panel && !thread;
