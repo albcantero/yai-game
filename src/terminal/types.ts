@@ -12,20 +12,20 @@ export interface Ctx {
   startDialog: (lines: string[]) => void;
   /** Inicia el login interactivo: pregunta usuario y luego clave (enmascarada). */
   startLogin: () => void;
-  /** Argumentos tras el nombre del comando ("978" en "/buscar 978"). */
+  /** Argumentos tras el nombre del comando ("978" en "buscar 978"). */
   arg: string;
   /** La línea completa tal cual se escribió. */
   raw: string;
 }
 
 export interface Command {
-  /** Nombres/alias, con la barra incluida (p. ej. ["/help", "/ayuda"]). */
+  /** Nombres/alias, SIN barra (p. ej. ["help", "ayuda"]). */
   names: string[];
-  /** Firma que se muestra en /help (por defecto, el primer nombre). */
+  /** Firma que se muestra en "help" (por defecto, el primer nombre). */
   usage?: string;
-  /** Descripción corta para /help. */
+  /** Descripción corta para "help". */
   desc?: string;
-  /** Si es true, no aparece en /help (comandos secretos). */
+  /** Si es true, no aparece en "help" (comandos secretos). */
   hidden?: boolean;
   run: (ctx: Ctx) => void;
 }

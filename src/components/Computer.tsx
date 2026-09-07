@@ -192,41 +192,39 @@ export default function Computer() {
     initRemoteLog();
   }, []);
 
-  // Animación de pulsado garantizada + guard: mientras una pulsación anima, se ignoran las nuevas.
+  // Animación de pulsado POR BOTÓN (no global): cada botón completa su animación entera (baja y sube,
+  // con un mínimo garantizado) aunque lo pulses rapidísimo. Se pueden pulsar varias teclas a la vez sin
+  // ahogo: cada pointer va por su cuenta. Solo se ignora re-pulsar EL MISMO botón mientras aún anima
+  // (eso evita el doble-fire que motivó el guard). Multitáctil: se rastrea por pointerId.
   useEffect(() => {
-    let cur: HTMLElement | null = null;
-    let at = 0;
-    let min = 130;
-    let timer = 0;
-    let locked = false;
+    const presses = new Map<number, { btn: HTMLElement; at: number }>(); // pointerId -> pulsación viva
+    const timers = new Map<HTMLElement, number>(); // botón -> timer de "levantar"
     const down = (e: PointerEvent) => {
       const btn = (e.target as HTMLElement)?.closest?.(".chin-btn, .keyboard button") as HTMLElement | null;
       if (!btn) return;
-      if (locked) {
-        e.stopPropagation(); // corta el handler de React (ni acción ni sonido) hasta que acabe la animación
+      if (btn.hasAttribute("data-pressing")) {
+        e.stopPropagation(); // MISMO botón aún animando: corta el handler de React (ni acción ni sonido)
         return;
       }
-      if (timer) {
-        clearTimeout(timer);
-        timer = 0;
+      const t = timers.get(btn);
+      if (t) {
+        clearTimeout(t); // reusa un botón cuyo "levantar" estaba pendiente
+        timers.delete(btn);
       }
-      if (cur && cur !== btn) cur.removeAttribute("data-pressing");
-      cur = btn;
-      at = performance.now();
-      min = btn.classList.contains("chin-kb") ? 200 : 130;
-      locked = true;
+      presses.set(e.pointerId, { btn, at: performance.now() });
       btn.setAttribute("data-pressing", "");
     };
-    const up = () => {
-      if (!cur) return;
-      const btn = cur;
-      cur = null;
-      const wait = Math.max(0, min - (performance.now() - at));
-      timer = window.setTimeout(() => {
-        btn.removeAttribute("data-pressing");
-        locked = false;
-        timer = 0;
+    const up = (e: PointerEvent) => {
+      const p = presses.get(e.pointerId);
+      if (!p) return;
+      presses.delete(e.pointerId);
+      const min = p.btn.classList.contains("chin-kb") ? 200 : 130;
+      const wait = Math.max(0, min - (performance.now() - p.at)); // deja que la animación baje+suba entera
+      const timer = window.setTimeout(() => {
+        p.btn.removeAttribute("data-pressing");
+        timers.delete(p.btn);
       }, wait);
+      timers.set(p.btn, timer);
     };
     window.addEventListener("pointerdown", down, true);
     window.addEventListener("pointerup", up, true);
@@ -235,7 +233,7 @@ export default function Computer() {
       window.removeEventListener("pointerdown", down, true);
       window.removeEventListener("pointerup", up, true);
       window.removeEventListener("pointercancel", up, true);
-      if (timer) clearTimeout(timer);
+      timers.forEach((t) => clearTimeout(t));
     };
   }, []);
 

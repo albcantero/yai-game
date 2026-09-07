@@ -86,7 +86,6 @@ export default function Terminal({
   const [form, setForm] = useState<FormState | null>(null);
   const [loader, setLoader] = useState(false);
   const [panel, setPanel] = useState<PanelState | null>(null);
-  const [account, setAccount] = useState(false);
   const [thread, setThread] = useState<{ target: string | null; name: string } | null>(null);
 
   const idRef = useRef(0);
@@ -255,7 +254,6 @@ export default function Terminal({
       await sleep(2000);
       return { code: "OK", text: "Se ha cerrado su sesión correctamente", cls: "b" };
     });
-    setAccount(false);
     clear();
   };
 
@@ -358,7 +356,6 @@ export default function Terminal({
       return { code: "OK" as const, text: "Metadatos sincronizados", cls: "b" as LineClass };
     });
     clear();
-    setAccount(true);
     openPanel();
   };
 

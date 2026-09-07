@@ -16,15 +16,20 @@ export interface Character {
   display_name: string;
 }
 
-// Garantiza una sesion (anonima) para poder hablar con la base. Idempotente: solo una vez.
+// Garantiza una sesion (anonima) para poder hablar con la base. Reintentable: si el sign-in falla,
+// NO cachea el fallo (la proxima llamada lo reintenta) en vez de envenenar la sesion para siempre.
 let ensuring: Promise<void> | null = null;
 export function ensureSession(): Promise<void> {
-  if (!ensuring) {
-    ensuring = (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) await supabase.auth.signInAnonymously();
-    })();
-  }
+  if (ensuring) return ensuring;
+  ensuring = (async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) return;
+    const { error } = await supabase.auth.signInAnonymously();
+    if (error) throw error; // propaga el fallo: el llamador decide (login lo muestra; el resto lo tolera)
+  })();
+  ensuring.catch(() => {
+    ensuring = null; // limpia la promesa fallida => el siguiente ensureSession vuelve a intentarlo
+  });
   return ensuring;
 }
 
@@ -40,6 +45,7 @@ export async function loginCharacter(
       p_password: password,
     });
     if (error) return { ok: false, error: error.message };
+    if (!data) return { ok: false }; // la RPC "login" puede devolver null (p. ej. credenciales inválidas): no lo pases como objeto
     return data as { ok: boolean; username?: string; display_name?: string };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -48,7 +54,7 @@ export async function loginCharacter(
 
 // Personaje actualmente logueado (segun la sesion en la base), o null si no.
 export async function currentCharacter(): Promise<Character | null> {
-  await ensureSession();
+  await ensureSession().catch(() => {});
   const { data: me } = await supabase.rpc("me");
   if (!me) return null;
   const { data } = await supabase
@@ -70,14 +76,14 @@ export interface Msg {
 
 // Todos los personajes (para el roster y para mapear username -> display_name).
 export async function allCharacters(): Promise<Character[]> {
-  await ensureSession();
+  await ensureSession().catch(() => {});
   const { data } = await supabase.from("characters").select("username,display_name");
   return (data as Character[]) ?? [];
 }
 
 // Historial de un hilo: sala común (target null) o DM 1-a-1 (target = username del otro).
 export async function fetchThread(me: string, target: string | null): Promise<Msg[]> {
-  await ensureSession();
+  await ensureSession().catch(() => {});
   let q = supabase
     .from("messages")
     .select("id,created_at,from_char,to_char,body")
@@ -100,7 +106,7 @@ export async function sendMessage(
   target: string | null,
   body: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  await ensureSession();
+  await ensureSession().catch(() => {});
   const { error } = await supabase.from("messages").insert({ from_char: from, to_char: target, body });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
