@@ -16,6 +16,7 @@
   animation:textShadow 4s infinite;   /* aberración ralentizada (a Alberto le iba muy rápida a 1.6s) */
 }
 .crt-body{ position:relative;flex:1;min-height:0;background:#050805 }  /* la pantalla verde/negra dentro del marco */
+.crt--home{ padding:0;background:transparent;box-shadow:none }  /* HOME = "escritorio": sin el marco biselado Win98 del .crt (el paisaje llega al borde del tubo) */
 /* abombado 3D en toda la pantalla: convexo + overscan para llenar sin huecos */
 .crt.warp{ filter:url(#barrel) }   /* warp ACTIVO (WARP_ENABLED=true en Computer.tsx): abombado 3D. La clase se aplica cuando warpReady && WARP_ENABLED */
 

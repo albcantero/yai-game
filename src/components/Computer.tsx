@@ -25,7 +25,7 @@ const BUZZ_MS = 10;
 export default function Computer() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
-  const [showKeyboard, setShowKeyboard] = useState(true);
+  const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
   const [powerOn, setPowerOn] = useState(true);
   const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
@@ -179,7 +179,7 @@ export default function Computer() {
       <div className="monitor">
         <div className="screen-area">
         <div
-          className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "")}
+          className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")}
           onPointerDown={onScreenPointerDown}
         >
           {view !== "home" && (

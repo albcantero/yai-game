@@ -6,12 +6,6 @@
   src:url('/fonts/alagard.woff2') format('woff2');
   font-display:swap;
 }
-@font-face{
-  font-family:'Determination Mono';
-  src:url('/fonts/determination-mono.woff2') format('woff2');
-  font-display:swap;
-}
-
 .home-screen{
   /* Posición del fondo (desktop.png). Nudge en px + zoom; los voy ajustando a mano según me diga Alberto. */
   --home-bg-x:0px;    /* + derecha, - izquierda */
@@ -50,30 +44,11 @@
 .home__title .ch{ display:inline-block;will-change:transform }
 
 .home__menu{
-  display:flex;flex-direction:column;align-items:center;gap:14px;
+  display:flex;flex-direction:column;gap:10px;
+  width:min(220px,70%);   /* el menú lo centra .home__content; los botones van a ancho uniforme */
 }
-/* Botones pixel art (box-shadow como borde duro), reescalados del original. Sirve para <button>. */
-.pixel-btn{
-  display:inline-block;
-  color:#fff;
-  background-color:#6abc3a;
-  padding:9px 26px;
-  margin:0;
-  font-size:15px;letter-spacing:1px;text-transform:uppercase;
-  font-family:'Determination Mono',"Courier New",monospace;
-  text-align:center;line-height:1;
-  border:0;
-  box-shadow:0 3px #000,0 -3px #000,3px 0 #000,-3px 0 #000,0 6px #00000038,3px 3px #00000038,-3px 3px #00000038,inset 0 3px #ffffff36;
-  cursor:pointer;
-  transition:filter .1s ease;
-}
-.pixel-btn.is-active{ filter:brightness(1.12);outline:3px solid #fff;outline-offset:3px }   /* opción seleccionada (navegación con flechas + OK) */
-.pixel-btn:active{
-  transform:translateY(3px);
-  box-shadow:0 3px #000,0 -3px #000,3px 0 #000,-3px 0 #000,inset 0 3px #00000038;
-}
-.pixel-btn:disabled,
-.pixel-btn[aria-disabled="true"]{ background-color:#8a8a8a;color:#d8d8d8;cursor:not-allowed }
+.home__menu button{ font-size:15px }   /* legible dentro del CRT (el tamaño nativo de 98.css es pequeño) */
+.home__menu button.is-active{ outline:1px dotted #000;outline-offset:-4px }   /* opción seleccionada (flechas + OK): rectángulo de foco Win98 */
 
 @media (prefers-reduced-motion:reduce){
   .home__title .ch{ transform:none !important }   /* sin ondular */

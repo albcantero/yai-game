@@ -75,6 +75,15 @@ body{
   .monitor{ width:100%;max-width:480px;align-self:center }
   .keyboard{ max-width:480px }
 }
+/* Con el TECLADO OCULTO, el monitor (flex:1) se estiraba a todo el alto y el CRT se agrandaba/deformaba.
+   Sin teclado lo mantenemos con la forma de "con teclado" (≈ retrato 3:4) y lo CENTRAMOS, en vez de
+   llenar toda la pantalla. (Sube el 2º número del aspect-ratio para hacerlo más alto; bájalo para más bajo.) */
+.stage:not(:has(.keyboard)) .monitor{
+  flex:0 1 auto;
+  aspect-ratio:3 / 4;
+  max-height:100%;
+  margin-block:auto;
+}
 .monitor-chin{
   flex:none;height:46px;margin-top:12px;
   display:flex;align-items:center;justify-content:space-between;

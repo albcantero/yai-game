@@ -68,12 +68,12 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ playSfx, n
             ))}
           </span>
         </h1>
-        <nav className="home__menu">
+        <nav className="home__menu win98">
           {HOME_OPTS.map((opt, i) => (
             <button
               type="button"
               key={i}
-              className={"pixel-btn" + (active === i ? " is-active" : "")}
+              className={active === i ? "is-active" : undefined}
               onPointerDown={() => {
                 playSfx("/audio/mouse-click.mp3");
                 setActiveBoth(i);
