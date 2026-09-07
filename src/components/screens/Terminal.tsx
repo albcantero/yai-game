@@ -280,10 +280,12 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     if (!f.editing) {
       if (k === "ArrowUp" || k === "ArrowDown") {
         const dir = k === "ArrowUp" ? -1 : 1;
-        let target = f.active + dir;
-        // salta la opción bloqueada (Conectar con candado); si más allá no hay destino, no se mueve
-        while (target >= 0 && target < count && target === connectIndex && !allFilled) target += dir;
-        if (target >= 0 && target < count) setForm({ ...f, active: target });
+        let target = f.active;
+        for (let step = 0; step < count; step++) {
+          target = (target + dir + count) % count; // recorrido con BUCLE (wrap)
+          if (!(target === connectIndex && !allFilled)) break; // salta la Conectar bloqueada
+        }
+        if (target !== f.active) setForm({ ...f, active: target }); // si todo lo demás está bloqueado, se queda
         return;
       }
       if (k === "Enter") {

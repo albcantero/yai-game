@@ -9,10 +9,11 @@ export function editText(cur: string, k: string, shift: boolean): string | null 
   return null;
 }
 
-// Nuevo índice activo tras una flecha, con clamp a [0, count-1]. Devuelve el mismo índice si `k` no
-// es ArrowUp/ArrowDown (el caller trata Enter/otras por su cuenta).
+// Nuevo índice activo tras una flecha, con BUCLE (wrap): del último baja al primero y del primero sube
+// al último. Devuelve el mismo índice si `k` no es ArrowUp/ArrowDown (el caller trata Enter/otras aparte).
 export function menuNav(active: number, count: number, k: string): number {
-  if (k === "ArrowUp") return Math.max(0, active - 1);
-  if (k === "ArrowDown") return Math.min(count - 1, active + 1);
+  if (count <= 0) return active;
+  if (k === "ArrowUp") return (active - 1 + count) % count;
+  if (k === "ArrowDown") return (active + 1) % count;
   return active;
 }
