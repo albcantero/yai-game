@@ -85,7 +85,7 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
     setPanel(null);
     await spin("Cerrando sesión...", async () => {
       await sleep(2000);
-      return { code: "OK", text: "Se ha cerrado su sesión correctamente", cls: "b" };
+      return { code: "OK", text: "Se ha cerrado su sesión correctamente", cls: "ok" };
     });
     clear();
   };

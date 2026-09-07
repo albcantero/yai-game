@@ -64,6 +64,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   const curRef = useRef("");
   const bannerRef = useRef<HTMLPreElement>(null);
   const mountedRef = useRef(true); // false tras desmontar: corta subscripciones/pintados de awaits en vuelo
+  const skipTypingRef = useRef(false); // true = el usuario saltó la animación de tipeo (aparece todo de golpe)
 
   // ---- PAUSA del terminal (la impone el armazón al abrir menú/diálogo) ----
   // Todo lo animado pasa por sleep(); mientras paused, sleep aparca en la "compuerta" (gate) y no
@@ -123,15 +124,17 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   ) => {
     const mk: Mark = text ? mark : "";
     const id = addLine({ text: "", cls, mark: mk, ...extra });
-    if (prefersReduced()) {
-      setText(id, text);
+    if (prefersReduced() || skipTypingRef.current) {
+      setText(id, text); // movimiento reducido o el usuario saltó: aparece de golpe
       return;
     }
     for (let i = 1; i <= text.length; i++) {
+      if (skipTypingRef.current) break; // saltó a mitad: pinta el resto de golpe (abajo)
       await sleep(step);
       if (alive && !alive()) return;
       setText(id, text.slice(0, i));
     }
+    setText(id, text); // asegura el texto completo (por si se saltó)
   };
 
   const fitBanner = () => {
@@ -219,7 +222,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
             text: "Tu cuenta de usuario y/o contraseña son incorrectos. Inténtelo nuevamente",
             cls: "d" as LineClass,
           };
-        return { code: "OK" as const, text: "Sesión iniciada correctamente", cls: "b" as LineClass };
+        return { code: "OK" as const, text: "Sesión iniciada correctamente", cls: "ok" as LineClass };
       },
       3000,
     );
@@ -231,7 +234,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       await loadIdentity();
       await sleep(2500);
       return meRef.current
-        ? { code: "OK" as const, text: "Metadatos sincronizados", cls: "b" as LineClass }
+        ? { code: "OK" as const, text: "Metadatos sincronizados", cls: "ok" as LineClass }
         : {
             code: "ERROR" as const,
             text: "No se pudieron sincronizar los datos de su cuenta. Inténtelo nuevamente",
@@ -371,7 +374,10 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       if (k === "Enter" || k === " ") advance();
       return;
     }
-    if (!booted) return;
+    if (!booted) {
+      if (k === "Enter" && !booting) skipTypingRef.current = true; // durante la bienvenida: Enter/OK salta el tipeo
+      return;
+    }
     if (k === "Enter") {
       const v = curRef.current;
       if (v.trim()) historyRef.current.push(v);
@@ -415,6 +421,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   // Arranque del terminal: se ejecuta al MONTAR (cada vez que se entra) y se cancela al DESMONTAR.
   useEffect(() => {
     mountedRef.current = true; // re-arma por si el efecto se re-ejecuta (StrictMode/dev), tras el cleanup previo
+    skipTypingRef.current = false; // cada entrada arranca con la animación de tipeo activa
     ensureSession().catch(() => {});
     if (bannerRef.current) {
       bannerRef.current.textContent = BANNER.replace(/[ \t]+$/gm, "").replace(/^\n+/, "").replace(/\n+$/, "");
@@ -488,7 +495,13 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   const fCancelIdx = form ? form.fields.length + (fConnect ? 1 : 0) : 0;
 
   return (
-    <div className="content" ref={scrollRef}>
+    <div
+      className="content"
+      ref={scrollRef}
+      onPointerDown={() => {
+        if (!booting && !booted) skipTypingRef.current = true; // tocar durante la bienvenida salta el tipeo
+      }}
+    >
       {booting && (
         <div className="boot-splash">
           <div className="banner-wrap">

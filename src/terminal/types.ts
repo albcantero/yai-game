@@ -1,4 +1,4 @@
-export type LineClass = "" | "b" | "muted" | "d";
+export type LineClass = "" | "b" | "muted" | "d" | "ok";
 
 /** Contexto que recibe cada comando para hablar con la terminal. */
 export interface Ctx {
