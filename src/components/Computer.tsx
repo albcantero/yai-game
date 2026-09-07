@@ -40,7 +40,6 @@ export default function Computer() {
   const holdIntervalRef = useRef<number | null>(null);
   const screenRef = useRef<ScreenHandle | null>(null); // handle de la pantalla activa (null en home; React lo pone null al desmontar)
   const dispatchRef = useRef<(k: string) => void>(() => {}); // dispatchKey estable para el teclado físico
-  const isScreenLoading = () => screenRef.current?.isLoading() ?? false; // ¿la pantalla activa está en un loader?
 
   // Motores del armazón extraídos a hooks: el warp (mapa del filtro SVG) y el audio (un AudioContext
   // persistente + buffers + hum). suppressTickRef silencia el tic de tecla cuando el sonido lo dispara otra cosa.
@@ -87,9 +86,9 @@ export default function Computer() {
     screenRef.current?.setPaused(menuOpen || confirmClose);
   }, [menuOpen, confirmClose]);
 
-  // Botones del monitor (flechas/OK): suenan a botón, no a tecla. Bloqueados si hay loader en el terminal.
+  // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
+  // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
   const chinKey = (k: string) => {
-    if (isScreenLoading()) return;
     playSfx("/audio/terminal-simple-button.mp3");
     suppressTickRef.current = true;
     dispatchKey(k);
@@ -212,7 +211,7 @@ export default function Computer() {
                         <svg viewBox="9 7 6 10" fill="currentColor"><path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" /></svg>
                       )}
                     </span>
-                    <span className="faction" onPointerDown={() => { setHomeActive(i); homeSelect(i); }}>{opt.label}</span>
+                    <span className="faction">{opt.label}</span>
                   </div>
                 ))}
               </div>
@@ -277,11 +276,10 @@ export default function Computer() {
               aria-pressed={showKeyboard}
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
               onPointerDown={() => {
-                if (isScreenLoading()) return;
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
-              onClick={() => { if (isScreenLoading()) return; setShowKeyboard((v) => !v); }}
+              onClick={() => setShowKeyboard((v) => !v)}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 5h2v14h-2v2H3v-2H1V5h2V3h18v2ZM6 17h12v-2H6v2Zm1-4h2v-2H7v2Zm4 0h2v-2h-2v2Zm4 0h2v-2h-2v2ZM5 9h2V7H5v2Zm4 0h2V7H9v2Zm4 0h2V7h-2v2Zm4 0h2V7h-2v2Z"/></svg>
             </button>
@@ -300,11 +298,10 @@ export default function Computer() {
               aria-pressed={powerOn}
               aria-label={powerOn ? "Apagar" : "Encender"}
               onPointerDown={() => {
-                if (isScreenLoading()) return;
                 playSfx("/audio/terminal-button.mp3");
                 if (navigator.vibrate) navigator.vibrate(50);
               }}
-              onClick={() => { if (isScreenLoading()) return; setPowerOn((v) => !v); }}
+              onClick={() => setPowerOn((v) => !v)}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
             </button>

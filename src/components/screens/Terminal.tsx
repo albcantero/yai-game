@@ -397,11 +397,6 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     setPaused,
   }));
 
-  // Click en el hint = confirmar (equivale a Enter), con sonido de ratón.
-  const confirmClick = () => {
-    playSfx("/audio/mouse-click.mp3");
-    handleKey("Enter");
-  };
 
   // Arranque del terminal: se ejecuta al MONTAR (cada vez que se entra) y se cancela al DESMONTAR.
   useEffect(() => {
@@ -480,13 +475,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   const fCancelIdx = form ? form.fields.length + (fHasConnect ? 1 : 0) : 0;
 
   return (
-    <div
-      className="content"
-      ref={scrollRef}
-      onPointerDown={() => {
-        if (!booting && !booted) skipTypingRef.current = true; // tocar durante la bienvenida salta el tipeo
-      }}
-    >
+    <div className="content" ref={scrollRef}>
       {booting && (
         <div className="boot-splash">
           <div className="banner-wrap">
@@ -607,7 +596,6 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
             <div
               className={"inputline" + (o.gapBefore ? " fconnect-row" : "") + (o.unread !== undefined ? " roster-item" : "")}
               key={i}
-              onPointerDown={() => o.run()}
             >
               <span className="fcaret" aria-hidden="true">
                 {!loader && i === panel.active && (
@@ -637,7 +625,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       {showInput && (
         <div className="help-block">
           <div className="help-q">¿Necesitas ayuda?</div>
-          <div className="hint" onPointerDown={confirmClick}>
+          <div className="hint">
             Pulsa ENTER o{" "}
             <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M9 7h2v16H9zm2 0h2v15h-2zm2 2h2v12h-2zm2 2h2v8h-2zm2 2h2v6h-2zm2 2h2v2h-2z" />
