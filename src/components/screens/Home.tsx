@@ -8,9 +8,9 @@ const OPEN_DELAY = 250; // ms que la opción se queda en AZUL antes de abrir el 
 const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
   { label: "Tienda", target: "tienda", icon: "/icons/internet.png" },      // tienda online del juego (icono html)
   { label: "Notas", target: "notas", icon: "/icons/notepad.png" },
-  { label: "Fax electrónico", target: "registro", icon: "/icons/printer.png" }, // chat con el informante (tipo Lifeline)
+  { label: "Fax Electrónico", target: "registro", icon: "/icons/printer.png" }, // chat con el informante (tipo Lifeline)
   { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" },
-  { label: "Libro de juego", target: "fases", icon: "/icons/fases.png" },  // icono helpbook
+  { label: "Libro de Juego", target: "fases", icon: "/icons/fases.png" },  // icono helpbook
 ];
 
 // Pantalla HOME: escritorio Win98 (fondo teal liso) con un menú de botones centrado, navegable SOLO con
