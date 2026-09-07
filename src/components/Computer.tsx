@@ -14,6 +14,11 @@ const WARP_ENABLED = true;
 const AUDIO_ENABLED = true;
 // Sello de build (SHA) visible en una esquina (dev). Poner en false para la versión final.
 const SHOW_BUILD = true;
+// Vibración háptica (Vibration API) en CADA pulsación real: teclas + botones del monitor (flechas/OK/
+// teclado/power). NO en la ⚙ ni la X (controles "internos" del programa abierto). iOS/Safari NO implementa
+// la API, así que en iPhone es un no-op (cero vibración, cero calor); en Android son pulsos de pocos ms,
+// sin consumo apreciable. Sube el valor para un golpe más firme.
+const BUZZ_MS = 10;
 // Opciones del menú de inicio (vista "home" dentro del CRT). Cada una apunta (o no aún) a una pantalla
 // del registro SCREENS. Tienda/Fases todavía sin pantalla: se muestran pero no hacen nada.
 const HOME_OPTS: { label: string; screen?: ScreenId }[] = [
@@ -40,11 +45,13 @@ export default function Computer() {
   const holdIntervalRef = useRef<number | null>(null);
   const screenRef = useRef<ScreenHandle | null>(null); // handle de la pantalla activa (null en home; React lo pone null al desmontar)
   const dispatchRef = useRef<(k: string) => void>(() => {}); // dispatchKey estable para el teclado físico
+  const suppressBuzzRef = useRef(false); // silencia SOLO la vibración en las repeticiones de tecla mantenida (el primer toque sí vibra)
 
   // Motores del armazón extraídos a hooks: el warp (mapa del filtro SVG) y el audio (un AudioContext
   // persistente + buffers + hum). suppressTickRef silencia el tic de tecla cuando el sonido lo dispara otra cosa.
   const { feImageRef, warpReady } = useWarpFilter();
   const { keyTick, playSfx, suppressTickRef } = useTerminalAudio(AUDIO_ENABLED);
+  const buzz = () => { if (navigator.vibrate) navigator.vibrate(BUZZ_MS); }; // háptica única de TODO botón real (teclado + monitor)
 
   const setShiftState = (m: "off" | "shift" | "caps") => {
     shiftModeRef.current = m;
@@ -67,6 +74,7 @@ export default function Computer() {
   const dispatchKey = (k: string) => {
     if (menuOpen || confirmClose) return; // menú/diálogo abiertos = terminal en pausa, no acepta teclas
     keyTick();
+    if (!suppressBuzzRef.current) buzz(); // vibra en cada pulsación real (flechas/OK del monitor incluidas, vía chinKey); las repeticiones de tecla mantenida no
     if (view === "home") {
       handleHomeKey(k);
       return;
@@ -113,8 +121,10 @@ export default function Computer() {
     holdTimerRef.current = window.setTimeout(() => {
       holdIntervalRef.current = window.setInterval(() => {
         suppressTickRef.current = true;
-        dispatchKey(k); // repeticiones SIN sonido
+        suppressBuzzRef.current = true;
+        dispatchKey(k); // repeticiones SIN sonido ni vibración
         suppressTickRef.current = false;
+        suppressBuzzRef.current = false;
       }, 60);
     }, 350);
   };
@@ -277,7 +287,7 @@ export default function Computer() {
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
               onPointerDown={() => {
                 playSfx("/audio/terminal-button.mp3");
-                if (navigator.vibrate) navigator.vibrate(50);
+                buzz();
               }}
               onClick={() => setShowKeyboard((v) => !v)}
             >
@@ -299,7 +309,7 @@ export default function Computer() {
               aria-label={powerOn ? "Apagar" : "Encender"}
               onPointerDown={() => {
                 playSfx("/audio/terminal-button.mp3");
-                if (navigator.vibrate) navigator.vibrate(50);
+                buzz();
               }}
               onClick={() => setPowerOn((v) => !v)}
             >
@@ -352,7 +362,7 @@ export default function Computer() {
           </button>
         </div>
         <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(true); }}>123</button>
+          <button type="button" className="knum" onPointerDown={() => { keyTick(); buzz(); setNumMode(true); }}>123</button>
           <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => dispatchKey("Enter")}>Enter</button>
         </div>
@@ -378,7 +388,7 @@ export default function Computer() {
           </button>
         </div>
         <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { keyTick(); setNumMode(false); }}>ABC</button>
+          <button type="button" className="knum" onPointerDown={() => { keyTick(); buzz(); setNumMode(false); }}>ABC</button>
           <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
           <button type="button" className="kreturn" onPointerDown={() => dispatchKey("Enter")}>Enter</button>
         </div>

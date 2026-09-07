@@ -17,7 +17,6 @@ export function useTerminalAudio(enabled: boolean) {
   const keyTick = () => {
     if (suppressTickRef.current) return;
     if (!enabled) return;
-    if (navigator.vibrate) navigator.vibrate(8);
     try {
       const ac = acRef.current;
       const bufs = keyBuffersRef.current;

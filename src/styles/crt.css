@@ -77,8 +77,25 @@
   90% {text-shadow:3.05px 0 1px rgba(0,30,255,.5),-3.05px 0 1px rgba(255,0,80,.3),0 0 3px}
   100%{text-shadow:2.62px 0 1px rgba(0,30,255,.5),-2.62px 0 1px rgba(255,0,80,.3),0 0 3px}
 }
+/* Igual que textShadow pero con una copia sólida 1px a la derecha (la negrita FAUX on-grid) en la MISMA
+   capa: así una palabra .ftbold conserva la aberración cromática animada del CRT en vez de perderla al
+   fijar su propio text-shadow. Misma duración (4s) que .crt para latir a la par. */
+@keyframes textShadowBold{
+  0%  {text-shadow:1px 0 0 currentColor,.44px 0 1px rgba(0,30,255,.5),-.44px 0 1px rgba(255,0,80,.3),0 0 3px}
+  10% {text-shadow:1px 0 0 currentColor,.03px 0 1px rgba(0,30,255,.5),-.03px 0 1px rgba(255,0,80,.3),0 0 3px}
+  20% {text-shadow:1px 0 0 currentColor,3.48px 0 1px rgba(0,30,255,.5),-3.48px 0 1px rgba(255,0,80,.3),0 0 3px}
+  30% {text-shadow:1px 0 0 currentColor,.70px 0 1px rgba(0,30,255,.5),-.70px 0 1px rgba(255,0,80,.3),0 0 3px}
+  40% {text-shadow:1px 0 0 currentColor,.36px 0 1px rgba(0,30,255,.5),-.36px 0 1px rgba(255,0,80,.3),0 0 3px}
+  50% {text-shadow:1px 0 0 currentColor,2.68px 0 1px rgba(0,30,255,.5),-2.68px 0 1px rgba(255,0,80,.3),0 0 3px}
+  60% {text-shadow:1px 0 0 currentColor,3.68px 0 1px rgba(0,30,255,.5),-3.68px 0 1px rgba(255,0,80,.3),0 0 3px}
+  70% {text-shadow:1px 0 0 currentColor,.97px 0 1px rgba(0,30,255,.5),-.97px 0 1px rgba(255,0,80,.3),0 0 3px}
+  80% {text-shadow:1px 0 0 currentColor,.83px 0 1px rgba(0,30,255,.5),-.83px 0 1px rgba(255,0,80,.3),0 0 3px}
+  90% {text-shadow:1px 0 0 currentColor,3.05px 0 1px rgba(0,30,255,.5),-3.05px 0 1px rgba(255,0,80,.3),0 0 3px}
+  100%{text-shadow:1px 0 0 currentColor,2.62px 0 1px rgba(0,30,255,.5),-2.62px 0 1px rgba(255,0,80,.3),0 0 3px}
+}
 
 @media (prefers-reduced-motion:reduce){
   .crt{ animation:none;text-shadow:0 0 3px #37f07d }
   .crt::after{ animation:none;opacity:.14 }
+  .ftbold{ animation:none;text-shadow:1px 0 0 currentColor,0 0 3px }   /* negrita + glow estáticos, sin latido */
 }
