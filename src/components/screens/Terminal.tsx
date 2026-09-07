@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { commands } from "../../terminal/commands";
-import { editText, menuNav } from "../../terminal/input";
+import { editText } from "../../terminal/input";
 import type { Command, Ctx, LineClass } from "../../terminal/types";
 import BANNER from "../../terminal/banner.txt?raw";
 import { rlog } from "../../lib/rlog";
@@ -278,10 +278,15 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     const count = cancelIndex + 1;
 
     if (!f.editing) {
-      const na = menuNav(f.active, count, k);
-      if (na !== f.active) {
-        setForm({ ...f, active: na });
-      } else if (k === "Enter") {
+      if (k === "ArrowUp" || k === "ArrowDown") {
+        const dir = k === "ArrowUp" ? -1 : 1;
+        let target = f.active + dir;
+        // salta la opción bloqueada (Conectar con candado); si más allá no hay destino, no se mueve
+        while (target >= 0 && target < count && target === connectIndex && !allFilled) target += dir;
+        if (target >= 0 && target < count) setForm({ ...f, active: target });
+        return;
+      }
+      if (k === "Enter") {
         if (f.active < f.fields.length) {
           setForm({ ...f, editing: true });
         } else if (f.active === connectIndex) {
