@@ -273,8 +273,8 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     const f = form;
     if (!f) return;
     const allFilled = f.fields.every((x) => x.value.length > 0);
-    const connectAvail = allFilled && !!f.submitLabel;
-    const cancelIndex = f.fields.length + (connectAvail ? 1 : 0);
+    const connectIndex = f.submitLabel ? f.fields.length : -1; // "Conectar" SIEMPRE navegable (aunque bloqueado)
+    const cancelIndex = f.fields.length + (f.submitLabel ? 1 : 0);
     const count = cancelIndex + 1;
 
     if (!f.editing) {
@@ -284,7 +284,12 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       } else if (k === "Enter") {
         if (f.active < f.fields.length) {
           setForm({ ...f, editing: true });
-        } else if (f.active === cancelIndex) {
+        } else if (f.active === connectIndex) {
+          if (!allFilled) return; // 🔒 bloqueado hasta rellenar todos los campos
+          const values = f.fields.map((x) => x.value);
+          setForm(null);
+          f.onSubmit(values);
+        } else {
           f.fields.forEach((fld) =>
             addLine({
               text: fld.label + " " + (fld.mask ? "*".repeat(fld.value.length) : fld.value),
@@ -296,10 +301,6 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
           print("");
           print("Se ha cancelado su solicitud");
           print("");
-        } else {
-          const values = f.fields.map((x) => x.value);
-          setForm(null);
-          f.onSubmit(values);
         }
       }
       return;
@@ -491,8 +492,8 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
 
   const showInput = booted && !dialog && !loader && !panel && !thread;
   const fAllFilled = form ? form.fields.every((x) => x.value.length > 0) : false;
-  const fConnect = !!form?.submitLabel && fAllFilled;
-  const fCancelIdx = form ? form.fields.length + (fConnect ? 1 : 0) : 0;
+  const fHasConnect = !!form?.submitLabel; // "Conectar" siempre visible (con candado y bloqueado si falta rellenar)
+  const fCancelIdx = form ? form.fields.length + (fHasConnect ? 1 : 0) : 0;
 
   return (
     <div
@@ -596,7 +597,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
               </span>
             </div>
           ))}
-          {fConnect && (
+          {fHasConnect && (
             <div className="inputline fconnect-row">
               <span className="fcaret" aria-hidden="true">
                 {!loader && form.active === form.fields.length && (
@@ -605,10 +606,15 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
                   </svg>
                 )}
               </span>
-              <span className="faction">{form.submitLabel}</span>
+              <span className={"faction" + (fAllFilled ? "" : " locked")}>
+                {!fAllFilled && (
+                  <svg className="flock-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z" /></svg>
+                )}
+                {form.submitLabel}
+              </span>
             </div>
           )}
-          <div className={"inputline" + (fConnect ? "" : " fconnect-row")}>
+          <div className={"inputline" + (fHasConnect ? "" : " fconnect-row")}>
             <span className="fcaret" aria-hidden="true">
               {!loader && form.active === fCancelIdx && (
                 <svg viewBox="9 7 6 10" fill="currentColor">
