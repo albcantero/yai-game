@@ -7,6 +7,23 @@ export interface ScreenServices {
   consumeShift: () => void;
 }
 
+// Formulario TUI (login, y el compose del chat): campos + acción (Enviar/Conectar) + Salir, navegable
+// con caret. Compartido entre Terminal (motor + render) y useChat (que arma el compose del hilo).
+export interface Field {
+  label: string;
+  value: string;
+  mask?: boolean; // enmascara el valor (contraseña)
+  nocheck?: boolean; // no muestra el [✓] a la izquierda (p. ej. el campo de mensaje del chat)
+}
+export interface FormState {
+  fields: Field[];
+  active: number;
+  editing: boolean;
+  submitLabel?: string; // etiqueta de la acción principal (Conectar/Enviar); se bloquea con candado si falta rellenar
+  onSubmit: (values: string[]) => void;
+  onCancel?: () => void; // acción de "Salir"; si falta, cancela con el eco por defecto (login)
+}
+
 // Handle que cada pantalla EXPONE al armazón vía useImperativeHandle (salidas: teclas, comandos,
 // estado de carga, pausa). El armazón habla con la pantalla activa por UN solo ref de este tipo, en
 // vez de un puñado de refs sueltos asignados en el render. Añadir una pantalla nueva = implementar esto.

@@ -373,7 +373,7 @@ export default function Computer() {
           ))}
         </div>
         <div className="krow">
-          {["+", ":", ";", "*", "#", "@"].map((k) => (
+          {["+", ":", ";", "*", "#", "@", "(", ")"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>{k}</button>
           ))}
           <button type="button" className="kmod" aria-label="Borrar" {...holdProps("Backspace")} onContextMenu={(e) => e.preventDefault()}>

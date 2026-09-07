@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import type { ScreenHandle, ScreenServices } from "./types";
+import type { FormState, ScreenHandle, ScreenServices } from "./types";
 import { commands } from "../../terminal/commands";
 import { editText } from "../../terminal/input";
 import type { Command, Ctx, LineClass } from "../../terminal/types";
@@ -20,19 +20,6 @@ interface Line {
   chev?: boolean;
   chevMore?: boolean;
 }
-interface Field {
-  label: string;
-  value: string;
-  mask?: boolean;
-}
-interface FormState {
-  fields: Field[];
-  active: number;
-  editing: boolean;
-  submitLabel?: string;
-  onSubmit: (values: string[]) => void;
-}
-
 const rawSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const BOOT_WIDTH = 24; // bloques de la barra de carga inicial
 const prefersReduced = () =>
@@ -208,8 +195,8 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
 
   // Cuenta + chat extraídos a su propio hook (identidad, panel, hilos, realtime, dedup, echo local);
   // se le prestan las primitivas de pintado del terminal (print/clear/setLine/sys), el spin y el sleep pausable.
-  const { panel, thread, meRef, openPanel, backToRoster, sendChat, handlePanelKey, loadIdentity, unsubscribe } =
-    useChat({ print, clear, setLine, sys, spin, sleep, mountedRef });
+  const { panel, thread, meRef, openPanel, handlePanelKey, loadIdentity, unsubscribe } =
+    useChat({ print, clear, sys, spin, sleep, mountedRef, setForm });
 
   const connectFlow = async (username: string, password: string) => {
     const res = await spin(
@@ -297,17 +284,21 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
           setForm(null);
           f.onSubmit(values);
         } else {
-          f.fields.forEach((fld) =>
-            addLine({
-              text: fld.label + " " + (fld.mask ? "*".repeat(fld.value.length) : fld.value),
-              cls: "",
-              mark: "",
-            }),
-          );
           setForm(null);
-          print("");
-          print("Se ha cancelado su solicitud");
-          print("");
+          if (f.onCancel) {
+            f.onCancel(); // "Salir" con acción propia (chat: volver al roster)
+          } else {
+            f.fields.forEach((fld) =>
+              addLine({
+                text: fld.label + " " + (fld.mask ? "*".repeat(fld.value.length) : fld.value),
+                cls: "",
+                mark: "",
+              }),
+            );
+            print("");
+            print("Se ha cancelado su solicitud");
+            print("");
+          }
         }
       }
       return;
@@ -356,20 +347,6 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   // handleKey del terminal (Shift, home y el clic de tecla los gestiona el armazón antes de delegar aquí).
   const handleKey = (k: string) => {
     if (loader) return; // spin en marcha: no se ejecutan comandos ni se lanza otro flujo (evita reentrada); el teclado del armazón sigue sonando
-    if (thread) {
-      if (k === "Enter") {
-        const body = curRef.current.trim();
-        setLine("");
-        if (body) void sendChat(thread.target, body);
-        return;
-      }
-      const next = editText(curRef.current, k, shiftModeRef.current !== "off");
-      if (next !== null) {
-        setLine(next);
-        if (k.length === 1) consumeShift();
-      }
-      return;
-    }
     if (panel) {
       handlePanelKey(k);
       return;
@@ -563,18 +540,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
           </span>
         </div>
       )}
-      {thread && (
-        <>
-          <div className="chat-back" onPointerDown={backToRoster}>‹ Volver a mensajes</div>
-          <div className="inputline">
-            <span className="field">
-              <span className="cprompt">›</span>
-              <span className="mirror">{input}</span>
-              <span className="cursor" />
-            </span>
-          </div>
-        </>
-      )}
+      {thread && <div className="thread-sep" aria-hidden="true" />}
       {form && (
         <div className="form">
           {form.fields.map((f, i) => (
@@ -586,17 +552,19 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
                   </svg>
                 )}
               </span>
-              <span className="fcheck" aria-hidden="true">
-                {"["}
-                {f.value.length ? (
-                  <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 18H8v-2h2v2Zm-2-2H6v-2h2v2Zm4-2v2h-2v-2h2Zm-6 0H4v-2h2v2Zm8 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Zm2-2h-2V6h2v2Z" />
-                  </svg>
-                ) : (
-                  <span className="fcheck-gap" />
-                )}
-                {"]"}
-              </span>
+              {!f.nocheck && (
+                <span className="fcheck" aria-hidden="true">
+                  {"["}
+                  {f.value.length ? (
+                    <svg className="term-svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M10 18H8v-2h2v2Zm-2-2H6v-2h2v2Zm4-2v2h-2v-2h2Zm-6 0H4v-2h2v2Zm8 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Zm2-2h-2V6h2v2Z" />
+                    </svg>
+                  ) : (
+                    <span className="fcheck-gap" />
+                  )}
+                  {"]"}
+                </span>
+              )}
               <span className="flabel">{f.label}</span>
               <span className="field">
                 <span className="mirror">{f.mask ? "*".repeat(f.value.length) : f.value}</span>

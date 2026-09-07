@@ -12,6 +12,7 @@ import {
 } from "../../lib/supabase";
 import { menuNav } from "../../terminal/input";
 import type { LineClass } from "../../terminal/types";
+import type { FormState } from "./types";
 
 interface PanelOption {
   label: string;
@@ -56,7 +57,7 @@ type SpinResult = { code: "OK" | "ERROR"; text: string; cls?: LineClass };
 export interface ChatDeps {
   print: (text: string, cls?: LineClass) => void;
   clear: () => void;
-  setLine: (v: string) => void;
+  setForm: (f: FormState | null) => void; // el compose del hilo es un formulario (campo + Enviar + Salir)
   sys: (code: string, text: string, cls?: LineClass) => void;
   spin: (loadingText: string, task: () => Promise<SpinResult>, minMs?: number) => Promise<SpinResult>;
   sleep: (ms: number) => Promise<void>;
@@ -66,7 +67,7 @@ export interface ChatDeps {
 // Subsistema de CUENTA + CHAT de la pantalla-terminal: identidad (loadIdentity/meRef), panel (roster de
 // cuenta + lista de conversaciones), hilos (DMs 1-a-1 + sala común) con realtime resiliente, dedup por id
 // y echo local. El terminal le pasa sus primitivas de pintado y lo que produce vuelve por el return.
-export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }: ChatDeps) {
+export function useChat({ print, clear, setForm, sys, spin, sleep, mountedRef }: ChatDeps) {
   const [panel, setPanel] = useState<PanelState | null>(null);
   const [thread, setThread] = useState<{ target: string | null; name: string } | null>(null);
   const meRef = useRef<Character | null>(null);
@@ -122,12 +123,27 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
     }
     if (res.msg && threadRef.current?.target === target) printMsg(res.msg); // echo local inmediato (no espera al realtime; el dedup evita repetir)
   };
+  // El compose del hilo es un formulario TUI: campo [MESSAGE] + "Enviar" (con candado hasta que haya
+  // texto) + "Salir" (vuelve al roster). Tras enviar, se reabre vacío para seguir escribiendo.
+  const openCompose = (target: string | null) => {
+    setForm({
+      fields: [{ label: "[MESSAGE] Texto:", value: "", nocheck: true }],
+      active: 0,
+      editing: false,
+      submitLabel: "Enviar",
+      onSubmit: (vals) => {
+        const body = vals[0].trim();
+        if (body) void sendChat(target, body);
+        openCompose(target);
+      },
+      onCancel: () => backToRoster(),
+    });
+  };
   const openThread = async (target: string | null, name: string) => {
     setPanel(null);
     const t = { target, name };
     threadRef.current = t;
     setThread(t);
-    setLine("");
     clear();
     seenMsgIdsRef.current = new Set(); // hilo nuevo: reinicia el dedup
     print(name, "muted");
@@ -155,6 +171,7 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
       },
       () => void backfill(), // reconexión del realtime: recupera lo perdido durante la caída
     );
+    openCompose(target); // formulario de compose (campo + Enviar + Salir) bajo la línea separadora
   };
   const openMessages = async () => {
     const me = meRef.current?.username ?? "";
@@ -169,7 +186,7 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
     setPanel({
       active: 0,
       options: [
-        { label: "Sala común", icon: "room", unread: unread["room"] ?? 0, run: () => void openThread(null, "Sala común") },
+        { label: "Chat general", icon: "room", unread: unread["room"] ?? 0, run: () => void openThread(null, "Chat general") },
         ...allChars
           .filter((c) => c.username !== me)
           .map(
@@ -191,7 +208,7 @@ export function useChat({ print, clear, setLine, sys, spin, sleep, mountedRef }:
     }
     threadRef.current = null;
     setThread(null);
-    setLine("");
+    setForm(null);
     clear();
     void openMessages();
   };
