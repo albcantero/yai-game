@@ -207,8 +207,7 @@ export default function Computer() {
                     <p>¿Seguro que quieres salir del programa? Se perderán todos los cambios que no se hayan guardado.</p>
                   </div>
                   <div className="confirm-buttons">
-                    <button type="button" onClick={closeAttempt}>Sí</button>
-                    <button type="button" onClick={() => setConfirmClose(false)}>No</button>
+                    <button type="button" onClick={closeAttempt}>Cerrar</button>
                   </div>
                 </div>
               </div>
