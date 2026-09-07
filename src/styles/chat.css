@@ -6,4 +6,4 @@
 .roster-dots{ flex:1 1 auto;border-bottom:2px dotted #1f9e5e;opacity:.4;margin:0 .8ch .3em;min-width:1.5ch }   /* sube/baja los puntos con el margin-bottom si hiciera falta */
 .unread{ flex:none;color:#1f9e5e;opacity:.55;font-variant-numeric:tabular-nums }   /* contador "0" tenue */
 .unread.has{ color:#b8ffd6;opacity:1 }   /* con no leídos: brillante */
-.thread-sep{ border-top:1.5px dashed #1f9e5e;opacity:.5;margin:8px 0 12px }   /* línea horizontal entre los mensajes y el compose del hilo */
+.thread-sep{ border-top:1.5px solid #1f9e5e;opacity:.5;margin:8px 0 12px }   /* línea horizontal (sólida) entre los mensajes y el compose del hilo */

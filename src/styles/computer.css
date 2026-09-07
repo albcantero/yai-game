@@ -1,0 +1,186 @@
+/* EL ARMAZÓN ("el PC"): fuentes, base, carcasa del monitor, mentón y sus botones, hueco de pantalla,
+   y el chrome Windows 98 (header, sidebar, diálogo). El teclado va en keyboard.css; el efecto CRT en
+   crt.css; el contenido del terminal en terminal.css. */
+
+@font-face{
+  font-family:'Courier Pixel';
+  src:url('/fonts/courier-pixel.woff2') format('woff2');
+  font-display:swap;
+}
+@font-face{
+  font-family:'JetBrains Mono';
+  src:url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-display:swap;
+}
+@font-face{
+  font-family:'Determination Sans';
+  src:url('/fonts/determination-sans.woff2') format('woff2');
+  font-display:swap;
+}
+/* IBM VGA 8x16 (Int10h, DOS auténtica con acentos+box-drawing). Disponible para reprobar:
+   basta poner 'IBM VGA' delante en la font-family de .crt (mejor a font-size 16px). */
+@font-face{
+  font-family:'IBM VGA';
+  src:url('/fonts/ibm-vga-8x16.woff2') format('woff2');
+  font-display:swap;
+}
+
+/* Sello de build estilo dev (esquina): ver el SHA horneado en el bundle => saber si es deploy actual o cache */
+.build-stamp{ position:fixed;left:4px;bottom:4px;z-index:99999;font:9px/1 'Courier Pixel',ui-monospace,monospace;letter-spacing:1px;color:#37f07d;opacity:.4;pointer-events:none;text-shadow:1px 0 0 currentColor, 0 1px 0 rgba(0,0,0,.6) }   /* text-shadow 1px a la derecha = falso bold ON-grid (nítido) para la fuente de píxel */
+
+:root{ color-scheme:dark; }
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  margin:0;
+  background:#050805;
+  color:#37f07d;
+  font-family:'Courier Pixel',"Courier New",ui-monospace,monospace;
+}
+
+.stage{
+  height:100vh;height:100dvh;   /* altura DEFINIDA: la cadena height:100% resuelve y el .crt no crece con el contenido */
+  position:relative;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  padding:env(safe-area-inset-top, 0px) 14px calc(env(safe-area-inset-bottom, 0px) + 12px);  /* solo el notch arriba, sin margen extra */
+  background:
+    radial-gradient(120% 120% at 50% 0%, #14141a, #0a0a0d 60%, #050506);
+}
+
+/* ---------- Header Windows 98 ---------- */
+.win-header{ flex:none;user-select:none }  /* sin z-index: es flex item y el z-index lo pondria por encima de las scanlines */
+.win-header .title-bar{ padding:3px 2px 3px 3px }  /* medida nativa de 98.css: sin min-height, alto según contenido */
+.win-header .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 6px 0 2px;align-self:center }
+.win-header .title-bar-text{ flex:1;font-size:16px }
+/* controles del header cuadrados y consistentes (cog + X del mismo tamaño), con el bisel nativo de 98.css */
+.win98 .title-bar-controls button{ width:18px;height:18px;min-width:0;min-height:0;padding:0;background-position:center;background-repeat:no-repeat }
+.win98 .win-cog{ width:18px;height:18px;font-size:12px;line-height:1;padding:0;margin-right:4px }
+
+/* ---------- Área de pantalla (carcasa del monitor + mentón) ---------- */
+.monitor{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#474a42 0%,#2f322c 100%);  /* carcasa con degradado (idea de la demo) */
+  border-radius:24px;
+  padding:16px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.30),   /* filo de luz arriba */
+    inset 0 -3px 0 rgba(0,0,0,0.50),         /* filo de sombra abajo */
+    0 18px 40px -18px rgba(0,0,0,0.72);      /* sombra proyectada grande */
+}
+/* En escritorio (raton) limitamos monitor y teclado a 480px y los centramos (vista tipo movil).
+   En movil (tactil) NO se aplica: ancho completo. (.keyboard vive en keyboard.css) */
+@media (hover:hover) and (pointer:fine){
+  .monitor{ width:100%;max-width:480px;align-self:center }
+  .keyboard{ max-width:480px }
+}
+.monitor-chin{
+  flex:none;height:46px;margin-top:12px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;
+}
+.monitor-brand{ font-family:'Courier Pixel',"Courier New",monospace;font-size:13px;letter-spacing:2px;color:#22261f;text-shadow:0 1px 0 rgba(255,255,255,.14) }
+/* botones del menton: [teclado][arriba][abajo][OK], todos el mismo estilo pixel */
+.chin-buttons{ display:flex;align-items:center;gap:6px;flex:none }
+.chin-power{ margin-left:12px }   /* hueco de separacion antes del boton de encendido */
+/* LED rojo de encendido (estatico, sin parpadeo), a la derecha del power */
+.chin-led{ flex:none;width:6px;height:6px;margin-left:0;padding:0;border-radius:50%;background-color:#f00;box-shadow:rgba(0,0,0,.2) 0 -1px 3px 1px, inset #441313 0 -1px 3px, rgba(255,0,0,.6) 0 0 4px;transition:background-color .15s ease, box-shadow .15s ease }
+.chin-led.off{ background-color:#3a1010;box-shadow:rgba(0,0,0,.2) 0 -1px 3px 1px, inset #200 0 -1px 3px }   /* power OFF: LED apagado, sin glow */
+.chin-btn{
+  position:relative;
+  width:32px;height:30px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  background-color:#454840;color:#22261f;cursor:pointer;   /* gris del monitor */
+  border:2px solid #22261f;border-radius:6px;              /* borde oscuro (tono "SANTAS OCHOVA"); el de arriba lo tapa el ::before */
+  box-shadow:
+    -1px -2px 4px rgba(255,255,255,.13),                   /* glow claro arriba-izq (mas ajustado al tamano) */
+    -2px 0 4px rgba(255,255,255,.07),
+    1px 2px 4px rgba(0,0,0,.35);                           /* sombra abajo-der (mas contenida) */
+  font:11px 'Courier Pixel',"Courier New",monospace;letter-spacing:1px;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;touch-action:manipulation;   /* sin el rectangulo azul del toque en movil */
+  transition:transform .08s ease-in-out, box-shadow .08s ease-in-out, background-color .08s ease-in-out, filter .1s ease;
+}
+.chin-btn::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  transition:box-shadow .08s ease-in-out;   /* anima en SYNC con el boton y el icono */
+  box-shadow:
+    inset 0 -3px 0 #363832,   /* labio inferior SUTIL (como #ddd sobre #f4f5f6, no el borde oscuro) */
+    0 -3px 0 #454840;         /* color del fondo: TAPA el borde superior -> relieve */
+}
+.chin-btn:active,
+.chin-btn[data-pressing]{                                  /* al pulsar: el relieve se DESVANECE animado (no de golpe), en sync con el icono */
+  box-shadow:
+    -1px -2px 4px rgba(255,255,255,0),
+    -2px 0 4px rgba(255,255,255,0),
+    1px 2px 4px rgba(0,0,0,0);
+}
+.chin-btn:active::before,
+.chin-btn[data-pressing]::before{
+  box-shadow:
+    inset 0 -3px 0 rgba(54,56,50,0),
+    0 -3px 0 rgba(69,72,64,0);
+}
+.chin-btn svg{ position:relative;width:18px;height:18px;display:block;filter:drop-shadow(0 1px 0 rgba(255,255,255,.16));transform:translate3d(0,-3px,0);transition:transform .08s ease-in-out;will-change:transform }  /* emboss + icono levantado (reposo); translate3d = GPU, glide fluido como el button-11 */
+.chin-btn:active svg,
+.chin-btn[data-pressing] svg{ transform:translate3d(0,0,0) } /* el icono se desliza abajo al pulsar (animacion del button-11) */
+/* teclado ON (ya soltado): el boton queda PRESSED (relieve desvanecido + icono abajo) */
+.chin-btn.is-on{
+  box-shadow:
+    -1px -2px 4px rgba(255,255,255,0),
+    -2px 0 4px rgba(255,255,255,0),
+    1px 2px 4px rgba(0,0,0,0);
+}
+.chin-btn.is-on::before{
+  box-shadow:
+    inset 0 -3px 0 rgba(54,56,50,0),
+    0 -3px 0 rgba(69,72,64,0);
+}
+.chin-btn.is-on svg{ transform:translate3d(0,0,0) }
+/* Boton de teclado: mientras se MANTIENE pulsado muestra la SOMBRA (hundido oscuro). Al soltar
+   queda pressed (is-on) o raised. Secuencia: arriba -> (pulsar) sombra -> (soltar) pressed */
+.chin-btn.chin-kb:active,
+.chin-btn.chin-kb[data-pressing]{
+  background-color:#3a3d36;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.35);
+}
+.chin-btn.chin-kb:active::before,
+.chin-btn.chin-kb[data-pressing]::before{
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.28);
+}
+
+/* pantalla hundida dentro de la carcasa (el efecto CRT dentro va en crt.css) */
+.screen-area{
+  position:relative;flex:1;min-height:0;overflow:hidden;
+  border-radius:18px;   /* curvatura fingida: esquinas redondeadas del tubo (idea de la demo) */
+  padding:0;   /* sin franja negra: la curvatura del warp ya deja su propio anillo en el borde */
+  background:radial-gradient(120% 100% at 50% 40%, #0b0d0b 0%, #050605 78%);
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 26px 8px rgba(0,0,0,0.8);
+}
+
+/* Chrome Windows 98: fuente con acentos (Determination Sans) y SIN aberración (es UI del SO, no fósforo) */
+.win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222;text-shadow:none }  /* text-shadow:none = el chrome Win98 (header/diálogo/sidebar) NO hereda la aberración cromática animada de .crt. El verde del terminal (.crt-body, sin .win98) la conserva */
+/* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Sans, con acentos) */
+.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif }  /* solo la fuente (acentos); tamaño NATIVO de 98.css (quitado el 16px forzado) */
+.win98 .title-bar-text{ letter-spacing:.5px }  /* Determination en negrita sintética queda muy junta; la soltamos un poco */
+
+/* ---------- Sidebar Windows 98 ---------- */
+.win-sidebar{
+  position:absolute;top:10px;left:10px;   /* ventana flotante arriba-izquierda, NO a toda la altura (más fiel a Win98) */
+  width:min(240px,80%);
+  margin:0;z-index:1;
+  box-shadow:4px 4px 14px rgba(0,0,0,.5);
+}
+.win-sidebar .window{ margin:0 }   /* altura según contenido, no 100% */
+.win-sidebar .title-bar{ min-height:30px }
+.win-sidebar .title-bar-text{ font-size:15px }
+.win-sidebar .window-body{ display:flex;flex-direction:column;gap:6px;margin:8px }  /* a contenido: sin flex:1 ni overflow */
+
+/* ---------- Diálogo de confirmación Windows 98 ---------- */
+.confirm-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* z2: tapa el contenido de pantalla (z1) pero queda POR DEBAJO de la rejilla (z3) y del cristal (z6): el diálogo vive dentro del CRT, no flotando sobre él */
+.confirm-dialog{ min-width:260px;max-width:90vw;margin:0 }
+.confirm-dialog .window-body{ margin:14px 16px 16px }
+.confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
+.confirm-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }
+.confirm-row p{ margin:0 }
+.confirm-buttons{ display:flex;gap:10px;justify-content:center }

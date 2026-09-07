@@ -1,0 +1,92 @@
+/* Contenido de la PANTALLA-TERMINAL: líneas de texto, códigos de sistema, spinner, banner/splash del
+   arranque, formulario TUI (login y compose del chat), input de comandos, hint y la fila activa
+   resaltada. El chat va en chat.css; el efecto CRT en crt.css; el armazón en computer.css. */
+
+.content{
+  position:relative;z-index:1;
+  height:100%;overflow:auto;overflow-x:hidden;   /* SIN -webkit-overflow-scrolling:touch: en iOS promociona a una capa GPU que no se repinta al cambiar el texto por JS (pantalla congelada). El scroll con inercia ya es nativo */
+  display:flex;flex-direction:column;align-items:center;
+  padding:22px 24px 28px;
+  scrollbar-width:thin;scrollbar-color:#1c6b3f transparent;
+}
+.content>*{ width:100%;max-width:760px;flex:none }  /* que las filas NO se encojan: desbordan y hacen scroll, no se solapan */
+.content::-webkit-scrollbar{ width:8px }
+.content::-webkit-scrollbar-thumb{ background:#1c6b3f;border-radius:4px }
+
+.row{ white-space:pre-wrap;word-break:break-word;min-height:1em;margin-bottom:6px }  /* wrap a la izquierda; margin-bottom = "espacio después de párrafo" (independiente de las líneas en blanco) */
+.b{ color:#b8ffd6 }
+.muted{ color:#37f07d }   /* verde base (el oscuro #1f9e5e queda SOLO para el hint) */
+.d{ color:#ff5f5f }   /* errores en rojo */
+.ok{ color:#4db8ff }   /* mensajes [OK] / éxito en azul (verde=texto, rojo=errores, azul=OKs) */
+.astk{ color:#1f9e5e }
+.row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
+.prompt{ color:#1f9e5e }
+/* Linea de sistema en DOS COLUMNAS flex: [CODE] fijo | texto que hace wrap alineado bajo si mismo */
+.syscode-row{ display:flex;gap:.5ch;padding-left:0;text-indent:0 }
+.syscode{ flex:none }   /* codigo de sistema [CODE]: columna fija, estilizable aparte (hereda color de la linea) */
+.systext{ flex:1;min-width:0;white-space:pre-wrap;word-break:break-word }   /* columna de texto que envuelve */
+.spinner-row{ align-items:flex-start }   /* el spinner queda arriba, alineado con la 1ª línea (no se centra aunque el texto ocupe varias líneas) */
+.spinner-cell{ display:inline-flex;align-items:center }
+.spinner-cell .loader-svg{ margin-right:0;width:1.1em;height:1.1em;vertical-align:0 }
+
+.banner-wrap{ overflow:hidden }
+.home-screen{ height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6em;padding:24px;text-align:center;overflow:auto }   /* vista "home" dentro del CRT */
+.home-title{ font-size:2.2em;line-height:1.1;color:#b8ffd6;letter-spacing:1px }
+.home-menu{ display:flex;flex-direction:column;gap:.5em;align-items:flex-start }
+.banner{ margin:0;padding:0;background:transparent;box-shadow:none;white-space:pre;line-height:1.05;color:#b8ffd6;transform-origin:left top;font-family:'JetBrains Mono',"Courier New",monospace }
+/* Splash de carga inicial: logo centrado en la pantalla + barra de bloques desnuda debajo. Solo en el arranque. */
+.content>.boot-splash{ flex:1 1 auto;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4em;width:100%;max-width:none }
+.boot-splash .banner-wrap{ width:100%;max-width:min(90%,520px);display:flex;justify-content:center }   /* fitBanner escala el logo para caber aquí */
+.boot-bar{ font:1.1em/1 'Courier Pixel',"Courier New",monospace;letter-spacing:2px;color:#37f07d;white-space:pre;text-shadow:0 0 4px rgba(55,240,125,.5) }   /* sin texto/%/[]: solo █ llenos + ░ vacíos */
+
+.inputline{ display:flex;align-items:baseline;gap:.5ch;margin-top:2px;position:relative }
+.flabel{ flex:none;color:#37f07d }   /* etiqueta de campo: mismo verde base que el resto */
+.fcheck{ flex:none;white-space:nowrap }   /* checkbox [ ]: brackets de texto + check svg dentro si tiene texto */
+.fcheck-gap{ display:inline-block;width:.85em }   /* hueco del bracket vacio, mismo ancho que el check */
+.fcheck svg{ width:.85em;height:.85em;stroke:currentColor;stroke-width:1.5 }   /* check al ancho del hueco + stroke para engordarlo */
+.faction{ flex:none;color:#37f07d;cursor:pointer;-webkit-tap-highlight-color:transparent }   /* acciones del form/roster (tocables) */
+.faction.locked{ color:#1f9e5e;opacity:.65 }   /* acción bloqueada (con candado): atenuada como el hint "¿Necesitas ayuda?" */
+.flock-icon{ height:1em;width:auto;vertical-align:-.12em;fill:currentColor;margin-right:.5ch }   /* candado antes de "Conectar" mientras falta rellenar */
+.fconnect-row{ margin-top:1.2em }   /* hueco (salto de linea) antes de la primera accion */
+/* loader (conexion/logout): SVG pixelart girando en bucle, inline con el texto */
+.loader-svg{ width:1.2em;height:1.2em;fill:currentColor;vertical-align:-.25em;margin-right:.5ch;animation:spin .8s steps(8) infinite }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+/* caret pixelart que marca el campo activo: FUERA del flujo (absoluto en el margen izq) para no indentar */
+.fcaret{ position:absolute;left:-1.1em;top:0;bottom:0;display:inline-flex;align-items:center;justify-content:center;pointer-events:none }
+.fcaret svg{ width:.5em;height:.8em;fill:#37f07d;filter:drop-shadow(0 0 2px rgba(55,240,125,.5));animation:blink 1.06s steps(1) infinite }
+/* hint clicable bajo el input activo (no navegable con flechas) */
+.help-block{ margin-top:14px }   /* wrapper: label + tooltip; el margen va aquí, no en el label */
+.help-q{ text-align:left;color:#1f9e5e;opacity:.65 }   /* "¿Necesitas ayuda?" izquierda, mismo verde oscuro con opacidad */
+.hint{ margin-top:6px;color:#1f9e5e;opacity:.65;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1.5px solid;border-radius:4px;padding:4px }   /* enmarcado tipo caja (borde currentColor = verde oscuro; esquinas 4px) */
+/* MEDIDA UNIVERSAL de los SVG inline del terminal: altura del cuerpo de texto, anchura proporcional,
+   alineado con la linea. Usar .term-svg en todo SVG inline. El caret es la unica excepcion (.8em). */
+.term-svg{ height:1.1em;width:auto;vertical-align:-.1em;fill:currentColor }
+.hint .term-svg{ height:1rem;vertical-align:-.25em;margin-right:.15em;filter:drop-shadow(.44px 0 0 rgba(0,30,255,.5)) drop-shadow(-.44px 0 0 rgba(255,0,80,.3)) drop-shadow(0 0 1px currentColor) }   /* mismo tratamiento CRT que el texto (aberración azul/rojo + glow verde) para que el icono no se vea como un verde plano más brillante */
+.field{ position:relative;flex:1;min-width:0 }
+.uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
+/* Fila ACTIVA (donde estás): al NAVEGAR (caret ► de dirección) o al ESCRIBIR (cursor |), TODA en verde
+   claro #b8ffd6, caret/cursor incluidos: resalta dónde estás. Home, roster (chat.css), form, comando. */
+.inputline:has(.fcaret svg),
+.inputline:has(.cursor){ color:#b8ffd6 }
+.inputline:has(.fcaret svg) .faction,
+.inputline:has(.fcaret svg) .flabel,
+.inputline:has(.fcaret svg) .unread,
+.inputline:has(.fcaret svg) .mirror,
+.inputline:has(.cursor) .uprompt,
+.inputline:has(.cursor) .flabel,
+.inputline:has(.cursor) .mirror{ color:#b8ffd6 }
+.inputline:has(.fcaret svg) .fcaret svg{ fill:#b8ffd6;filter:drop-shadow(0 0 2px rgba(184,255,214,.5)) }
+.inputline:has(.fcaret svg) .roster-dots{ border-color:#b8ffd6;opacity:.55 }
+.inputline:has(.cursor) .cursor{ background:#b8ffd6 }
+.mirror{ white-space:pre-wrap;word-break:break-word }
+.cursor{ display:inline-block;width:2px;height:1.02em;transform:translateY(.16em);background:#37f07d;animation:blink 1.06s steps(1) infinite }   /* barra vertical (I-beam) parpadeante */
+@keyframes blink{ 0%,50%{opacity:1} 50.01%,100%{opacity:0} }
+.chev{ display:inline-block;color:#37f07d;animation:bob .62s steps(3) infinite alternate }
+@keyframes bob{ from{transform:translateY(0)} to{transform:translateY(6px)} }
+
+@media (prefers-reduced-motion:reduce){
+  .cursor{ animation:none }
+  .chev{ animation:none }
+  .loader-svg{ animation:none }   /* spinner de carga: no gira */
+  .fcaret svg{ animation:none }   /* caret del formulario: no parpadea */
+}
