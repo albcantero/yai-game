@@ -72,14 +72,14 @@ export default function Computer() {
   };
   // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega según la vista.
   const dispatchKey = (k: string) => {
-    if (menuOpen || confirmClose) return; // menú/diálogo abiertos = terminal en pausa, no acepta teclas
-    keyTick();
-    if (!suppressBuzzRef.current) buzz(); // vibra en cada pulsación real (flechas/OK del monitor incluidas, vía chinKey); las repeticiones de tecla mantenida no
-    if (k === "Shift") {   // Mayús INDEPENDIENTE: togglea en CUALQUIER vista (home incluido) y durante loaders, como el resto del teclado; no depende de que haya dónde escribir
+    keyTick(); // el TECLADO es INDEPENDIENTE: SIEMPRE suena, aunque haya menú/diálogo abierto o un loader
+    if (!suppressBuzzRef.current) buzz(); // y SIEMPRE vibra (salvo repeticiones de tecla mantenida)
+    if (k === "Shift") {   // Mayús INDEPENDIENTE: SIEMPRE togglea (estado local del teclado), en cualquier vista y con menú/diálogo abiertos
       const cur = shiftModeRef.current;
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
+    if (menuOpen || confirmClose) return; // menú/diálogo abiertos = terminal en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
     if (view === "home") {
       handleHomeKey(k);
       return;
