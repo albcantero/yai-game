@@ -289,13 +289,15 @@ body{
 .field{ position:relative;flex:1;min-width:0 }
 .uprompt{ color:#37f07d }   /* marca del texto escrito por el usuario (#) */
 .cprompt{ color:#37f07d;margin-right:.4ch }   /* prompt del compose de chat (›) */
-/* La línea ACTIVA (la que tiene el caret) va TODA en blanco, caret incluido: resalta el foco */
-.inputline:has(.cursor){ color:#fff }
-.inputline:has(.cursor) .uprompt,
-.inputline:has(.cursor) .cprompt,
-.inputline:has(.cursor) .flabel,
-.inputline:has(.cursor) .mirror{ color:#fff }
-.inputline:has(.cursor) .cursor{ background:#fff }
+/* La FILA seleccionada al NAVEGAR (la que muestra el caret ► de dirección) va TODA en blanco, caret
+   incluido: resalta dónde estás. Aplica a home, roster y opciones/campos del formulario. */
+.inputline:has(.fcaret svg){ color:#fff }
+.inputline:has(.fcaret svg) .faction,
+.inputline:has(.fcaret svg) .flabel,
+.inputline:has(.fcaret svg) .mirror,
+.inputline:has(.fcaret svg) .unread{ color:#fff }
+.inputline:has(.fcaret svg) .fcaret svg{ fill:#fff;filter:drop-shadow(0 0 2px rgba(255,255,255,.5)) }
+.inputline:has(.fcaret svg) .roster-dots{ border-color:#fff;opacity:.55 }
 .chat-back{ display:inline-block;cursor:pointer;color:#37f07d;margin:2px 0 10px;padding:4px 10px;border:1.5px solid;border-radius:4px;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation }   /* volver del hilo al roster: botón claro y tocable */
 .chat-back:active{ background:rgba(55,240,125,.12) }   /* feedback al tocar */
 .mirror{ white-space:pre-wrap;word-break:break-word }
