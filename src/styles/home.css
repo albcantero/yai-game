@@ -13,14 +13,19 @@
 }
 
 .home-screen{
+  /* Posición del fondo (desktop.png). Nudge en px + zoom; los voy ajustando a mano según me diga Alberto. */
+  --home-bg-x:0px;    /* + derecha, - izquierda */
+  --home-bg-y:0px;    /* + abajo, - arriba */
+  --home-bg-scale:1;  /* zoom (1 = tal cual) */
   position:relative;z-index:1;
   height:100%;width:100%;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  background:#222034;   /* morado del cielo del SVG: rellena los laterales que la imagen no cubre */
+  background:#7fb2f0;   /* azul cielo del fondo: rellena lo que la imagen no cubra al moverla */
 }
 .home__bg{
-  position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);z-index:0;
-  height:100%;width:auto;max-width:none;   /* llena la altura; NO estira el ancho */
+  position:absolute;top:50%;left:50%;z-index:0;
+  height:100%;width:auto;max-width:none;   /* llena la ALTURA; ancho natural (16:9, se sale por los lados) */
+  transform:translate(-50%,-50%) translate(var(--home-bg-x),var(--home-bg-y)) scale(var(--home-bg-scale));
   image-rendering:pixelated;
   pointer-events:none;
 }
