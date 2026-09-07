@@ -100,6 +100,8 @@ export default function Terminal({
   const namesRef = useRef<Record<string, string>>({});
   const threadRef = useRef<{ target: string | null; name: string } | null>(null);
   const chatUnsubRef = useRef<null | (() => void)>(null);
+  const mountedRef = useRef(true); // false tras desmontar: corta subscripciones/pintados de awaits en vuelo
+  const seenMsgIdsRef = useRef<Set<number>>(new Set()); // ids ya pintados: dedup entre historial, echo local y realtime
 
   loaderRef.current = loader; // el armazón usa esto para bloquear los botones del monitor durante un loader
 
@@ -269,6 +271,8 @@ export default function Terminal({
 
   // ---------- Chat: roster (panel) + hilo (mensajes en lines + compose) ----------
   const printMsg = (m: Msg) => {
+    if (seenMsgIdsRef.current.has(m.id)) return; // ya pintado (historial/echo/realtime): no duplicar
+    seenMsgIdsRef.current.add(m.id);
     const mine = m.from_char === meRef.current?.username;
     const who = mine ? "Tú" : namesRef.current[m.from_char] ?? m.from_char;
     addLine({ text: who + ": " + m.body, cls: mine ? "b" : "", mark: "" });
@@ -281,7 +285,11 @@ export default function Terminal({
     const from = meRef.current?.username;
     if (!from) return;
     const res = await sendMessage(from, target, body);
-    if (!res.ok) sys("ERROR", "No se pudo enviar el mensaje", "d");
+    if (!res.ok) {
+      sys("ERROR", "No se pudo enviar el mensaje", "d");
+      return;
+    }
+    if (res.msg && threadRef.current?.target === target) printMsg(res.msg); // echo local inmediato (no espera al realtime; el dedup evita repetir)
   };
   const openThread = async (target: string | null, name: string) => {
     setPanel(null);
@@ -290,16 +298,26 @@ export default function Terminal({
     setThread(t);
     setLine("");
     clear();
+    seenMsgIdsRef.current = new Set(); // hilo nuevo: reinicia el dedup
     print(name, "muted");
     print("");
     const me = meRef.current?.username ?? "";
-    const msgs = await fetchThread(me, target);
-    for (const m of msgs) printMsg(m);
+    // Carga (o recarga, tras una reconexión) el historial del hilo; el dedup por id evita repetir
+    // lo ya pintado, así que en un resync solo se añaden los mensajes que se perdieron durante la caída.
+    const backfill = async () => {
+      const msgs = await fetchThread(me, target);
+      if (!mountedRef.current || threadRef.current !== t) return; // desmontado o el usuario cambió de hilo
+      for (const m of msgs) printMsg(m);
+    };
+    await backfill();
+    if (!mountedRef.current || threadRef.current !== t) return; // no suscribir sobre un hilo ya abandonado/desmontado
     if (chatUnsubRef.current) chatUnsubRef.current();
-    chatUnsubRef.current = subscribeMessages((m) => {
-      const cur = threadRef.current;
-      if (cur && belongsToThread(m, cur.target, meRef.current?.username ?? "")) printMsg(m);
-    });
+    chatUnsubRef.current = subscribeMessages(
+      (m) => {
+        if (threadRef.current === t && belongsToThread(m, target, meRef.current?.username ?? "")) printMsg(m);
+      },
+      () => void backfill(), // reconexión del realtime: recupera lo perdido durante la caída
+    );
   };
   const openMessages = async () => {
     const chars = (await allCharacters()).filter((c) => c.username !== meRef.current?.username);
@@ -350,11 +368,21 @@ export default function Terminal({
       print("");
       return;
     }
-    await spin("Descargando metadatos de su cuenta...", async () => {
+    const meta = await spin("Descargando metadatos de su cuenta...", async () => {
       await loadIdentity();
       await sleep(2500);
-      return { code: "OK" as const, text: "Metadatos sincronizados", cls: "b" as LineClass };
+      return meRef.current
+        ? { code: "OK" as const, text: "Metadatos sincronizados", cls: "b" as LineClass }
+        : {
+            code: "ERROR" as const,
+            text: "No se pudieron sincronizar los datos de su cuenta. Inténtelo nuevamente",
+            cls: "d" as LineClass,
+          };
     });
+    if (meta.code === "ERROR" || !meRef.current) {
+      print(""); // sin identidad no se entra al chat (evita un panel con me=null que traga los envíos)
+      return;
+    }
     clear();
     openPanel();
   };
@@ -470,6 +498,7 @@ export default function Terminal({
 
   // handleKey del terminal (Shift, home y el clic de tecla los gestiona el armazón antes de delegar aquí).
   const handleKey = (k: string) => {
+    if (loader) return; // spin en marcha: no se ejecutan comandos ni se lanza otro flujo (evita reentrada); el teclado del armazón sigue sonando
     if (thread) {
       if (k === "Enter") {
         const body = curRef.current.trim();
@@ -575,6 +604,7 @@ export default function Terminal({
 
     return () => {
       alive = false; // cancela la bienvenida en curso
+      mountedRef.current = false; // corta subscripciones/pintados de awaits que sigan en vuelo
       window.removeEventListener("resize", onResize);
       if (chatUnsubRef.current) chatUnsubRef.current();
     };

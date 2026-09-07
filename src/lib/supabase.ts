@@ -105,21 +105,61 @@ export async function sendMessage(
   from: string,
   target: string | null,
   body: string,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; msg?: Msg; error?: string }> {
   await ensureSession().catch(() => {});
-  const { error } = await supabase.from("messages").insert({ from_char: from, to_char: target, body });
-  return error ? { ok: false, error: error.message } : { ok: true };
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({ from_char: from, to_char: target, body })
+    .select("id,created_at,from_char,to_char,body")
+    .single(); // devuelve la fila insertada para pintar el mensaje propio al instante (echo local)
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, msg: data as Msg };
 }
 
 // Suscripcion realtime a INSERTs de messages (la RLS filtra a lo que puedo ver). Devuelve el desuscriptor.
-export function subscribeMessages(onInsert: (m: Msg) => void): () => void {
-  const ch = supabase
-    .channel("rt-messages")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p) =>
-      onInsert(p.new as Msg),
-    )
-    .subscribe();
+// Resiliente: si el canal cae (error/timeout) o el movil vuelve de segundo plano, re-suscribe; en cada
+// re-suscripcion llama onResync para que el llamador recupere lo perdido durante la caida.
+export function subscribeMessages(onInsert: (m: Msg) => void, onResync?: () => void): () => void {
+  let closed = false;
+  let firstJoin = true;
+  let ch: ReturnType<typeof supabase.channel> | null = null;
+  let retry: ReturnType<typeof setTimeout> | null = null;
+  const join = () => {
+    ch = supabase
+      .channel("rt-messages-" + Math.random().toString(36).slice(2, 8)) // nombre unico: evita colision con un canal saliente
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p) =>
+        onInsert(p.new as Msg),
+      )
+      .subscribe((status) => {
+        if (closed) return;
+        if (status === "SUBSCRIBED") {
+          if (!firstJoin && onResync) onResync(); // reconexion (no la primera): recupera el hueco
+          firstJoin = false;
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          scheduleRejoin();
+        }
+      });
+  };
+  const scheduleRejoin = () => {
+    if (closed || retry) return;
+    retry = setTimeout(() => {
+      retry = null;
+      if (closed) return;
+      if (ch) void supabase.removeChannel(ch);
+      join();
+    }, 2000);
+  };
+  const onVis = () => {
+    if (document.visibilityState !== "visible" || closed) return;
+    if (ch) void supabase.removeChannel(ch);
+    join(); // al volver a primer plano, rejoin inmediato (+ onResync por el status SUBSCRIBED)
+  };
+  join();
+  if (typeof document !== "undefined") document.addEventListener("visibilitychange", onVis);
   return () => {
-    void supabase.removeChannel(ch);
+    closed = true;
+    if (retry) clearTimeout(retry);
+    if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVis);
+    if (ch) void supabase.removeChannel(ch);
   };
 }
