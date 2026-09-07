@@ -463,9 +463,9 @@ export default function Terminal({
   const submit = (raw: string) => {
     if (loader) return; // guard unico: cubre tanto handleKey como el menu lateral (runFromMenu) durante un spin
     const line = raw.trim();
+    if (!line) return; // Enter/OK/click con el prompt vacío: no hace nada, ni añade salto de línea
     echo(line);
     rlog("info", "submit", { line });
-    if (!line) return;
     const parts = line.split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const arg = parts.slice(1).join(" ");
