@@ -19,10 +19,10 @@ export interface ScreenDef {
 export const SCREENS = {
   home: { label: "Home", Component: Home },
   terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", confirm: true, Component: Terminal },
-  tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet.png", Component: Placeholder },
-  notas: { label: "Notas", title: "Notas", icon: "/icons/notepad.png", Component: Placeholder },
-  registro: { label: "Registro", title: "Registro", icon: "/icons/printer.png", Component: Placeholder },
-  fases: { label: "Fases", title: "Fases", icon: "/icons/fases.png", Component: Placeholder },
+  tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet-sm.png", Component: Placeholder },
+  notas: { label: "Notas", title: "Notas", icon: "/icons/notepad-sm.png", Component: Placeholder },
+  registro: { label: "Registro", title: "Registro", icon: "/icons/printer-sm.png", Component: Placeholder },
+  fases: { label: "Fases", title: "Fases", icon: "/icons/fases-sm.png", Component: Placeholder },
 } satisfies Record<string, ScreenDef>;
 
 export type ScreenId = keyof typeof SCREENS;

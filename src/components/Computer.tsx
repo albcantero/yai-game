@@ -24,6 +24,7 @@ const BUZZ_MS = 10;
 // Reiniciar una pantalla = salir de su vista → el hijo se desmonta y React lo limpia todo.
 export default function Computer() {
   const [confirmClose, setConfirmClose] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false); // popup de "Información" (botón "?" de la barra de título)
   const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
   const [powerOn, setPowerOn] = useState(true);
   const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // off=minús, shift=1 letra, caps=bloqueo
@@ -65,7 +66,7 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    if (confirmClose) return; // diálogo abierto = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
+    if (confirmClose || infoOpen) return; // diálogo/info abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
     screenRef.current?.handleKey(k); // delega en la pantalla activa (home incluido: su menú navega con flechas + OK)
   };
   dispatchRef.current = dispatchKey;
@@ -73,8 +74,8 @@ export default function Computer() {
   // Diálogo de cierre abierto => PAUSA la pantalla activa (congela boot/typeLine/spinners, esté como
   // esté). Al cerrarlo, reanuda donde iba. Vía screenRef.setPaused.
   useEffect(() => {
-    screenRef.current?.setPaused(confirmClose);
-  }, [confirmClose]);
+    screenRef.current?.setPaused(confirmClose || infoOpen);
+  }, [confirmClose, infoOpen]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
@@ -176,6 +177,7 @@ export default function Computer() {
                 <img className="title-icon" src={SCREENS[view].icon} alt="" />
                 <div className="title-bar-text">{SCREENS[view].title}</div>
                 <div className="title-bar-controls">
+                  <button type="button" aria-label="Help" onClick={() => setInfoOpen(true)}></button>
                   <button type="button" aria-label="Close" onClick={() => (SCREENS[view].confirm ? setConfirmClose(true) : setView("home"))}></button>
                 </div>
               </div>
@@ -207,6 +209,27 @@ export default function Computer() {
                   <div className="confirm-buttons">
                     <button type="button" onClick={closeAttempt}>Sí</button>
                     <button type="button" onClick={() => setConfirmClose(false)}>No</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {infoOpen && (
+            <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
+              <div className="window confirm-dialog">
+                <div className="title-bar">
+                  <div className="title-bar-text">Información</div>
+                  <div className="title-bar-controls">
+                    <button type="button" aria-label="Close" onClick={() => setInfoOpen(false)}></button>
+                  </div>
+                </div>
+                <div className="window-body">
+                  <div className="confirm-row">
+                    <img className="confirm-icon" src="/icons/msg_question.png" alt="" />
+                    <p>Santas Ochova · La Mejor Librería</p>
+                  </div>
+                  <div className="confirm-buttons">
+                    <button type="button" onClick={() => setInfoOpen(false)}>Cerrar</button>
                   </div>
                 </div>
               </div>
