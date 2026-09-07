@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import { commands } from "../../terminal/commands";
+import { editText, menuNav } from "../../terminal/input";
 import type { Command, Ctx, LineClass } from "../../terminal/types";
 import BANNER from "../../terminal/banner.txt?raw";
 import { rlog } from "../../lib/rlog";
@@ -416,10 +417,9 @@ export default function Terminal({
     const count = cancelIndex + 1;
 
     if (!f.editing) {
-      if (k === "ArrowUp") {
-        setForm({ ...f, active: Math.max(0, f.active - 1) });
-      } else if (k === "ArrowDown") {
-        setForm({ ...f, active: Math.min(count - 1, f.active + 1) });
+      const na = menuNav(f.active, count, k);
+      if (na !== f.active) {
+        setForm({ ...f, active: na });
       } else if (k === "Enter") {
         if (f.active < f.fields.length) {
           setForm({ ...f, editing: true });
@@ -453,11 +453,10 @@ export default function Terminal({
       fields[f.active] = { ...fields[f.active], value: v };
       setForm({ ...f, fields });
     };
-    if (k === "Backspace") {
-      setActive(f.fields[f.active].value.slice(0, -1));
-    } else if (k.length === 1) {
-      setActive(f.fields[f.active].value + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
-      consumeShift();
+    const next = editText(f.fields[f.active].value, k, shiftModeRef.current !== "off");
+    if (next !== null) {
+      setActive(next);
+      if (k.length === 1) consumeShift();
     }
   };
 
@@ -489,13 +488,9 @@ export default function Terminal({
   const handlePanelKey = (k: string) => {
     const p = panel;
     if (!p) return;
-    if (k === "ArrowUp") {
-      setPanel({ ...p, active: Math.max(0, p.active - 1) });
-    } else if (k === "ArrowDown") {
-      setPanel({ ...p, active: Math.min(p.options.length - 1, p.active + 1) });
-    } else if (k === "Enter") {
-      p.options[p.active].run();
-    }
+    const na = menuNav(p.active, p.options.length, k);
+    if (na !== p.active) setPanel({ ...p, active: na });
+    else if (k === "Enter") p.options[p.active].run();
   };
 
   // handleKey del terminal (Shift, home y el clic de tecla los gestiona el armazón antes de delegar aquí).
@@ -508,14 +503,10 @@ export default function Terminal({
         if (body) void sendChat(thread.target, body);
         return;
       }
-      if (k === "Backspace") {
-        setLine(curRef.current.slice(0, -1));
-        return;
-      }
-      if (k.length === 1) {
-        setLine(curRef.current + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
-        consumeShift();
-        return;
+      const next = editText(curRef.current, k, shiftModeRef.current !== "off");
+      if (next !== null) {
+        setLine(next);
+        if (k.length === 1) consumeShift();
       }
       return;
     }
@@ -538,8 +529,6 @@ export default function Terminal({
       hposRef.current = historyRef.current.length;
       setLine("");
       submit(v);
-    } else if (k === "Backspace") {
-      setLine(curRef.current.slice(0, -1));
     } else if (k === "ArrowUp") {
       if (hposRef.current > 0) {
         hposRef.current--;
@@ -550,9 +539,12 @@ export default function Terminal({
         hposRef.current++;
         setLine(historyRef.current[hposRef.current] ?? "");
       }
-    } else if (k.length === 1) {
-      setLine(curRef.current + (shiftModeRef.current !== "off" ? k.toUpperCase() : k));
-      consumeShift();
+    } else {
+      const next = editText(curRef.current, k, shiftModeRef.current !== "off");
+      if (next !== null) {
+        setLine(next);
+        if (k.length === 1) consumeShift();
+      }
     }
   };
   keyHandlerRef.current = handleKey; // el teclado/físico del armazón despacha aquí en vista "terminal"

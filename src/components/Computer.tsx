@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
+import { menuNav } from "../terminal/input";
 import Terminal from "./screens/Terminal";
 
 // Warp CRT (abombado 3D via filtro SVG).
@@ -105,9 +106,8 @@ export default function Computer() {
     if (i === 0) setView("terminal");
   };
   const handleHomeKey = (k: string) => {
-    if (k === "ArrowUp") setHomeActive((a) => Math.max(0, a - 1));
-    else if (k === "ArrowDown") setHomeActive((a) => Math.min(HOME_OPTS.length - 1, a + 1));
-    else if (k === "Enter") homeSelect(homeActive);
+    if (k === "Enter") homeSelect(homeActive);
+    else setHomeActive((a) => menuNav(a, HOME_OPTS.length, k));
   };
   // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega según la vista.
   const dispatchKey = (k: string) => {
