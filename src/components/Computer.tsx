@@ -75,13 +75,13 @@ export default function Computer() {
     if (menuOpen || confirmClose) return; // menú/diálogo abiertos = terminal en pausa, no acepta teclas
     keyTick();
     if (!suppressBuzzRef.current) buzz(); // vibra en cada pulsación real (flechas/OK del monitor incluidas, vía chinKey); las repeticiones de tecla mantenida no
-    if (view === "home") {
-      handleHomeKey(k);
-      return;
-    }
-    if (k === "Shift") {
+    if (k === "Shift") {   // Mayús INDEPENDIENTE: togglea en CUALQUIER vista (home incluido) y durante loaders, como el resto del teclado; no depende de que haya dónde escribir
       const cur = shiftModeRef.current;
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
+      return;
+    }
+    if (view === "home") {
+      handleHomeKey(k);
       return;
     }
     screenRef.current?.handleKey(k);
@@ -340,7 +340,9 @@ export default function Computer() {
         </div>
         <div className="krow">
           <button type="button" className="kmod" aria-pressed={shiftMode === "caps"} aria-label="Mayúsculas" onPointerDown={() => dispatchKey("Shift")}>
-            {shiftMode !== "off" ? (
+            {shiftMode === "caps" ? (
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 21H8v-2h8v2ZM13 3h2v2h2v2h2v2h2v4h-5v4H8v-4H3V9h2V7h2V5h2V3h2V1h2v2Z"/></svg>
+            ) : shiftMode === "shift" ? (
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 3h2v2h2v2h2v2h2v4h-5v8H8v-8H3V9h2V7h2V5h2V3h2V1h2v2Z"/></svg>
             ) : (
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 21h8v-2H8zm0-2h2v-8H8zm-5-6h5v-2H3zm0-2h2V9H3zm2-2h2V7H5zm2-2h2V5H7zm2-2h2V3H9zm2-2h2V1h-2zm2 2h2V3h-2zm2 2h2V5h-2zm2 2h2V7h-2zm2 4h2V9h-2zm-3 0h3v-2h-3zm-2 6h2v-8h-2z"/></svg>
