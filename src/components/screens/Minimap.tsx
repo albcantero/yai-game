@@ -32,7 +32,7 @@ const LINKS: Link[] = [
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
-  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 2, offTo: 2 }, // Almacén→Intersección: +2; Intersección→Almacén: +2
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 4, offTo: 2 }, // Almacén→Intersección: +4; Intersección→Almacén: +2
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 1 }, // Intersección→R3: +2; R3→Intersección: +1
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 1, offTo: 1 }, // R6→R7: +1; R7→R6: +1
@@ -40,7 +40,7 @@ const LINKS: Link[] = [
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 3, offTo: 0 }, // R2→R6: +3; R6→R2: 0
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 3, offTo: 1 }, // R2→R3: +3; R3→R2: +1
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], offFrom: 3, offTo: 2 }, // Sala de Máquinas→R2: +3; R2→S.Máquinas: +2
-  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 2 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +2
+  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 8 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +8
 ];
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
 
@@ -140,7 +140,9 @@ const START_KEYS = 99; // llaves iniciales del grupo (para poder ir desbloqueand
 // (origen 0,0, sin ambigüedad). Un punto de sala P se ve en viewBox en (x + k·P). Los gestos actualizan
 // {x,y,k} al instante; abrir el panel recoloca con un tween (mover, NUNCA zoom: k no cambia).
 type View = { x: number; y: number; k: number };
-const FIT: View = { x: 0, y: 0, k: 1 };
+// Vista inicial: zoom 1.5 centrado (ancla en el centro del viewBox 50,50 para que no se descuadre al escalar).
+const FIT_K = 1.5;
+const FIT: View = { x: 50 - FIT_K * 50, y: 50 - FIT_K * 50, k: FIT_K };
 const K_MIN = 0.6, K_MAX = 4;
 const ZOOM_OPEN = 1.5; // mini-zoom al abrir una bandera (factor sobre el zoom previo)
 const clampK = (k: number) => Math.max(K_MIN, Math.min(K_MAX, k));
