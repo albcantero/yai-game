@@ -66,9 +66,16 @@ const FLAG = "#3a4038", FLAG_D = "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z";
 type View = { x: number; y: number; k: number };
 const FIT: View = { x: 0, y: 0, k: 1 };
 const K_MIN = 0.6, K_MAX = 4;
+const ZOOM_OPEN = 1.5; // mini-zoom al abrir una bandera (factor sobre el zoom previo)
 const clampK = (k: number) => Math.max(K_MIN, Math.min(K_MAX, k));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeOutBack = (t: number) => { const s = 1.5; return 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2); }; // rebote suave (overshoot hacia dentro)
+// caja del contenido (bbox de las salas) en coords de viewBox: para el guard de "no perder el mapa offscreen"
+const BB = ROOMS.reduce(
+  (b, r) => ({ minX: Math.min(b.minX, r.x), minY: Math.min(b.minY, r.y), maxX: Math.max(b.maxX, r.x + r.w), maxY: Math.max(b.maxY, r.y + r.h) }),
+  { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
+);
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
@@ -82,12 +89,12 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const viewRef = useRef<View>(FIT); // espejo de view para los handlers de puntero (sin closures obsoletas)
   const beforeOpenRef = useRef<View>(FIT); // view previo a abrir el panel (para restaurar al cerrar)
   const rafRef = useRef<number | null>(null);
+  const prevSelRef = useRef<string | null>(null); // sala anterior (para no pisar la vista previa al saltar sala→sala)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const gestRef = useRef<{ mode: "none" | "pan" | "pinch"; x: number; y: number; dist: number }>({ mode: "none", x: 0, y: 0, dist: 0 });
   const movedRef = useRef(false); // el gesto se movió = NO es un toque (no abre panel)
   const capturedRef = useRef(false); // ya se capturó el puntero de este arrastre
 
-  const curRoom = byId[CURRENT];
   const selRoom = selected ? byId[selected] : null;
 
   const setV = (v: View) => { viewRef.current = v; setView(v); };
@@ -103,33 +110,61 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
 
   const stopRaf = () => { if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
 
-  // tween suave del view (recolocar al abrir/cerrar el panel). Los gestos NO usan esto: son inmediatos.
-  const animateTo = (target: View) => {
+  // tween suave del view (recolocar al abrir/cerrar el panel; rebote del guard). Los gestos NO usan esto.
+  const animateTo = (target: View, ease: (t: number) => number = easeOut) => {
     stopRaf();
     const start = viewRef.current, t0 = performance.now(), dur = 380;
     const step = (now: number) => {
-      const p = Math.min(1, (now - t0) / dur), e = easeOut(p);
+      const p = Math.min(1, (now - t0) / dur), e = ease(p);
       setV({ x: lerp(start.x, target.x, e), y: lerp(start.y, target.y, e), k: lerp(start.k, target.k, e) });
       rafRef.current = p < 1 ? requestAnimationFrame(step) : null;
     };
     rafRef.current = requestAnimationFrame(step);
   };
 
-  // view que deja el pin de la sala ACTUAL en el centro del rectángulo superior libre (mitad de arriba),
-  // SIN tocar el zoom. Se calcula con la geometría real (CTM), no con números fijos: robusto al letterbox.
-  const recenter = (): View | null => {
-    const root = rootRef.current;
-    if (!root || !curRoom) return null;
-    const r = root.getBoundingClientRect();
-    const V = toVB(r.left + r.width * 0.5, r.top + r.height * 0.25); // centro de la mitad superior (chincheta)
-    const k = viewRef.current.k;
-    return { x: V.x - k * cx(curRoom), y: V.y - k * cy(curRoom), k };
+  // GUARD offscreen: view acotado para que el contenido cubra el viewport visible (si es mayor) o quede
+  // centrado (si es menor). El viewport visible en coords de viewBox se saca de las esquinas reales (CTM),
+  // así respeta el letterbox del aspect ratio. Se usa para rebotar al soltar (no durante el arrastre).
+  const clampView = (v: View): View => {
+    const svg = svgRef.current;
+    if (!svg) return v;
+    const r = svg.getBoundingClientRect();
+    const a = toVB(r.left, r.top), b = toVB(r.right, r.bottom);
+    const vx0 = Math.min(a.x, b.x), vx1 = Math.max(a.x, b.x);
+    const vy0 = Math.min(a.y, b.y), vy1 = Math.max(a.y, b.y);
+    const axis = (val: number, bbMin: number, bbMax: number, V0: number, V1: number) => {
+      const c0 = v.k * bbMin, c1 = v.k * bbMax; // bordes del contenido sin el translate
+      if (c1 - c0 >= V1 - V0) return Math.max(V1 - c1, Math.min(V0 - c0, val)); // mayor que el viewport: no dejar huecos
+      return (V0 + V1) / 2 - (c0 + c1) / 2; // menor: centrar
+    };
+    return { x: axis(v.x, BB.minX, BB.maxX, vx0, vx1), y: axis(v.y, BB.minY, BB.maxY, vy0, vy1), k: v.k };
   };
 
-  // al abrir el panel: recolocar el mapa; al cerrar: volver a donde estaba
+  // view que deja la sala DADA en el centro del rectángulo superior libre (mitad de arriba), al zoom `k`.
+  // Se calcula con la geometría real (CTM), no con números fijos: robusto al letterbox.
+  const recenter = (room: Room, k: number): View | null => {
+    const root = rootRef.current;
+    if (!root) return null;
+    const r = root.getBoundingClientRect();
+    const V = toVB(r.left + r.width * 0.5, r.top + r.height * 0.25); // centro de la mitad superior
+    return { x: V.x - k * cx(room), y: V.y - k * cy(room), k };
+  };
+
+  // Abrir/saltar de sala: centrar el mapa en la sala tocada (al cambiar de sala el mapa se desplaza).
+  // Primera apertura desde cerrado = mini-zoom (ZOOM_OPEN); sala→sala mantiene el zoom. Cerrar (X) = volver
+  // a donde estaba (posición y zoom previos). La vista previa solo se guarda al abrir desde cerrado.
   useEffect(() => {
-    if (selected) { beforeOpenRef.current = viewRef.current; const t = recenter(); if (t) animateTo(t); }
-    else if (rootRef.current) { animateTo(beforeOpenRef.current); }
+    const prev = prevSelRef.current;
+    prevSelRef.current = selected;
+    if (selected) {
+      if (!prev) beforeOpenRef.current = viewRef.current;
+      const room = byId[selected];
+      const k = prev ? viewRef.current.k : clampK(viewRef.current.k * ZOOM_OPEN);
+      const t = room ? recenter(room, k) : null;
+      if (t) animateTo(t);
+    } else if (prev && rootRef.current) {
+      animateTo(beforeOpenRef.current);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
 
@@ -198,6 +233,12 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
     pointersRef.current.delete(e.pointerId);
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* no capturado */ }
     syncGesture();
+    // gesto terminado con el panel CERRADO: si se pasó de los bordes, rebota (spring) al viewport.
+    // Con el panel abierto no acotamos (el encuadre de la sala en la mitad superior manda).
+    if (pointersRef.current.size === 0 && !selected) {
+      const v = viewRef.current, c = clampView(v);
+      if (Math.abs(c.x - v.x) > 0.01 || Math.abs(c.y - v.y) > 0.01) animateTo(c, easeOutBack);
+    }
   };
 
   return (
