@@ -91,7 +91,8 @@ const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf
 // Flecha base: apunta a la DERECHA (+x, 0°). Se ROTA al ángulo del pasillo, así respeta rectas y diagonales.
 const ARROW: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
 const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
-const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
+const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto (junctions)
+const MARK_ROOM_OFFSET = -2; // salas: offset desde la PUERTA (negativo = hacia dentro): marca cerca de la sala, antes de cualquier codo del pasillo
 const MARK_BORDER = 2.9; // grosor del borde negro de las marcas: como es "por fuera" (blanco lleno encima), va al doble del trazo del pin (1.4 a caballo) para que la banda negra se vea igual de gruesa
 // Marcas de movimiento de la sala ACTUAL (`current`), una por salida (cada LINK conectado). Se dibujan
 // RESPECTO a la sala en la que estás: cada marca nace en la salida de `current` y apunta a la vecina, así
@@ -115,10 +116,11 @@ function marksFor(current: string) {
     const blocked = !NODE[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
     const room = byId[current];                                       // sala actual (undefined si estás en un junction)
     const base = room ? rectExit(room, end[0], end[1], dx, dy) : { x: end[0], y: end[1] }; // puerta (borde) o el propio punto
+    const off = room ? MARK_ROOM_OFFSET : ARROW_D;                    // sala: cerca de la puerta (hacia dentro); junction: hacia fuera del punto
     return {
       key: lk.from + "-" + lk.to, dest,
-      x: base.x + (dx / len) * ARROW_D,
-      y: base.y + (dy / len) * ARROW_D,
+      x: base.x + (dx / len) * off,
+      y: base.y + (dy / len) * off,
       icon: blocked ? LOCK_ICON : ARROW,
       angle: blocked ? 0 : (Math.atan2(dy, dx) * 180) / Math.PI, // rota la flecha al ángulo del pasillo (respeta diagonales); el candado no rota
       blocked,
