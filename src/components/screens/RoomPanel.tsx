@@ -72,7 +72,15 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
               </div>
             </div>
           </div>
-          <div className="minimap-panel-aside">{bigIcon && <img src={bigIcon} alt="" />}</div>
+          <div className="minimap-panel-aside">
+            {tab === 1 && (
+              <div className="aside-actions">
+                <button type="button">Resolver</button>
+                <button type="button">Leer</button>
+              </div>
+            )}
+            {bigIcon && <img src={bigIcon} alt="" />}
+          </div>
         </div>
       </div>
     </div>
