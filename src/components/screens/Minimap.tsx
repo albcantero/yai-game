@@ -28,12 +28,12 @@ const ROOMS: Room[] = [
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3 }, // puerta a la Tienda (Librería): 3 llaves
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offTo: 0 }, // puerta a la Tienda (Librería): 3 llaves. Almacén→Librería: 0
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 1, offTo: 2 }, // R5→R4: +1, R4→R5: +2
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
-  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offTo: 2 }, // Almacén→Intersección: -1 (global); Intersección→Almacén: +2
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 0, offTo: 2 }, // Almacén→Intersección: 0; Intersección→Almacén: +2
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2 }, // Intersección→R3: +2
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 2 }, // Intersección→R4: +2; R4→Intersección: +2
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 0 }, // R6→R7: 0 (R7→R6: -1 global)
@@ -41,7 +41,7 @@ const LINKS: Link[] = [
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 0 }, // R2→R6: 0 (R6→R2: -1 global)
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 0 }, // R2→R3: 0
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]] }, // Sala de Máquinas↔R2: ambas -1 (global)
-  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 0 }, // Sala de Máquinas→Almacén: 0 (Almacén→S.Máquinas: -1 global)
+  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 0, offTo: 0 }, // Sala de Máquinas→Almacén: 0; Almacén→S.Máquinas: 0
 ];
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
 
