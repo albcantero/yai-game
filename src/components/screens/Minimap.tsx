@@ -134,8 +134,9 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
     const vy0 = Math.min(a.y, b.y), vy1 = Math.max(a.y, b.y);
     const axis = (val: number, bbMin: number, bbMax: number, V0: number, V1: number) => {
       const c0 = v.k * bbMin, c1 = v.k * bbMax; // bordes del contenido sin el translate
-      if (c1 - c0 >= V1 - V0) return Math.max(V1 - c1, Math.min(V0 - c0, val)); // mayor que el viewport: no dejar huecos
-      return (V0 + V1) / 2 - (c0 + c1) / 2; // menor: centrar
+      if (c1 - c0 >= V1 - V0) return Math.max(V1 - c1, Math.min(V0 - c0, val)); // mayor que el viewport: no dejar huecos (explorar esquinas)
+      const cc = (c0 + c1) / 2; // centro del contenido: movimiento LIBRE, rebota solo si el centro se sale del viewport (pasarse de la mitad)
+      return Math.max(V0 - cc, Math.min(V1 - cc, val));
     };
     return { x: axis(v.x, BB.minX, BB.maxX, vx0, vx1), y: axis(v.y, BB.minY, BB.maxY, vy0, vy1), k: v.k };
   };
