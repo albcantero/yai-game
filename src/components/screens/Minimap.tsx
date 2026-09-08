@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
@@ -19,14 +19,14 @@ const ROOMS: Room[] = [
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: true, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: true, name: "Sala de Máquinas", puzzles: 1 }, // +2.5 en x: aire respecto al Almacén ensanchado
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: true },
-  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: true },
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, name: "Librería" }, // = la TIENDA: en niebla, puerta a 3 llaves (pegada al Almacén)
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
 // keys = llaves necesarias para cruzar esa puerta (alimentará los candados; 0/undefined = puerta libre).
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]] }, // L limpia de 90° (antes un codo muy abierto que parecía diagonal)
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3 }, // puerta a la Tienda (Librería): 3 llaves
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]] },
   // "Cruz" del almacén partida por estado: L sólida almacén↔r3 (ambas descubiertas) + ramal a r4
   // (bloqueada) que sale en dashed. Al descubrir r4, el ramal pasa a sólido solo y reforma la cruz.
@@ -39,9 +39,6 @@ const LINKS: Link[] = [
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]] }, // Sala de Máquinas → sala central (sin llave); extremo r1 +2.5 con la sala
   { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1 }, // Almacén ↓ Sala de Máquinas: 1 llave; extremo r1 +2.5 con la sala
 ];
-const KEYS_TO_TIENDA = 3; // la Tienda (¿sala del mapa o el programa del menú?) necesita 3 llaves. Pendiente ubicarla
-void KEYS_TO_TIENDA;
-
 const CURRENT = "hub-almacen"; // sala donde empieza / está el grupo: el almacén (sala 1)
 
 const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
@@ -79,16 +76,27 @@ const ARROW_LEFT: Icon = { d: "M20 11v2H4v-2zM8 13v2H6v-2zm2 2v2H8v-2zm2 2v2h-2v
 const ARROW_UP: Icon = { d: "M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2zM15 10H7V8h8zm2 2H5v-2h12z", bb: [0, 0, 24, 24] };
 const ARROW_RIGHT: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2zM14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
 const ARROW_DOWN: Icon = { d: "M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z", bb: [0, 0, 24, 24] };
-const ARROW_H = 6, ARROW_D = 5.5; // alto de la flecha (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
-// Flechas de movimiento: SOLO de la sala actual, una por salida (cada LINK conectado). Se colocan en el
-// pasillo, justo fuera de la entrada de la sala, apuntando a la vecina (eje dominante del tramo de pasillo).
-const EXIT_ARROWS = LINKS.filter((lk) => lk.from === CURRENT || lk.to === CURRENT).map((lk) => {
+const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
+const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
+// Marcas de movimiento: SOLO de la sala actual, una por salida (cada LINK conectado). Se colocan en el pasillo,
+// justo fuera de la entrada, apuntando a la vecina. Flecha si la salida es libre; CANDADO si está bloqueada
+// (puerta con llave o sala vecina en niebla): se detecta solo y NO sale la flecha.
+const EXIT_MARKS = LINKS.filter((lk) => lk.from === CURRENT || lk.to === CURRENT).map((lk) => {
   const atFrom = lk.from === CURRENT;
   const end = atFrom ? lk.pts[0] : lk.pts[lk.pts.length - 1];        // punto del pasillo en la sala actual
   const adj = atFrom ? lk.pts[1] : lk.pts[lk.pts.length - 2];        // siguiente punto hacia la vecina
   const dx = adj[0] - end[0], dy = adj[1] - end[1], len = Math.hypot(dx, dy) || 1;
-  const icon = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? ARROW_RIGHT : ARROW_LEFT) : (dy >= 0 ? ARROW_DOWN : ARROW_UP);
-  return { key: lk.from + "-" + lk.to, x: end[0] + (dx / len) * ARROW_D, y: end[1] + (dy / len) * ARROW_D, icon, locked: !!lk.keys };
+  const dest = atFrom ? lk.to : lk.from;                             // sala vecina
+  const blocked = !!lk.keys || !byId[dest]?.discovered;             // puerta con llave o vecina en niebla = bloqueada
+  const dir = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? ARROW_RIGHT : ARROW_LEFT) : (dy >= 0 ? ARROW_DOWN : ARROW_UP);
+  return {
+    key: lk.from + "-" + lk.to,
+    x: end[0] + (dx / len) * ARROW_D,
+    y: end[1] + (dy / len) * ARROW_D,
+    icon: blocked ? LOCK_ICON : dir,
+    blocked,
+    ax: dx / len, ay: dy / len, // dirección unitaria (para el floating de la flecha)
+  };
 });
 
 // ---------- Cámara del mapa (pan/zoom) ----------
@@ -321,6 +329,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
                 movedRef = si el gesto fue un arrastre/pinza, NO se abre panel. */}
             {ROOMS.map((r) => {
+              if (!r.discovered) return null; // sala en niebla: solo su "?" (pase 3), sin bandera ni toque
               const cur = r.id === CURRENT;
               return (
                 <g key={"badge" + r.id} transform={`translate(${cx(r).toFixed(2)},${cy(r).toFixed(2)})`}
@@ -339,11 +348,17 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 </g>
               );
             })}
-            {/* 6. flechas de movimiento de la sala ACTUAL: en el pasillo, a la salida, apuntando a la vecina.
-                Blancas con halo oscuro (paintOrder) para leerse sobre el suelo claro del pasillo. */}
-            {EXIT_ARROWS.map((a) => (
-              <g key={"arr" + a.key} transform={placeIcon(a.icon, ARROW_H, a.x, a.y).tf} pointerEvents="none">
-                <path d={a.icon.d} fill="#fff" stroke="#20261f" strokeWidth={2} strokeLinejoin="round" paintOrder="stroke" />
+            {/* 6. marcas de movimiento de la sala ACTUAL, en el pasillo a la salida: flecha si la salida es
+                libre, CANDADO si está bloqueada (llave o niebla). Blancas sobre disco oscuro (el suelo del
+                pasillo es claro). Las flechas "flotan" hacia su dirección (pixel); los candados no. */}
+            {EXIT_MARKS.map((m) => (
+              <g key={"mk" + m.key} pointerEvents="none"
+                className={m.blocked ? undefined : "minimap-arrow-float"}
+                style={m.blocked ? undefined : ({ "--ax": m.ax, "--ay": m.ay } as CSSProperties)}>
+                <circle cx={m.x} cy={m.y} r={ARROW_H * 0.5} fill="#141a16" />
+                <g transform={placeIcon(m.icon, ARROW_H, m.x, m.y).tf}>
+                  <path d={m.icon.d} fill="#fff" />
+                </g>
               </g>
             ))}
           </g>

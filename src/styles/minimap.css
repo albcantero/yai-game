@@ -31,6 +31,11 @@
 .minimap-panel-body{ flex:1;min-height:0;display:flex;flex-direction:column;margin:6px }
 .minimap-panel-body [role="tabpanel"]{ flex:1;min-height:0;margin:0;overflow:auto }
 .minimap-panel-body [role="tabpanel"] .window-body{ margin:8px }
+/* Flechas de movimiento: floating pixel (avanzan/retroceden unos px en su dirección, a pasos). El sentido
+   viene en --ax/--ay (vector unitario). Los candados (salidas bloqueadas) NO llevan esta clase. */
+.minimap-arrow-float{ animation:minimap-arrow-float .7s steps(3) infinite alternate }
+@keyframes minimap-arrow-float{ to{ transform:translate(calc(var(--ax) * 1.5px), calc(var(--ay) * 1.5px)) } }
+@media (prefers-reduced-motion:reduce){ .minimap-arrow-float{ animation:none } }
 /* Niebla: dashed fino que MARCHA en bucle (corredores por descubrir + borde de las salas por descubrir) */
 .minimap-fog-link{ stroke-dasharray:1.6 1.2 }
 .minimap-fog-link,
