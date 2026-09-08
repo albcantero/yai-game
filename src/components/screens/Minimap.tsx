@@ -29,19 +29,19 @@ const ROOMS: Room[] = [
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3 }, // puerta a la Tienda (Librería): 3 llaves
-  { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]] },
+  { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 0, offTo: 0 },
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
-  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]] },
-  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]] },
-  { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]] },
-  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]] },
-  { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
-  { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1 }, // salida 1 de la sala central
-  { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1 }, // salida 2 de la sala central
-  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]] }, // Sala de Máquinas → sala central (sin llave); extremo r1 +2.5 con la sala
-  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1 }, // Almacén ↓ Sala de Máquinas: 1 llave; extremo r1 +2.5 con la sala
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offTo: -1 }, // Almacén→Intersección: -1 (global); intersección→...: -1
+  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: -1 },
+  { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: -1, offTo: 0 }, // R4→Intersección: 0
+  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 0 }, // R6→R7: 0 (R7→R6: -1 global)
+  { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], offFrom: 0 }, // R7→R8: 0 (R8→R7: -1 global)
+  { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 0 }, // R2→R6: 0 (R6→R2: -1 global)
+  { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 0 }, // R2→R3: 0
+  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]] }, // Sala de Máquinas↔R2: ambas -1 (global)
+  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 0 }, // Sala de Máquinas→Almacén: 0 (Almacén→S.Máquinas: -1 global)
 ];
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
 
@@ -118,7 +118,8 @@ function marksFor(current: string) {
     const blocked = !NODE[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
     const room = byId[current];                                       // sala actual (undefined si estás en un junction)
     const base = room ? rectExit(room, end[0], end[1], dx, dy) : { x: end[0], y: end[1] }; // puerta (borde) o el propio punto
-    const off = room ? ((atFrom ? lk.offFrom : lk.offTo) ?? MARK_ROOM_OFFSET) : ARROW_D; // sala: offset por lado (o global); junction: hacia fuera del punto
+    const perOff = atFrom ? lk.offFrom : lk.offTo;                    // offset de ESTA flecha (según el lado)
+    const off = room ? (perOff ?? MARK_ROOM_OFFSET) : ARROW_D + (perOff ?? 0); // sala: desde la puerta; junction: desde el punto hacia fuera
     return {
       key: lk.from + "-" + lk.to, dest,
       x: base.x + (dx / len) * off,
