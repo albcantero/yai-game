@@ -24,7 +24,7 @@ const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]] }, // L limpia de 90° (antes un codo muy abierto que parecía diagonal)
   { from: "r5", to: "r4", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
   // corredor en CRUZ r4·r3·hub-almacen, unificado en UN solo elemento (dos ramas en un mismo path)
-  { from: "r3", to: "hub-almacen", subpaths: [[[30.0, 9.6], [52.4, 10.2]], [[44.0, 10.2], [43.0, 41.6]]] },
+  { from: "r3", to: "hub-almacen", subpaths: [[[24, 15], [58, 15]], [[44, 15], [44, 44]]] }, // cruz ortogonal exacta: horizontal r4·r3 (y=15) + vertical al almacén (x=44)
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]] },
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]] },
@@ -38,17 +38,18 @@ const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 const cx = (r: Room) => r.x + r.w / 2;
 const cy = (r: Room) => r.y + r.h / 2;
 
-// Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; estrella = grupo
-const EDGE = "#5f685f", FLOOR = "#cfd6cf", STAR = "#f2c94c";
+// Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; pin rojo = grupo
+const EDGE = "#5f685f", FLOOR = "#cfd6cf";
 const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e";
+const MARKER = "#e03131", MARKER_EDGE = "#000"; // "estáis aquí": pin de ubicación rojo con borde negro
+const MARKER_D = "M20 12V16H18V18H16V20H14V22H10V20H8V18H6V16H4V12H20ZM14 4H16V8H14V10H10V8H8V4H10V2H14V4Z";
 const linkD = (lk: Link) => (lk.subpaths ?? [lk.pts!]).map((sp) => "M" + sp.map((p) => p.join(",")).join("L")).join(" ");
 const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
-// estrella de 5 puntas centrada en (cxv,cyv), radio exterior R (interior 0.42·R)
-const starPoints = (cxv: number, cyv: number, R: number) =>
-  Array.from({ length: 10 }, (_, i) => {
-    const a = ((-90 + i * 36) * Math.PI) / 180, rad = i % 2 ? R * 0.42 : R;
-    return `${(cxv + rad * Math.cos(a)).toFixed(2)},${(cyv + rad * Math.sin(a)).toFixed(2)}`;
-  }).join(" ");
+// coloca el pin (icono 24×24) centrado en la sala, escalado a su tamaño
+const markerTf = (r: Room) => {
+  const s = Math.min(9.5, Math.min(r.w, r.h)) / 24;
+  return `translate(${(cx(r) - 12 * s).toFixed(2)},${(cy(r) - 12 * s).toFixed(2)}) scale(${s.toFixed(3)})`;
+};
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
@@ -62,22 +63,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               stroke={FOG_EDGE} strokeWidth={0.8} strokeLinecap="butt" strokeLinejoin="miter" />
           ),
         )}
-        {/* 2. pasillos descubiertos = suelo continuo: contorno oscuro + relleno claro, esquinas en PICO (miter) */}
+        {/* 2. CONTORNO oscuro de los pasillos descubiertos, DEBAJO de las salas (esquinas en pico) */}
         {LINKS.map((lk, i) =>
           shown(lk) ? (
             <path key={"out" + i} d={linkD(lk)} fill="none" stroke={EDGE} strokeWidth={4.6}
               strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
           ) : null,
         )}
-        {LINKS.map((lk, i) =>
-          shown(lk) ? (
-            <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
-              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
-          ) : null,
-        )}
-        {/* 3. salas: por descubrir = oscura punteada con "?"; descubierta = suelo claro; actual = verde + punto */}
+        {/* 3. salas: por descubrir = oscura punteada con "?"; descubierta = suelo claro con borde */}
         {ROOMS.map((r) => {
-          const cur = r.id === CURRENT;
           if (!r.discovered) {
             return (
               <g key={r.id}>
@@ -88,16 +82,21 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               </g>
             );
           }
-          return (
-            <g key={r.id}>
-              <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />
-              {cur && (
-                <polygon points={starPoints(cx(r), cy(r), Math.min(3.6, Math.min(r.w, r.h) * 0.42))}
-                  fill={STAR} stroke="#20261f" strokeWidth={0.7} strokeLinejoin="round" />
-              )}
-            </g>
-          );
+          return <rect key={r.id} x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />;
         })}
+        {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: tapa el borde en la unión = todo unido, sin muro */}
+        {LINKS.map((lk, i) =>
+          shown(lk) ? (
+            <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
+              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
+          ) : null,
+        )}
+        {/* 5. pin de la sala actual (estáis aquí), arriba del todo */}
+        {byId[CURRENT]?.discovered && (
+          <g transform={markerTf(byId[CURRENT])}>
+            <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
+          </g>
+        )}
       </svg>
       <div className="minimap-hud win98">
         <div className="hud-row">
@@ -106,12 +105,10 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           </button>
           <span className="hud-count">0</span>
         </div>
-        <div className="hud-row">
-          <button type="button" tabIndex={-1} className="hud-btn" aria-label="Puzzles">
-            <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
-          </button>
-          <span className="hud-count">0/25</span>
-        </div>
+      </div>
+      <div className="minimap-hud-right">
+        <span className="hud-count">0/25</span>
+        <svg className="hud-icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
       </div>
     </div>
   );
