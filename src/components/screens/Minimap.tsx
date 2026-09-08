@@ -52,8 +52,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         {/* 1. corredores por descubrir: trazo tenue punteado, debajo */}
         {LINKS.map((lk, i) =>
           shown(lk) ? null : (
-            <path key={"fog" + i} d={linkD(lk)} fill="none" stroke={FOG_EDGE} strokeWidth={1.8}
-              strokeDasharray="3 3" strokeLinecap="butt" strokeLinejoin="miter" />
+            <path key={"fog" + i} d={linkD(lk)} fill="none" stroke={FOG_EDGE} strokeWidth={1}
+              strokeDasharray="2 2.5" strokeLinecap="butt" strokeLinejoin="miter" />
           ),
         )}
         {/* 2. pasillos descubiertos = suelo continuo: contorno oscuro + relleno claro, esquinas en PICO (miter) */}
@@ -76,7 +76,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             return (
               <g key={r.id}>
                 <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
-                  stroke={FOG_EDGE} strokeWidth={1.2} strokeDasharray="2.6 2.6" />
+                  stroke={FOG_EDGE} strokeWidth={0.9} strokeDasharray="2 2.2" />
                 <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={Math.min(r.w, r.h) * 0.5}
                   fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
               </g>
