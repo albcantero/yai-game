@@ -51,6 +51,31 @@
 .minimap-panel .room-field-label{ flex:none;margin:0 0 3px }   /* etiqueta "Información:" (encima de su panel) */
 .minimap-panel .room-sala{ flex:none;margin:0 0 8px }          /* fila "Sala: [campo]" */
 .minimap-panel .room-name{ flex:1;min-width:0;min-height:1.3em;padding:0 6px }   /* campo hundido con el nombre (1 línea, fino); min-height para que el vacío no colapse */
+/* Desplegable PROPIO del puzzle (componente Win98Select). Aspecto igual al <select> de 98.css pero la
+   lista es un <ul> nuestro DENTRO del CRT (la nativa se pinta en el top layer y no le entra warp/scanlines).
+   El z-index de la lista es LOCAL y bajo (dentro de .minimap-info): solo tapa el panel de descripción, NO
+   escapa del CRT. La flecha (botón) es el mismo SVG que usa 98.css para el <select> (normal + pulsado). */
+.minimap-panel .crt-select{ position:relative;flex:1;min-width:0 }
+.minimap-panel .crt-select-trigger{
+  display:flex;align-items:center;box-sizing:border-box;cursor:pointer;
+  padding:3px 32px 3px 4px;background-color:#fff;color:#000;
+  box-shadow:inset -1px -1px #fff,inset 1px 1px grey,inset -2px -2px #dfdfdf,inset 2px 2px #0a0a0a;
+  background-repeat:no-repeat;background-position:right 2px center;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='17' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15 0H0v16h1V1h14V0z' fill='%23DFDFDF'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2 1H1v14h1V2h12V1H2z' fill='%23fff'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16 17H0v-1h15V0h1v17z' fill='%23000'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15 1h-1v14H1v1h14V1z' fill='gray'/%3E%3Cpath fill='silver' d='M2 2h12v13H2z'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M11 6H4v1h1v1h1v1h1v1h1V9h1V8h1V7h1V6z' fill='%23000'/%3E%3C/svg%3E");
+}
+.minimap-panel .crt-select-trigger:focus{ outline:none }
+.minimap-panel .crt-select-trigger[data-open]{  /* flecha "pulsada" mientras la lista está abierta */
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='17' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M0 0h16v17H0V0zm1 16h14V1H1v15z' fill='gray'/%3E%3Cpath fill='silver' d='M1 1h14v15H1z'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12 7H5v1h1v1h1v1h1v1h1v-1h1V9h1V8h1V7z' fill='%23000'/%3E%3C/svg%3E");
+}
+.minimap-panel .crt-select-value{ flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+.minimap-panel .crt-select-list{
+  position:absolute;left:0;right:0;top:100%;z-index:20;margin:0;padding:0;list-style:none;
+  background:#fff;color:#000;max-height:9.2em;overflow-y:auto;
+  box-shadow:inset -1px -1px #fff,inset 1px 1px grey,inset -2px -2px #dfdfdf,inset 2px 2px #0a0a0a;
+}
+.minimap-panel .crt-select-list li{ padding:3px 6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
+.minimap-panel .crt-select-list li.is-selected,
+.minimap-panel .crt-select-list li:hover{ background:navy;color:#fff }   /* resaltado Win98 */
 .minimap-panel .room-info,
 .minimap-panel .room-fill{ flex:1;min-height:0 }   /* panel de descripción / contenido: ocupa el resto */
 /* pestaña ACTIVA: dejar fijo el borde punteado (el outline de foco del <a>), que 98.css quita en el seleccionado */

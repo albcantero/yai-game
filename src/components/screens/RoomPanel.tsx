@@ -1,6 +1,8 @@
 // Panel de info de una sala (overlay Win98 con pestañas). IDÉNTICO para todas las banderas: recibe por
 // props el título, el nº de puzzles y el estado del juego (puzzles resueltos + callbacks). Así el Minimap
 // (o cualquier pantalla) lo reutiliza sin duplicar markup. Los estilos viven en styles/minimap.css.
+import Win98Select from "./Win98Select";
+
 const TABS = ["Información", "Llaves"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab.
 const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", "/icons/keys-5.png"];
@@ -62,10 +64,14 @@ export default function RoomPanel({ title, num, roomId, puzzles, description, ta
                 )}
                 {tab === 1 && (
                   <>
-                    {/* mismo layout que Información: "Puzzle: [nombre]" + "Descripción:" + panel */}
+                    {/* mismo layout que Información, pero el campo del puzzle es un DESPLEGABLE propio (Win98Select):
+                        aspecto Win98, pero con la lista dentro del CRT (la nativa se escapa del warp/scanlines). */}
                     <div className="field-row room-sala">
                       <span>Puzzle:</span>
-                      <div className="sunken-panel room-name" />
+                      <Win98Select
+                        ariaLabel="Puzzle"
+                        options={["Caja de madera", "Cerradura de latón", "Libro cifrado", "Cajón con doble fondo"]}
+                      />
                     </div>
                     <p className="room-field-label">Descripción:</p>
                     <div className="sunken-panel room-info" />
