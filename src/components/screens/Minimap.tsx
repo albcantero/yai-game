@@ -34,7 +34,7 @@ const LINKS: Link[] = [
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
-  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 6, offTo: 2, reveals: ["r3"] }, // Almacén→Intersección: +6; Intersección→Almacén: +2. Al abrir, descubre también R3 (Almacén→R3 directo)
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], keys: 1, offFrom: 6, offTo: 2, reveals: ["r3"] }, // camino 2: 1 llave. offsets +6/+2. Al abrir descubre también R3 (Almacén→R3 directo)
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 5 }, // Intersección→R3: +2; R3→Intersección: +5
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 3, offTo: 3 }, // R6→R7: +3; R7→R6: +3
@@ -136,7 +136,7 @@ function marksFor(current: string, disc: Set<string>) {
 }
 type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
-const START_KEYS = 99; // llaves iniciales del grupo (para poder ir desbloqueando; luego será el estado real del juego)
+const START_KEYS = 0; // llaves iniciales del grupo: 0. Se ganan resolviendo puzzles (1 puzzle = 1 llave)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
