@@ -24,7 +24,9 @@ const ROOMS: Room[] = [
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
 // keys = llaves necesarias para cruzar esa puerta (alimentará los candados; 0/undefined = puerta libre).
-type Link = { from: string; to: string; pts: [number, number][]; keys?: number };
+// offFrom/offTo = offset de la marca POR LADO (sobreescribe MARK_ROOM_OFFSET): offFrom cuando estás en
+// `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
+type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3 }, // puerta a la Tienda (Librería): 3 llaves
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]] },
@@ -116,7 +118,7 @@ function marksFor(current: string) {
     const blocked = !NODE[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
     const room = byId[current];                                       // sala actual (undefined si estás en un junction)
     const base = room ? rectExit(room, end[0], end[1], dx, dy) : { x: end[0], y: end[1] }; // puerta (borde) o el propio punto
-    const off = room ? MARK_ROOM_OFFSET : ARROW_D;                    // sala: cerca de la puerta (hacia dentro); junction: hacia fuera del punto
+    const off = room ? ((atFrom ? lk.offFrom : lk.offTo) ?? MARK_ROOM_OFFSET) : ARROW_D; // sala: offset por lado (o global); junction: hacia fuera del punto
     return {
       key: lk.from + "-" + lk.to, dest,
       x: base.x + (dx / len) * off,
