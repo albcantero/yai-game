@@ -5,8 +5,6 @@ const TABS = ["Descripción", "Puzzles", "Objetos"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab (Puzzles/Objetos aún sin icono).
 const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", null, null];
 
-const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
-
 export type RoomPanelProps = {
   title: string; // nombre de la sala (barra de título + pestaña Descripción)
   roomId: string; // para los ids de puzzle ("sala#índice")
@@ -44,11 +42,14 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
               <div className="window-body">
                 {tab === 0 && (
                   <>
-                    {/* cabecera de la tab: panel pequeño "Sala: <nombre>" */}
-                    <div className="sunken-panel room-head">Sala: <strong>{title}</strong></div>
-                    <p className="room-info-label">Información:</p>
-                    {/* panel de descripción: ocupa el 100% del espacio restante */}
-                    <div className="sunken-panel room-info"><p>{description ?? LOREM}</p></div>
+                    {/* fila Win98: etiqueta "Sala:" + campo hundido con el nombre, en la MISMA línea */}
+                    <div className="field-row room-sala">
+                      <span>Sala:</span>
+                      <div className="sunken-panel room-name">{title}</div>
+                    </div>
+                    <p className="room-field-label">Información:</p>
+                    {/* panel de descripción: ocupa el 100% del espacio restante (aunque esté vacío) */}
+                    <div className="sunken-panel room-info">{description && <p>{description}</p>}</div>
                   </>
                 )}
                 {tab === 1 && (
