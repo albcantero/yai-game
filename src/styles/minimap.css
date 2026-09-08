@@ -28,8 +28,10 @@
    Es overlay (no refluye el mapa): el mapa se desplaza por debajo con el pin centrado en la mitad de arriba. */
 .minimap-info{ position:absolute;left:0;right:0;bottom:0;height:50%;z-index:6;padding:6px;display:flex }
 .minimap-panel{ flex:1;margin:0;display:flex;flex-direction:column;min-height:0 }
-/* texto del panel al tamaño normal (--ui-text); 98.css lo deja en 11. Cuerpo (hereda) + botones + pestañas */
+/* texto del panel al tamaño normal (--ui-text); 98.css lo deja en 11. Cuerpo + el TABPANEL (es un .window,
+   98.css lo reinicia a 11 y arrastra su contenido) + botones + pestañas */
 .minimap-info .minimap-panel-body,
+.minimap-info .minimap-panel-body [role="tabpanel"],
 .minimap-info .minimap-panel-body button,
 .minimap-info .minimap-panel-body menu[role="tablist"] > li > a{ font-size:var(--ui-text) }
 .minimap-panel-body{ flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr;gap:6px;margin:6px } /* 4 col; fila a 1fr = ocupa todo el alto (sin hueco abajo) */
