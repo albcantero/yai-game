@@ -5,16 +5,18 @@ import type { ScreenHandle, ScreenServices } from "./types";
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
 // Coordenadas en un viewBox 0..100, calcadas del plano PNG (pendiente de afinar a mano con Alberto).
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean };
+// NOTA TEMP (desarrollo): todas las salas están discovered:true = mapa ENTERO desbloqueado.
+// Revertir (poner el fog real) cuando cableemos el estado del juego.
 const ROOMS: Room[] = [
   { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: true },
-  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false },
-  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false },
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false },
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false },
+  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: true },
+  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: true },
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: true },
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: true },
   { id: "hub-almacen", x: 39.9, y: 41.6, w: 8.0, h: 26.2, discovered: true },
-  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false },
+  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: true },
   { id: "r1", x: 55.2, y: 63.0, w: 19.8, h: 25.5, discovered: true },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: true },
   { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: true },
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
@@ -33,7 +35,7 @@ const LINKS: Link[] = [
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]] },
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]] },
   { from: "r1", to: "r2", pts: [[71.5, 64.2], [67.2, 56.2]] },
-  { from: "r1", to: "hub-almacen", pts: [[44, 65], [58, 65]] }, // horizontal corto: derecha del almacén ↔ izquierda de r1, poca penetración (antes era largo y cortaba el borde)
+  { from: "r1", to: "hub-almacen", pts: [[57, 72], [45, 64]] }, // diagonal almacén ↔ r1 (entra poco en r1 para no cortar su borde)
 ];
 const CURRENT = "hub-almacen"; // sala donde empieza / está el grupo: el almacén (sala 1)
 
