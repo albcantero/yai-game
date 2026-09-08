@@ -170,6 +170,6 @@ body{
 .confirm-dialog .window-body{ margin:14px 16px 16px }
 .confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
 .confirm-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }
-.confirm-row p{ margin:0;font-size:16px;flex:1;min-width:0 }   /* mensaje del diálogo a 16px; flex+min-width:0 = envuelve dentro del ancho fijo */
+.confirm-row p{ margin:0;font-size:12px;flex:1;min-width:0 }   /* mensaje del diálogo a 12px (igual que el panel de sala); flex+min-width:0 = envuelve dentro del ancho fijo */
 .confirm-buttons{ display:flex;gap:10px;justify-content:center }
-.confirm-buttons button{ font-size:16px }   /* botones Sí/No al MISMO tamaño que el mensaje (16px) */
+.confirm-buttons button{ font-size:12px }   /* botones Sí/No al MISMO tamaño que el mensaje (12px) */
