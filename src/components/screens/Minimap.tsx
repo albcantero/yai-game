@@ -19,7 +19,7 @@ const ROOMS: Room[] = [
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: true, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: true, name: "Sala de Máquinas", puzzles: 1 }, // +2.5 en x: aire respecto al Almacén ensanchado
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: true },
-  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, name: "Librería" }, // = la TIENDA: en niebla, puerta a 3 llaves (pegada al Almacén)
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: true, name: "Librería" }, // = la TIENDA (pegada al Almacén). ACTIVADA (despejada) para afinar; era la sala en niebla del demo
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
