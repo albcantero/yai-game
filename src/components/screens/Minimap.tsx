@@ -356,6 +356,11 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
             )}
+            {/* 2b. parche de junction (contorno): tapa el hueco del pico donde se juntan varios pasillos
+                (el linejoin no une entre <path> distintos). Un cuadrado del ancho del contorno. */}
+            {JUNCTIONS.filter((j) => discovered.has(j.id)).map((j) => (
+              <rect key={"jout" + j.id} x={j.x - 2.3} y={j.y - 2.3} width={4.6} height={4.6} fill={EDGE} pointerEvents="none" />
+            ))}
             {/* 3. salas: NO tocables (el toque vive en la bandera). por descubrir = oscura con "?"; descubierta = suelo claro */}
             {ROOMS.map((r) => {
               if (!discovered.has(r.id)) {
@@ -378,6 +383,10 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
             )}
+            {/* 4b. parche de junction (relleno): mismo cuadrado en color suelo, ENCIMA, para dejar la esquina lisa */}
+            {JUNCTIONS.filter((j) => discovered.has(j.id)).map((j) => (
+              <rect key={"jfil" + j.id} x={j.x - 1.3} y={j.y - 1.3} width={2.6} height={2.6} fill={FLOOR} pointerEvents="none" />
+            ))}
             {/* 5. insignia por sala: la bandera gris centrada (wrapper tocable con margen). En la sala ACTUAL
                 se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
                 movedRef = si el gesto fue un arrastre/pinza, NO se abre panel. */}
