@@ -42,14 +42,11 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
             </menu>
             <div className="window" role="tabpanel">
               <div className="window-body">
+                {/* título FUERA, justo encima del recuadro (solo en Descripción) */}
+                {tab === 0 && <p className="room-desc-title">{title}</p>}
                 {/* recuadro blanco hundido con borde (clase nativa de 98.css) */}
                 <div className="sunken-panel">
-                  {tab === 0 && (
-                    <div className="room-desc">
-                      <p className="room-desc-title">{title}</p>
-                      <p>{description ?? LOREM}</p>
-                    </div>
-                  )}
+                  {tab === 0 && <p>{description ?? LOREM}</p>}
                   {tab === 1 && (
                     <div className="puzzle-list">
                       {puzzles === 0 && <p>Sin puzzles</p>}
