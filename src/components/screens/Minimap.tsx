@@ -21,11 +21,10 @@ const ROOMS: Room[] = [
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
-type Link = { from: string; to: string; pts?: [number, number][]; subpaths?: [number, number][][] };
+type Link = { from: string; to: string; pts: [number, number][] };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]] }, // L limpia de 90° (antes un codo muy abierto que parecía diagonal)
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]] },
-  // corredor en CRUZ r4·r3·hub-almacen, unificado en UN solo elemento (dos ramas en un mismo path)
   // "Cruz" del almacén partida por estado: L sólida almacén↔r3 (ambas descubiertas) + ramal a r4
   // (bloqueada) que sale en dashed. Al descubrir r4, el ramal pasa a sólido solo y reforma la cruz.
   { from: "hub-almacen", to: "r3", pts: [[44, 44], [44, 15], [58, 15]] },
@@ -48,7 +47,7 @@ const EDGE = "#5f685f", FLOOR = "#cfd6cf";
 const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e";
 const MARKER = "#e03131", MARKER_EDGE = "#000"; // "estáis aquí": pin de ubicación rojo con borde negro
 const MARKER_D = "M20 12V16H18V18H16V20H14V22H10V20H8V18H6V16H4V12H20ZM14 4H16V8H14V10H10V8H8V4H10V2H14V4Z";
-const linkD = (lk: Link) => (lk.subpaths ?? [lk.pts!]).map((sp) => "M" + sp.map((p) => p.join(",")).join("L")).join(" ");
+const linkD = (lk: Link) => "M" + lk.pts.map((p) => p.join(",")).join("L");
 const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
 // coloca el pin (icono 24×24) centrado en la sala, escalado a su tamaño
 const markerTf = (r: Room) => {
