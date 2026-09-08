@@ -10,16 +10,16 @@ import RoomPanel from "./RoomPanel";
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; num?: number; name?: string; puzzles?: number; description?: string };
 // Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
-  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 4 },
-  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 5 },
-  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 7 },
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 6 },
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 8 },
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 1, name: "Almacén", puzzles: 1 }, // sala 1 (inicio); la ÚNICA despejada
-  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 3, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
-  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 2, name: "Sala de Máquinas", puzzles: 1 },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 9 },
-  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 10, name: "Librería" }, // = la TIENDA (pegada al Almacén), 3 llaves
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5 },
+  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3 },
+  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8 },
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4 },
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9 },
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén", puzzles: 1 }, // sala de inicio (nº 2); la ÚNICA despejada
+  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
+  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 1 },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10 },
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería" }, // = la TIENDA (pegada al Almacén), 3 llaves
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
