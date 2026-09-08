@@ -141,7 +141,7 @@ const START_KEYS = 99; // llaves iniciales del grupo (para poder ir desbloqueand
 // {x,y,k} al instante; abrir el panel recoloca con un tween (mover, NUNCA zoom: k no cambia).
 type View = { x: number; y: number; k: number };
 // Vista inicial: zoom 1.5 centrado (ancla en el centro del viewBox 50,50 para que no se descuadre al escalar).
-const FIT_K = 1.1;
+const FIT_K = 1.15;
 const FIT: View = { x: 50 - FIT_K * 50, y: 50 - FIT_K * 50, k: FIT_K };
 const K_MIN = 0.6, K_MAX = 4;
 const ZOOM_OPEN = 1.5; // mini-zoom al abrir una bandera (factor sobre el zoom previo)
