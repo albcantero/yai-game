@@ -50,16 +50,11 @@ const MARKER_D = "M20 12V16H18V18H16V20H14V22H10V20H8V18H6V16H4V12H20ZM14 4H16V8
 const linkD = (lk: Link) => "M" + lk.pts.map((p) => p.join(",")).join("L");
 const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
 // coloca el pin (icono 24×24) centrado en la sala, escalado a su tamaño
-const markerTf = (r: Room) => {
-  const s = Math.min(9.5, Math.min(r.w, r.h)) / 24;
-  return `translate(${(cx(r) - 12 * s).toFixed(2)},${(cy(r) - 12 * s).toFixed(2)}) scale(${s.toFixed(3)})`;
-};
-// bandera azul = punto de info en cada sala (visual; el toque lo recoge la sala entera)
+// Insignia de cada sala: bandera azul (info, tocable en toda la sala) + contador de puzzles [?] 0/2 debajo.
+// En la sala ACTUAL la marca central es el pin rojo en vez de la bandera (para no solaparse).
 const FLAG = "#1971c2", FLAG_D = "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z";
-const flagTf = (r: Room) => {
-  const s = Math.min(6, Math.min(r.w, r.h) * 0.55) / 24;
-  return `translate(${(r.x + 1).toFixed(2)},${(r.y + 1).toFixed(2)}) scale(${s.toFixed(3)})`;
-};
+const PUZZLE_D = "M9 22H7V20H9V22ZM13 22H11V20H13V22ZM17 22H15V20H17V22ZM6 20H4V18H6V20ZM20 20H18V18H20V20ZM13 18H11V16H13V18ZM4 17H2V15H4V17ZM22 17H20V15H22V17ZM15 13H13V15H11V11H15V13ZM4 13H2V11H4V13ZM22 13H20V11H22V13ZM17 11H15V8H17V11ZM9 10H7V8H9V10ZM4 9H2V7H4V9ZM22 9H20V7H22V9ZM15 8H9V6H15V8ZM6 6H4V4H6V6ZM20 6H18V4H20V6ZM9 4H7V2H9V4ZM13 4H11V2H13V4ZM17 4H15V2H17V4Z";
+const BADGE_DARK = "#3a4038";
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
@@ -103,18 +98,24 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
           ) : null,
         )}
-        {/* 5. banderas = punto de info en cada sala (visual; el toque lo recoge la sala) */}
-        {ROOMS.map((r) => (
-          <g key={"flag" + r.id} transform={flagTf(r)} pointerEvents="none">
-            <path d={FLAG_D} fill={FLAG} />
-          </g>
-        ))}
-        {/* 6. pin de la sala actual (estáis aquí), arriba del todo */}
-        {byId[CURRENT]?.discovered && (
-          <g transform={markerTf(byId[CURRENT])} pointerEvents="none">
-            <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
-          </g>
-        )}
+        {/* 5. insignia por sala: marca centrada (pin rojo si es la actual, si no bandera azul) + contador de puzzles [?] 0/2 debajo */}
+        {ROOMS.map((r) => {
+          const cur = r.id === CURRENT;
+          return (
+            <g key={"badge" + r.id} transform={`translate(${cx(r).toFixed(2)},${cy(r).toFixed(2)})`} pointerEvents="none">
+              {cur ? (
+                <g transform="translate(-2.7,-7.5) scale(0.26)">
+                  <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
+                </g>
+              ) : (
+                <g transform="translate(-2.6,-6.8) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
+              )}
+              <g transform="translate(-4.6,0.4) scale(0.13)"><path d={PUZZLE_D} fill={BADGE_DARK} /></g>
+              <text x={-0.9} y={2.1} fontSize={4} fill={BADGE_DARK}
+                fontFamily="'Determination Sans','Courier New',monospace" dominantBaseline="central">0/2</text>
+            </g>
+          );
+        })}
       </svg>
       <div className="minimap-hud win98">
         <div className="hud-row">
