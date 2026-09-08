@@ -16,10 +16,12 @@
 .minimap-hud .hud-btn svg{ width:24px;height:24px;display:block }
 .hud-icon{ width:24px;height:24px;display:block;fill:#fff }
 .hud-count{ color:#fff;font-family:'Determination Sans',"Courier New",monospace;font-size:20px;line-height:1;text-shadow:1px 1px 0 rgba(0,0,0,.7) }
-/* Panel de info de una sala (al tocar la bandera): ventana Win98 centrada sobre el mapa */
-.minimap-info{ position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }
-.minimap-info .window{ min-width:160px;max-width:80%;margin:0 }
-.minimap-info .window-body{ margin:10px 12px }
+/* Panel de info de sala (al tocar la sala): MITAD INFERIOR de la pantalla, ventana Win98 con pestañas */
+.minimap-info{ position:absolute;left:0;right:0;bottom:0;height:50%;z-index:6;padding:6px;display:flex }
+.minimap-panel{ flex:1;margin:0;display:flex;flex-direction:column;min-height:0 }
+.minimap-panel-body{ flex:1;min-height:0;display:flex;flex-direction:column;margin:6px }
+.minimap-panel-body [role="tabpanel"]{ flex:1;min-height:0;margin:0;overflow:auto }
+.minimap-panel-body [role="tabpanel"] .window-body{ margin:8px }
 /* Niebla: dashed fino que MARCHA en bucle (corredores por descubrir + borde de las salas por descubrir) */
 .minimap-fog-link{ stroke-dasharray:1.6 1.2 }
 .minimap-fog-link,

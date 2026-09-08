@@ -58,6 +58,7 @@ const BADGE_DARK = "#3a4038";
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
+  const [tab, setTab] = useState(0); // pestaña activa del panel
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
   return (
     <div className="minimap-screen">
@@ -80,7 +81,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         {ROOMS.map((r) => {
           if (!r.discovered) {
             return (
-              <g key={r.id} onClick={() => setSelected(r.id)} style={{ cursor: "pointer" }}>
+              <g key={r.id} onClick={() => { setSelected(r.id); setTab(0); }} style={{ cursor: "pointer" }}>
                 <rect className="minimap-fog-room" x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
                   stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
                 <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={Math.min(r.w, r.h) * 0.5}
@@ -88,7 +89,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               </g>
             );
           }
-          return <rect key={r.id} onClick={() => setSelected(r.id)} style={{ cursor: "pointer" }}
+          return <rect key={r.id} onClick={() => { setSelected(r.id); setTab(0); }} style={{ cursor: "pointer" }}
             x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />;
         })}
         {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: abre la puerta en la unión */}
@@ -131,15 +132,28 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
       </div>
       {selected && (
         <div className="minimap-info win98">
-          <div className="window">
+          <div className="window minimap-panel">
             <div className="title-bar">
-              <div className="title-bar-text">Información</div>
+              <div className="title-bar-text">{selected}</div>
               <div className="title-bar-controls">
                 <button type="button" aria-label="Close" onClick={() => setSelected(null)}></button>
               </div>
             </div>
-            <div className="window-body">
-              <p>{selected}</p>
+            <div className="window-body minimap-panel-body">
+              <menu role="tablist">
+                {["Descripción", "Puzzles", "Objetos"].map((t, i) => (
+                  <li key={t} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}>
+                    <a href="#" onClick={(e) => e.preventDefault()}>{t}</a>
+                  </li>
+                ))}
+              </menu>
+              <div className="window" role="tabpanel">
+                <div className="window-body">
+                  {tab === 0 && <p>{selected}</p>}
+                  {tab === 1 && <p>0/2 resueltos</p>}
+                  {tab === 2 && <p>—</p>}
+                </div>
+              </div>
             </div>
           </div>
         </div>
