@@ -39,23 +39,26 @@ export default function RoomPanel({ title, roomId, puzzles, tab, onTab, solved, 
             </menu>
             <div className="window" role="tabpanel">
               <div className="window-body">
-                {tab === 0 && <p>{title}</p>}
-                {tab === 1 && (
-                  <div className="puzzle-list">
-                    {puzzles === 0 && <p>Sin puzzles</p>}
-                    {Array.from({ length: puzzles }, (_, i) => {
-                      const id = roomId + "#" + i;
-                      const done = solved.has(id);
-                      return (
-                        <div key={i} className="puzzle-row">
-                          <span>Puzzle {i + 1}</span>
-                          <button type="button" disabled={done} onClick={() => onSolve(id)}>{done ? "Resuelto" : "Resolver"}</button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {tab === 2 && <p>—</p>}
+                {/* recuadro blanco hundido con borde (clase nativa de 98.css) */}
+                <div className="sunken-panel">
+                  {tab === 0 && <p>{title}</p>}
+                  {tab === 1 && (
+                    <div className="puzzle-list">
+                      {puzzles === 0 && <p>Sin puzzles</p>}
+                      {Array.from({ length: puzzles }, (_, i) => {
+                        const id = roomId + "#" + i;
+                        const done = solved.has(id);
+                        return (
+                          <div key={i} className="puzzle-row">
+                            <span>Puzzle {i + 1}</span>
+                            <button type="button" disabled={done} onClick={() => onSolve(id)}>{done ? "Resuelto" : "Resolver"}</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {tab === 2 && <p>—</p>}
+                </div>
               </div>
             </div>
           </div>
