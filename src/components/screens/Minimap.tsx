@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
@@ -54,50 +54,64 @@ const markerTf = (r: Room) => {
   const s = Math.min(9.5, Math.min(r.w, r.h)) / 24;
   return `translate(${(cx(r) - 12 * s).toFixed(2)},${(cy(r) - 12 * s).toFixed(2)}) scale(${s.toFixed(3)})`;
 };
+// bandera azul = punto de info en cada sala (visual; el toque lo recoge la sala entera)
+const FLAG = "#1971c2", FLAG_D = "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z";
+const flagTf = (r: Room) => {
+  const s = Math.min(6, Math.min(r.w, r.h) * 0.55) / 24;
+  return `translate(${(r.x + 1).toFixed(2)},${(r.y + 1).toFixed(2)}) scale(${s.toFixed(3)})`;
+};
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
+  const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
   return (
     <div className="minimap-screen">
       <svg className="minimap-svg" viewBox="-3 -3 106 106" preserveAspectRatio="xMidYMid meet">
-        {/* 1. corredores por descubrir: trazo tenue punteado, debajo */}
+        {/* 1. corredores por descubrir (no interceptan el toque) */}
         {LINKS.map((lk, i) =>
           shown(lk) ? null : (
             <path key={"fog" + i} className="minimap-fog-link" d={linkD(lk)} fill="none"
-              stroke={FOG_EDGE} strokeWidth={0.8} strokeLinecap="butt" strokeLinejoin="miter" />
+              stroke={FOG_EDGE} strokeWidth={0.8} strokeLinecap="butt" strokeLinejoin="miter" pointerEvents="none" />
           ),
         )}
-        {/* 2. CONTORNO oscuro de los pasillos descubiertos, DEBAJO de las salas (esquinas en pico) */}
+        {/* 2. CONTORNO oscuro de los pasillos, DEBAJO de las salas (esquinas en pico) */}
         {LINKS.map((lk, i) =>
           shown(lk) ? (
             <path key={"out" + i} d={linkD(lk)} fill="none" stroke={EDGE} strokeWidth={4.6}
-              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
+              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
           ) : null,
         )}
-        {/* 3. salas: por descubrir = oscura punteada con "?"; descubierta = suelo claro con borde */}
+        {/* 3. salas: TOCABLES (abren su panel de info). por descubrir = oscura con "?"; descubierta = suelo claro */}
         {ROOMS.map((r) => {
           if (!r.discovered) {
             return (
-              <g key={r.id}>
+              <g key={r.id} onClick={() => setSelected(r.id)} style={{ cursor: "pointer" }}>
                 <rect className="minimap-fog-room" x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
                   stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
                 <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={Math.min(r.w, r.h) * 0.5}
-                  fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
+                  fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central" pointerEvents="none">?</text>
               </g>
             );
           }
-          return <rect key={r.id} x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />;
+          return <rect key={r.id} onClick={() => setSelected(r.id)} style={{ cursor: "pointer" }}
+            x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />;
         })}
-        {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: tapa el borde en la unión = todo unido, sin muro */}
+        {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: abre la puerta en la unión */}
         {LINKS.map((lk, i) =>
           shown(lk) ? (
             <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
-              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
+              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
           ) : null,
         )}
-        {/* 5. pin de la sala actual (estáis aquí), arriba del todo */}
+        {/* 5. banderas = punto de info en cada sala (visual; el toque lo recoge la sala) */}
+        {ROOMS.map((r) => (
+          <g key={"flag" + r.id} transform={flagTf(r)} pointerEvents="none">
+            <path d={FLAG_D} fill={FLAG} />
+          </g>
+        ))}
+        {/* 6. pin de la sala actual (estáis aquí), arriba del todo */}
         {byId[CURRENT]?.discovered && (
-          <g transform={markerTf(byId[CURRENT])}>
+          <g transform={markerTf(byId[CURRENT])} pointerEvents="none">
             <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
           </g>
         )}
@@ -114,6 +128,21 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         <span className="hud-count">0/25</span>
         <svg className="hud-icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
       </div>
+      {selected && (
+        <div className="minimap-info win98">
+          <div className="window">
+            <div className="title-bar">
+              <div className="title-bar-text">Información</div>
+              <div className="title-bar-controls">
+                <button type="button" aria-label="Close" onClick={() => setSelected(null)}></button>
+              </div>
+            </div>
+            <div className="window-body">
+              <p>{selected}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
