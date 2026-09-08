@@ -42,12 +42,17 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
             </menu>
             <div className="window" role="tabpanel">
               <div className="window-body">
-                {/* título FUERA, justo encima del recuadro (solo en Descripción) */}
-                {tab === 0 && <p className="room-desc-title">{title}</p>}
-                {/* recuadro blanco hundido con borde (clase nativa de 98.css) */}
-                <div className="sunken-panel">
-                  {tab === 0 && <p>{description ?? LOREM}</p>}
-                  {tab === 1 && (
+                {tab === 0 && (
+                  <>
+                    {/* cabecera de la tab: panel pequeño "Sala: <nombre>" */}
+                    <div className="sunken-panel room-head">Sala: <strong>{title}</strong></div>
+                    <p className="room-info-label">Información:</p>
+                    {/* panel de descripción: ocupa el 100% del espacio restante */}
+                    <div className="sunken-panel room-info"><p>{description ?? LOREM}</p></div>
+                  </>
+                )}
+                {tab === 1 && (
+                  <div className="sunken-panel room-fill">
                     <div className="puzzle-list">
                       {puzzles === 0 && <p>Sin puzzles</p>}
                       {Array.from({ length: puzzles }, (_, i) => {
@@ -61,9 +66,9 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
                         );
                       })}
                     </div>
-                  )}
-                  {tab === 2 && <p>—</p>}
-                </div>
+                  </div>
+                )}
+                {tab === 2 && <div className="sunken-panel room-fill"><p>—</p></div>}
               </div>
             </div>
           </div>

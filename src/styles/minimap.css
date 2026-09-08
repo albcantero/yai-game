@@ -36,7 +36,11 @@
 .minimap-panel .title-bar-text{ flex:1 }
 .minimap-panel-body [role="tabpanel"]{ flex:1;min-height:0;margin:0;overflow:auto }
 .minimap-panel-body [role="tabpanel"] .window-body{ margin:8px;flex:1;min-height:0;display:flex;flex-direction:column }
-.minimap-panel .sunken-panel{ flex:1;min-height:0;padding:8px }   /* recuadro blanco hundido (98.css) relleno */
+.minimap-panel .sunken-panel{ padding:8px }   /* recuadro blanco hundido (98.css) */
+.minimap-panel .room-head{ flex:none }        /* cabecera "Sala: X": alto según contenido */
+.minimap-panel .room-info-label{ flex:none;margin:6px 0 4px;font-weight:bold }
+.minimap-panel .room-info,
+.minimap-panel .room-fill{ flex:1;min-height:0 }   /* panel de descripción / contenido: ocupa el resto */
 /* pestaña ACTIVA: dejar fijo el borde punteado (el outline de foco del <a>), que 98.css quita en el seleccionado */
 .minimap-panel menu[role="tablist"] > li[aria-selected="true"] > a,
 .minimap-panel menu[role="tablist"] > li[aria-selected="true"] > a:focus{ outline:1px dotted #222 }
