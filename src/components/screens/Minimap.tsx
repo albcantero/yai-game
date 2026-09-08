@@ -29,13 +29,13 @@ const ROOMS: Room[] = [
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3 }, // puerta a la Tienda (Librería): 3 llaves
-  { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 0, offTo: 1 }, // R4→R5: +1 (un pelín hacia fuera)
+  { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 0, offTo: 2 }, // R4→R5: +2
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
   { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offTo: -1 }, // Almacén→Intersección: -1 (global); intersección→...: -1
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: -1 },
-  { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: -1, offTo: 0 }, // R4→Intersección: 0
+  { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: -1, offTo: 1 }, // R4→Intersección: +1
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 0 }, // R6→R7: 0 (R7→R6: -1 global)
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], offFrom: 0 }, // R7→R8: 0 (R8→R7: -1 global)
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 0 }, // R2→R6: 0 (R6→R2: -1 global)
