@@ -40,7 +40,7 @@ const LINKS: Link[] = [
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], offFrom: 0 }, // R7→R8: 0 (R8→R7: -1 global)
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 0 }, // R2→R6: 0 (R6→R2: -1 global)
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 0 }, // R2→R3: 0
-  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], offFrom: 2 }, // Sala de Máquinas→R2: +2 (R2→S.Máquinas: -1 global)
+  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], offFrom: 3 }, // Sala de Máquinas→R2: +3 (R2→S.Máquinas: -1 global)
   { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 1 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +1
 ];
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
