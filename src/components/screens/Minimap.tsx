@@ -7,19 +7,18 @@ import type { ScreenHandle, ScreenServices } from "./types";
 // Coordenadas en un viewBox 0..100, calcadas del plano PNG (pendiente de afinar a mano con Alberto).
 // name = nombre amable (barra de título del panel); puzzles = nº de puzzles de la sala (contador del panel).
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; name?: string; puzzles?: number };
-// NOTA TEMP (desarrollo): todas las salas están discovered:true = mapa ENTERO desbloqueado.
-// Revertir (poner el fog real) cuando cableemos el estado del juego.
+// Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
-  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: true },
-  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: true },
-  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: true },
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: true },
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: true },
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, name: "Almacén", puzzles: 1 }, // sala 1 (inicio); ensanchada hacia +x (w 8→13)
-  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: true, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
-  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: true, name: "Sala de Máquinas", puzzles: 1 }, // +2.5 en x: aire respecto al Almacén ensanchado
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: true },
-  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: true, name: "Librería" }, // = la TIENDA (pegada al Almacén). ACTIVADA (despejada) para afinar; era la sala en niebla del demo
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false },
+  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false },
+  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false },
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false },
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false },
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, name: "Almacén", puzzles: 1 }, // sala 1 (inicio); la ÚNICA despejada
+  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
+  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, name: "Sala de Máquinas", puzzles: 1 },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false },
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, name: "Librería" }, // = la TIENDA (pegada al Almacén), 3 llaves
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
@@ -52,12 +51,12 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15 }];
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }]; // cruz N: en niebla como todo lo que no es el Almacén
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
-// grafo mezcla salas y junctions sin casos especiales. Un junction siempre está "descubierto" (es de paso).
+// grafo mezcla salas y junctions sin casos especiales.
 const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
   ...Object.fromEntries(ROOMS.map((r) => [r.id, { x: cx(r), y: cy(r), discovered: r.discovered }])),
-  ...Object.fromEntries(JUNCTIONS.map((j) => [j.id, { x: j.x, y: j.y, discovered: true }])),
+  ...Object.fromEntries(JUNCTIONS.map((j) => [j.id, { x: j.x, y: j.y, discovered: j.discovered }])),
 };
 
 // Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; pin rojo = grupo
@@ -127,10 +126,13 @@ function marksFor(current: string) {
       icon: blocked ? LOCK_ICON : ARROW,
       angle: blocked ? 0 : (Math.atan2(dy, dx) * 180) / Math.PI, // rota la flecha al ángulo del pasillo (respeta diagonales); el candado no rota
       blocked,
+      keys: lk.keys ?? 1, // llaves para cruzar esta puerta (popup del candado); por defecto 1
       ax: dx / len, ay: dy / len, // dirección unitaria (para el floating de la flecha)
     };
   });
 }
+type Mark = ReturnType<typeof marksFor>[number];
+const HAVE_KEYS = 0; // llaves que tiene el grupo ahora mismo (aún sin cablear; el HUD también muestra 0)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
@@ -156,6 +158,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [view, setView] = useState<View>(FIT); // transform de la cámara
   const [frozenH, setFrozenH] = useState<number | null>(null); // alto FIJO del mapa (pantalla sin teclado)
   const [current, setCurrent] = useState(START_ROOM); // sala en la que estás (te mueves tocando las flechas)
+  const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
@@ -394,11 +397,10 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 dirección (pixel); los candados no. Los iconos de dos trazos pintan d + d2 (evita el agujero). */}
             {marks.map((m) => (
               <g key={"mk" + m.key}
-                pointerEvents={m.blocked ? "none" : undefined}
-                onClick={m.blocked ? undefined : () => { if (movedRef.current) return; setCurrent(m.dest); }}
+                onClick={() => { if (movedRef.current) return; if (m.blocked) setLocked(m); else setCurrent(m.dest); }}
                 className={m.blocked ? undefined : "minimap-arrow-float"}
-                style={m.blocked ? undefined : ({ "--ax": m.ax, "--ay": m.ay, cursor: "pointer" } as CSSProperties)}>
-                {!m.blocked && <rect x={m.x - 5} y={m.y - 5} width={10} height={10} fill="transparent" pointerEvents="all" />}
+                style={m.blocked ? { cursor: "pointer" } : ({ "--ax": m.ax, "--ay": m.ay, cursor: "pointer" } as CSSProperties)}>
+                <rect x={m.x - 5} y={m.y - 5} width={10} height={10} fill="transparent" pointerEvents="all" />
                 <g transform={`rotate(${m.angle.toFixed(1)} ${m.x.toFixed(2)} ${m.y.toFixed(2)}) ${placeIcon(m.icon, ARROW_H, m.x, m.y).tf}`}>
                   {/* borde negro = capa negra (fill+stroke) DETRÁS, blanco encima: interior 100% blanco (sin
                       asta rellena de negro) y banda negra tan gruesa como el borde del pin. */}
@@ -448,6 +450,33 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   {tab === 1 && <p>0/{selRoom.puzzles ?? 0} resueltos</p>}
                   {tab === 2 && <p>—</p>}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* popup del CANDADO: camino bloqueado + coste en llaves. Desbloquear DISABLED si no llegan las llaves. */}
+      {locked && (
+        <div className="confirm-overlay win98 minimap-lock" onClick={() => setLocked(null)}>
+          <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="title-bar">
+              <img className="title-icon" src="/icons/key_padlock-1.png" alt="" />
+              <div className="title-bar-text">Bloqueado</div>
+              <div className="title-bar-controls">
+                <button type="button" aria-label="Close" onClick={() => setLocked(null)}></button>
+              </div>
+            </div>
+            <div className="window-body">
+              <div className="confirm-row">
+                <img className="confirm-icon" src="/icons/key_padlock-0.png" alt="" />
+                <p>El camino está bloqueado.</p>
+              </div>
+              <div className="confirm-buttons">
+                <button type="button" disabled={HAVE_KEYS < locked.keys} onClick={() => setLocked(null)}>
+                  Desbloquear {locked.keys}
+                  <svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
+                </button>
+                <button type="button" onClick={() => setLocked(null)}>Salir</button>
               </div>
             </div>
           </div>
