@@ -82,15 +82,15 @@ const ARROW_DOWN: Icon = { d: "M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V
 const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
 const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
 // Marcas de movimiento: SOLO de la sala actual, una por salida (cada LINK conectado). Se colocan en el pasillo,
-// justo fuera de la entrada, apuntando a la vecina. Flecha si la salida es libre; CANDADO si está bloqueada
-// (puerta con llave o sala vecina en niebla): se detecta solo y NO sale la flecha.
+// justo fuera de la entrada, apuntando a la vecina. REGLA AUTOMÁTICA (según el estado de niebla, sin llaves):
+// vecina en niebla ("?") = CANDADO; vecina despejada (con bandera) = FLECHA, siempre.
 const EXIT_MARKS = LINKS.filter((lk) => lk.from === CURRENT || lk.to === CURRENT).map((lk) => {
   const atFrom = lk.from === CURRENT;
   const end = atFrom ? lk.pts[0] : lk.pts[lk.pts.length - 1];        // punto del pasillo en la sala actual
   const adj = atFrom ? lk.pts[1] : lk.pts[lk.pts.length - 2];        // siguiente punto hacia la vecina
   const dx = adj[0] - end[0], dy = adj[1] - end[1], len = Math.hypot(dx, dy) || 1;
   const dest = atFrom ? lk.to : lk.from;                             // sala vecina
-  const blocked = !!lk.keys || !byId[dest]?.discovered;             // puerta con llave o vecina en niebla = bloqueada
+  const blocked = !byId[dest]?.discovered;                          // AUTOMÁTICO: vecina en niebla ("?") = candado; despejada (con bandera) = flecha, SIEMPRE
   const dir = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? ARROW_RIGHT : ARROW_LEFT) : (dy >= 0 ? ARROW_DOWN : ARROW_UP);
   return {
     key: lk.from + "-" + lk.to,
