@@ -27,12 +27,12 @@ const ROOMS: Room[] = [
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offFrom: 1, offTo: 3 }, // puerta a la Tienda (Librería): 3 llaves. Librería→Almacén: +1; Almacén→Librería: +3
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offFrom: 1, offTo: 4 }, // puerta a la Tienda (Librería): 3 llaves. Librería→Almacén: +1; Almacén→Librería: +4
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 1, offTo: 2 }, // R5→R4: +1, R4→R5: +2
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
-  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 1, offTo: 2 }, // Almacén→Intersección: +1; Intersección→Almacén: +2
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 2, offTo: 2 }, // Almacén→Intersección: +2; Intersección→Almacén: +2
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 1 }, // Intersección→R3: +2; R3→Intersección: +1
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 1, offTo: 1 }, // R6→R7: +1; R7→R6: +1
@@ -40,7 +40,7 @@ const LINKS: Link[] = [
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 3, offTo: 0 }, // R2→R6: +3; R6→R2: 0
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 3, offTo: 1 }, // R2→R3: +3; R3→R2: +1
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], offFrom: 3, offTo: 2 }, // Sala de Máquinas→R2: +3; R2→S.Máquinas: +2
-  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 1 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +1
+  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 2 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +2
 ];
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
 
@@ -65,7 +65,7 @@ const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e";
 const MARKER = "#e03131", MARKER_EDGE = "#000"; // "estáis aquí": pin de ubicación rojo con borde negro
 const FLAG = "#3a4038", FLAG_ACTIVE = "#00008a"; // bandera: gris normal / navy = sala abierta (activa)
 const linkD = (lk: Link) => "M" + lk.pts.map((p) => p.join(",")).join("L");
-const shown = (lk: Link) => !!NODE[lk.from]?.discovered && !!NODE[lk.to]?.discovered;
+const shown = (lk: Link, disc: Set<string>) => disc.has(lk.from) && disc.has(lk.to); // pasillo sólido si sus dos extremos están descubiertos (estado en vivo)
 
 // Iconos de la insignia como {d, bb=[minX,minY,maxX,maxY]}. La colocación (escala + centrado) se calcula
 // SOLA desde el bbox: cambiar el icono o su tamaño NO obliga a re-tunear offsets a mano.
@@ -107,14 +107,14 @@ function rectExit(r: Room, ex: number, ey: number, dx: number, dy: number) {
   const t = Math.max(0, Math.min(tx, ty));
   return { x: ex + t * dx, y: ey + t * dy };
 }
-function marksFor(current: string) {
+function marksFor(current: string, disc: Set<string>) {
   return LINKS.filter((lk) => lk.from === current || lk.to === current).map((lk) => {
     const atFrom = lk.from === current;
     const end = atFrom ? lk.pts[0] : lk.pts[lk.pts.length - 1];        // punto del pasillo en la posición actual
     const adj = atFrom ? lk.pts[1] : lk.pts[lk.pts.length - 2];        // siguiente punto hacia la vecina
     const dx = adj[0] - end[0], dy = adj[1] - end[1], len = Math.hypot(dx, dy) || 1;
     const dest = atFrom ? lk.to : lk.from;                             // vecina (destino del movimiento)
-    const blocked = !NODE[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
+    const blocked = !disc.has(dest);                                  // vecina en niebla = candado; despejada = flecha
     const room = byId[current];                                       // sala actual (undefined si estás en un junction)
     const base = room ? rectExit(room, end[0], end[1], dx, dy) : { x: end[0], y: end[1] }; // puerta (borde) o el propio punto
     const perOff = atFrom ? lk.offFrom : lk.offTo;                    // offset de ESTA flecha (según el lado)
@@ -132,7 +132,8 @@ function marksFor(current: string) {
   });
 }
 type Mark = ReturnType<typeof marksFor>[number];
-const HAVE_KEYS = 0; // llaves que tiene el grupo ahora mismo (aún sin cablear; el HUD también muestra 0)
+const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
+const START_KEYS = 99; // llaves iniciales del grupo (para poder ir desbloqueando; luego será el estado real del juego)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
@@ -159,6 +160,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [frozenH, setFrozenH] = useState<number | null>(null); // alto FIJO del mapa (pantalla sin teclado)
   const [current, setCurrent] = useState(START_ROOM); // sala en la que estás (te mueves tocando las flechas)
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
+  const [keys, setKeys] = useState(START_KEYS); // llaves del grupo
+  const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
@@ -173,7 +176,14 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const capturedRef = useRef(false); // ya se capturó el puntero de este arrastre
 
   const selRoom = selected ? byId[selected] : null;
-  const marks = marksFor(current); // flechas/candados de la sala actual (se recalculan al moverte)
+  const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
+  // desbloquear una puerta: gasta las llaves y descubre la sala vecina (candado → flecha)
+  const unlock = (m: Mark) => {
+    if (keys < m.keys) return;
+    setKeys((k) => k - m.keys);
+    setDiscovered((d) => new Set(d).add(m.dest));
+    setLocked(null);
+  };
 
   const setV = (v: View) => { viewRef.current = v; setView(v); };
 
@@ -329,21 +339,21 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           <g className="minimap-camera" transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             {/* 1. corredores por descubrir (no interceptan el toque) */}
             {LINKS.map((lk, i) =>
-              shown(lk) ? null : (
+              shown(lk, discovered) ? null : (
                 <path key={"fog" + i} className="minimap-fog-link" d={linkD(lk)} fill="none"
                   stroke={FOG_EDGE} strokeWidth={0.8} strokeLinecap="butt" strokeLinejoin="miter" pointerEvents="none" />
               ),
             )}
             {/* 2. CONTORNO oscuro de los pasillos, DEBAJO de las salas (esquinas en pico) */}
             {LINKS.map((lk, i) =>
-              shown(lk) ? (
+              shown(lk, discovered) ? (
                 <path key={"out" + i} d={linkD(lk)} fill="none" stroke={EDGE} strokeWidth={4.6}
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
             )}
             {/* 3. salas: NO tocables (el toque vive en la bandera). por descubrir = oscura con "?"; descubierta = suelo claro */}
             {ROOMS.map((r) => {
-              if (!r.discovered) {
+              if (!discovered.has(r.id)) {
                 return (
                   <g key={r.id} pointerEvents="none">
                     <rect className="minimap-fog-room" x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
@@ -358,7 +368,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             })}
             {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: abre la puerta en la unión */}
             {LINKS.map((lk, i) =>
-              shown(lk) ? (
+              shown(lk, discovered) ? (
                 <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
@@ -367,7 +377,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
                 movedRef = si el gesto fue un arrastre/pinza, NO se abre panel. */}
             {ROOMS.map((r) => {
-              if (!r.discovered) return null; // sala en niebla: solo su "?" (pase 3), sin bandera ni toque
+              if (!discovered.has(r.id)) return null; // sala en niebla: solo su "?" (pase 3), sin bandera ni toque
               const cur = r.id === current;
               return (
                 <g key={"badge" + r.id} transform={`translate(${cx(r).toFixed(2)},${cy(r).toFixed(2)})`}
@@ -419,7 +429,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           <button type="button" tabIndex={-1} className="hud-btn" aria-label="Llaves">
             <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
           </button>
-          <span className="hud-count">0</span>
+          <span className="hud-count">{keys}</span>
         </div>
       </div>
       <div className="minimap-hud-right">
@@ -472,7 +482,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 <p>El camino está bloqueado.</p>
               </div>
               <div className="confirm-buttons">
-                <button type="button" disabled={HAVE_KEYS < locked.keys} onClick={() => setLocked(null)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>...</button>
+                <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 <button type="button" onClick={() => setLocked(null)}>Salir</button>
               </div>
             </div>
