@@ -34,7 +34,7 @@ const LINKS: Link[] = [
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
   { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 1, offTo: 2 }, // Almacén→Intersección: +1; Intersección→Almacén: +2
-  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2 }, // Intersección→R3: +2
+  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 1 }, // Intersección→R3: +2; R3→Intersección: +1
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 1, offTo: 1 }, // R6→R7: +1; R7→R6: +1
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], offFrom: 1, offTo: 1 }, // R7→R8: +1; R8→R7: +1
