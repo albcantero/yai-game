@@ -35,7 +35,7 @@ const LINKS: Link[] = [
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]] },
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]] },
   { from: "r1", to: "r2", pts: [[71.5, 64.2], [67.2, 56.2]] },
-  { from: "r1", to: "hub-almacen", pts: [[57, 72], [45, 64]] }, // diagonal almacén ↔ r1 (entra poco en r1 para no cortar su borde)
+  { from: "r1", to: "hub-almacen", pts: [[58.3, 84.9], [44, 77], [44, 64]] }, // curva original (codo diagonal+vertical); final metido en el almacén (y=64) para que abra la puerta
 ];
 const CURRENT = "hub-almacen"; // sala donde empieza / está el grupo: el almacén (sala 1)
 
