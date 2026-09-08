@@ -1,12 +1,13 @@
 // Panel de info de una sala (overlay Win98 con pestañas). IDÉNTICO para todas las banderas: recibe por
 // props el título, el nº de puzzles y el estado del juego (puzzles resueltos + callbacks). Así el Minimap
 // (o cualquier pantalla) lo reutiliza sin duplicar markup. Los estilos viven en styles/minimap.css.
-const TABS = ["Información", "Puzzles"];
+const TABS = ["Información", "Llaves"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab.
 const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", "/icons/keys-5.png"];
 
 export type RoomPanelProps = {
-  title: string; // nombre de la sala (barra de título + pestaña Descripción)
+  title: string; // nombre de la sala (campo "Nombre:" de la pestaña Información)
+  num?: number; // número de habitación (barra de título: "Habitación X")
   roomId: string; // para los ids de puzzle ("sala#índice")
   puzzles: number; // nº de puzzles de la sala
   description?: string; // texto de la descripción (si no hay, se usa un lorem de relleno)
@@ -17,7 +18,7 @@ export type RoomPanelProps = {
   onClose: () => void;
 };
 
-export default function RoomPanel({ title, roomId, puzzles, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
+export default function RoomPanel({ title, num, roomId, puzzles, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
   const bigIcon = TAB_BIG[tab];
   // "Resolver" del aside: resuelve el siguiente puzzle sin resolver de la sala (+1 llave). Provisional
   // hasta que haya datos/navegación de puzzles; mantiene la economía jugable.
@@ -32,7 +33,7 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
       <div className="window minimap-panel">
         <div className="title-bar">
           <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
-          <div className="title-bar-text">Sala</div>
+          <div className="title-bar-text">{num ? `Habitación ${num}` : "Habitación"}</div>
           <div className="title-bar-controls">
             <button type="button" aria-label="Close" onClick={onClose}></button>
           </div>
@@ -51,7 +52,7 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
                   <>
                     {/* fila Win98: etiqueta "Sala:" + campo hundido con el nombre, en la MISMA línea */}
                     <div className="field-row room-sala">
-                      <span>Sala:</span>
+                      <span>Nombre:</span>
                       <div className="sunken-panel room-name">{title}</div>
                     </div>
                     <p className="room-field-label">Descripción:</p>
