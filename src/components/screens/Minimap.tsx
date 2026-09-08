@@ -137,6 +137,8 @@ function marksFor(current: string, disc: Set<string>) {
 type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
 const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
+// icono GRANDE del hueco derecho del panel, por pestaña [Descripción, Puzzles, Objetos]. Cambia al cambiar de tab.
+const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", null, null];
 const START_KEYS = 0; // llaves iniciales del grupo: 0. Se ganan resolviendo puzzles (1 puzzle = 1 llave)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
@@ -184,6 +186,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
 
   const selRoom = selected ? byId[selected] : null;
   const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
+  const bigIcon = TAB_BIG[tab]; // icono grande del hueco derecho, según la pestaña abierta
   // resolver un puzzle: +1 llave (una sola vez por puzzle). id = "sala#índice".
   const solvePuzzle = (id: string) => {
     if (solved.has(id)) return;
@@ -463,6 +466,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         <div className="minimap-info win98">
           <div className="window minimap-panel">
             <div className="title-bar">
+              <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
               <div className="title-bar-text">{selRoom.name ?? selRoom.id}</div>
               <div className="title-bar-controls">
                 <button type="button" aria-label="Close" onClick={() => setSelected(null)}></button>
@@ -499,7 +503,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 </div>
               </div>
               </div>
-              <div className="minimap-panel-aside" />
+              <div className="minimap-panel-aside">{bigIcon && <img src={bigIcon} alt="" />}</div>
             </div>
           </div>
         </div>
