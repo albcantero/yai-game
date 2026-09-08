@@ -55,7 +55,10 @@ const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discov
 
 // Iconos de la insignia como {d, bb=[minX,minY,maxX,maxY]}. La colocación (escala + centrado) se calcula
 // SOLA desde el bbox: cambiar el icono o su tamaño NO obliga a re-tunear offsets a mano.
-type Icon = { d: string; bb: [number, number, number, number] };
+// d2 = segundo subpath OPCIONAL. Los iconos con dos trazos (las flechas) se pintan como DOS <path>
+// separados, igual que en el SVG original: si se concatenan en un solo `d`, la regla de relleno abre un
+// agujero donde el asta y el triángulo se solapan (el "hueco negro" del medio).
+type Icon = { d: string; d2?: string; bb: [number, number, number, number] };
 const FLAG_ICON: Icon = { d: "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z", bb: [4, 2, 20, 22] };
 const PIN_ICON: Icon = { d: "M20 12V16H18V18H16V20H14V22H10V20H8V18H6V16H4V12H20ZM14 4H16V8H14V10H10V8H8V4H10V2H14V4Z", bb: [4, 2, 20, 22] };
 // transform (translate+scale) que dibuja `icon` con altura `h` y su CENTRO en (px,py); w = ancho dibujado.
@@ -72,9 +75,9 @@ const TF_PIN_PAIR = placeIcon(PIN_ICON, PIN_H, -PAIR_W / 2 + PIN_W / 2, 0).tf;  
 const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf; // bandera a la derecha del par
 
 // Flechas de dirección (izq/arriba/der/abajo). Arriba/abajo = las mismas de los botones del mentón.
-const ARROW_LEFT: Icon = { d: "M20 11v2H4v-2zM8 13v2H6v-2zm2 2v2H8v-2zm2 2v2h-2v-2zm-4-6V9H6v2zM10 15V7H8v8zm2 2V5h-2v12z", bb: [0, 0, 24, 24] };
-const ARROW_UP: Icon = { d: "M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2zM15 10H7V8h8zm2 2H5v-2h12z", bb: [0, 0, 24, 24] };
-const ARROW_RIGHT: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2zM14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
+const ARROW_LEFT: Icon = { d: "M20 11v2H4v-2zM8 13v2H6v-2zm2 2v2H8v-2zm2 2v2h-2v-2zm-4-6V9H6v2z", d2: "M10 15V7H8v8zm2 2V5h-2v12z", bb: [0, 0, 24, 24] };
+const ARROW_UP: Icon = { d: "M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2z", d2: "M15 10H7V8h8zm2 2H5v-2h12z", bb: [0, 0, 24, 24] };
+const ARROW_RIGHT: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
 const ARROW_DOWN: Icon = { d: "M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z", bb: [0, 0, 24, 24] };
 const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
 const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
@@ -310,7 +313,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   <g key={r.id} pointerEvents="none">
                     <rect className="minimap-fog-room" x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
                       stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
-                    <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={Math.min(r.w, r.h) * 0.5}
+                    <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={6}
                       fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
                   </g>
                 );
@@ -349,15 +352,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               );
             })}
             {/* 6. marcas de movimiento de la sala ACTUAL, en el pasillo a la salida: flecha si la salida es
-                libre, CANDADO si está bloqueada (llave o niebla). Blancas sobre disco oscuro (el suelo del
-                pasillo es claro). Las flechas "flotan" hacia su dirección (pixel); los candados no. */}
+                libre, CANDADO si está bloqueada (llave o niebla). Todo BLANCO. Las flechas "flotan" hacia su
+                dirección (pixel); los candados no. Los iconos de dos trazos pintan d + d2 (evita el agujero). */}
             {EXIT_MARKS.map((m) => (
               <g key={"mk" + m.key} pointerEvents="none"
                 className={m.blocked ? undefined : "minimap-arrow-float"}
                 style={m.blocked ? undefined : ({ "--ax": m.ax, "--ay": m.ay } as CSSProperties)}>
-                <circle cx={m.x} cy={m.y} r={ARROW_H * 0.5} fill="#141a16" />
                 <g transform={placeIcon(m.icon, ARROW_H, m.x, m.y).tf}>
                   <path d={m.icon.d} fill="#fff" />
+                  {m.icon.d2 && <path d={m.icon.d2} fill="#fff" />}
                 </g>
               </g>
             ))}
