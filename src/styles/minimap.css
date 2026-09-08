@@ -1,12 +1,20 @@
-/* Minimapa (SVG) dentro del CRT: centrado, ocupa la pantalla. El componente vive en screens/Minimap.tsx. */
+/* Minimapa (SVG) dentro del CRT. El componente vive en screens/Minimap.tsx.
+   Rejilla de 2 filas: [mapa][panel]. Sin sala abierta el panel colapsa a 0fr (mapa a pantalla completa);
+   al tocar una sala pasa a 1fr 1fr (mapa arriba, panel en la mitad inferior). grid-template-rows anima. */
 .minimap-screen{
   position:relative;z-index:1;
   height:100%;width:100%;
-  display:flex;align-items:center;justify-content:center;
-  padding:18px;
+  display:grid;grid-template-rows:1fr 0fr;
+  transition:grid-template-rows .4s ease;
+  overflow:hidden;
   background:#050805;
 }
+.minimap-screen.is-open{ grid-template-rows:1fr 1fr }
+.minimap-view{ position:relative;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:18px }
 .minimap-svg{ width:100%;height:100%;max-width:100%;max-height:100% }
+/* Cámara: el desplazamiento del mapa (centrar la sala actual en la mitad libre) se anima aquí */
+.minimap-camera{ transition:transform .4s ease }
+@media (prefers-reduced-motion:reduce){ .minimap-screen,.minimap-camera{ transition:none } }
 /* HUD del mapa (esquina superior izq): botón Win98 con icono + contador en blanco al lado. Solo display. */
 .minimap-hud,.minimap-hud-right{ position:absolute;top:8px;z-index:5;display:flex;align-items:center;pointer-events:none }
 .minimap-hud{ left:8px }
@@ -16,8 +24,9 @@
 .minimap-hud .hud-btn svg{ width:24px;height:24px;display:block }
 .hud-icon{ width:24px;height:24px;display:block;fill:#fff }
 .hud-count{ color:#fff;font-family:'Determination Sans',"Courier New",monospace;font-size:20px;line-height:1;text-shadow:1px 1px 0 rgba(0,0,0,.7) }
-/* Panel de info de sala (al tocar la sala): MITAD INFERIOR de la pantalla, ventana Win98 con pestañas */
-.minimap-info{ position:absolute;left:0;right:0;bottom:0;height:50%;z-index:6;padding:6px;display:flex }
+/* Panel de info de sala (al tocar la sala): fila 2 de la rejilla (mitad inferior), ventana Win98 con pestañas.
+   Colapsa a 0fr sin sala; overflow:hidden recorta la ventana mientras la fila crece/mengua. */
+.minimap-info{ min-height:0;overflow:hidden;z-index:6;padding:6px;display:flex }
 .minimap-panel{ flex:1;margin:0;display:flex;flex-direction:column;min-height:0 }
 .minimap-panel-body{ flex:1;min-height:0;display:flex;flex-direction:column;margin:6px }
 .minimap-panel-body [role="tabpanel"]{ flex:1;min-height:0;margin:0;overflow:auto }

@@ -60,9 +60,17 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
   const [tab, setTab] = useState(0); // pestaña activa del panel
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
+  // Cámara: con el panel abierto la sala actual (el pin) se recoloca en el centro del viewBox (= centro
+  // del rectángulo superior libre, porque el SVG se reajusta a esa mitad). Cerrado = mapa entero sin desplazar.
+  const curRoom = byId[CURRENT];
+  const camTf = selected && curRoom
+    ? `translate(${(50 - cx(curRoom)).toFixed(2)}px, ${(50 - cy(curRoom)).toFixed(2)}px)`
+    : "translate(0px, 0px)";
   return (
-    <div className="minimap-screen">
+    <div className={"minimap-screen" + (selected ? " is-open" : "")}>
+      <div className="minimap-view">
       <svg className="minimap-svg" viewBox="-3 -3 106 106" preserveAspectRatio="xMidYMid meet">
+        <g className="minimap-camera" style={{ transform: camTf }}>
         {/* 1. corredores por descubrir (no interceptan el toque) */}
         {LINKS.map((lk, i) =>
           shown(lk) ? null : (
@@ -117,7 +125,9 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             </g>
           );
         })}
+        </g>
       </svg>
+      </div>
       <div className="minimap-hud win98">
         <div className="hud-row">
           <button type="button" tabIndex={-1} className="hud-btn" aria-label="Llaves">
@@ -130,8 +140,9 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         <span className="hud-count">0/25</span>
         <svg className="hud-icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
       </div>
-      {selected && (
-        <div className="minimap-info win98">
+      {/* fila 2 de la rejilla: SIEMPRE presente (colapsada a 0fr sin sala) para que grid-template-rows anime */}
+      <div className="minimap-info win98">
+        {selected && (
           <div className="window minimap-panel">
             <div className="title-bar">
               <div className="title-bar-text">{selected}</div>
@@ -156,8 +167,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 });
