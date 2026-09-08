@@ -17,7 +17,7 @@ const ROOMS: Room[] = [
   { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: true },
   { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, name: "Almacén", puzzles: 1 }, // sala 1 (inicio); ensanchada hacia +x (w 8→13)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: true, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
-  { id: "r1", x: 55.2, y: 63.0, w: 19.8, h: 25.5, discovered: true, name: "Sala de Máquinas", puzzles: 1 },
+  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: true, name: "Sala de Máquinas", puzzles: 1 }, // +2.5 en x: aire respecto al Almacén ensanchado
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: true },
   { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: true },
 ];
@@ -36,8 +36,8 @@ const LINKS: Link[] = [
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1 }, // salida 1 de la sala central
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1 }, // salida 2 de la sala central
-  { from: "r1", to: "r2", pts: [[71.5, 64.2], [67.2, 56.2]] }, // Sala de Máquinas → sala central (sin llave)
-  { from: "r1", to: "hub-almacen", pts: [[58.3, 84.9], [44, 77], [44, 64]], keys: 1 }, // Almacén ↓ Sala de Máquinas: 1 llave
+  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]] }, // Sala de Máquinas → sala central (sin llave); extremo r1 +2.5 con la sala
+  { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1 }, // Almacén ↓ Sala de Máquinas: 1 llave; extremo r1 +2.5 con la sala
 ];
 const KEYS_TO_TIENDA = 3; // la Tienda (¿sala del mapa o el programa del menú?) necesita 3 llaves. Pendiente ubicarla
 void KEYS_TO_TIENDA;
@@ -285,22 +285,21 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
             )}
-            {/* 5. insignia por sala: SOLO la marca (pin rojo si es la actual, si no bandera gris), centrada.
-                El toque vive en un wrapper con margen (rect transparente) alrededor de la marca, no en la sala.
+            {/* 5. insignia por sala: la bandera gris centrada (wrapper tocable con margen). En la sala ACTUAL
+                se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
                 movedRef = si el gesto fue un arrastre/pinza, NO se abre panel. */}
             {ROOMS.map((r) => {
               const cur = r.id === CURRENT;
               return (
                 <g key={"badge" + r.id} transform={`translate(${cx(r).toFixed(2)},${cy(r).toFixed(2)})`}
                   onClick={() => { if (movedRef.current) return; setSelected(r.id); setTab(0); }} style={{ cursor: "pointer" }}>
-                  <rect x={-4.5} y={-8} width={9} height={11} fill="transparent" pointerEvents="all" />
-                  {cur ? (
-                    <g transform="translate(-2.7,-7.5) scale(0.26)">
+                  <rect x={cur ? -7.5 : -4.5} y={-8} width={cur ? 12 : 9} height={11} fill="transparent" pointerEvents="all" />
+                  {cur && (
+                    <g transform="translate(-7.04,-3.12) scale(0.26)">
                       <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
                     </g>
-                  ) : (
-                    <g transform="translate(-2.64,-2.64) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
                   )}
+                  <g transform="translate(-2.64,-2.64) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
                 </g>
               );
             })}
