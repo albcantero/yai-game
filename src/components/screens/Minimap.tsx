@@ -75,12 +75,11 @@ const TF_PIN_PAIR = placeIcon(PIN_ICON, PIN_H, -PAIR_W / 2 + PIN_W / 2, 0).tf;  
 const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf; // bandera a la derecha del par
 
 // Flechas de dirección (izq/arriba/der/abajo). Arriba/abajo = las mismas de los botones del mentón.
-const ARROW_LEFT: Icon = { d: "M20 11v2H4v-2zM8 13v2H6v-2zm2 2v2H8v-2zm2 2v2h-2v-2zm-4-6V9H6v2z", d2: "M10 15V7H8v8zm2 2V5h-2v12z", bb: [0, 0, 24, 24] };
-const ARROW_UP: Icon = { d: "M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2z", d2: "M15 10H7V8h8zm2 2H5v-2h12z", bb: [0, 0, 24, 24] };
-const ARROW_RIGHT: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
-const ARROW_DOWN: Icon = { d: "M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z", bb: [0, 0, 24, 24] };
+// Flecha base: apunta a la DERECHA (+x, 0°). Se ROTA al ángulo del pasillo, así respeta rectas y diagonales.
+const ARROW: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
 const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
 const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
+const MARK_BORDER = 2.9; // grosor del borde negro de las marcas: como es "por fuera" (blanco lleno encima), va al doble del trazo del pin (1.4 a caballo) para que la banda negra se vea igual de gruesa
 // Marcas de movimiento de la sala ACTUAL (`current`), una por salida (cada LINK conectado). Se dibujan
 // RESPECTO a la sala en la que estás: cada marca nace en la salida de `current` y apunta a la vecina, así
 // que se invierte sola al cambiar de sala. REGLA AUTOMÁTICA (por niebla, sin llaves): vecina en niebla
@@ -93,12 +92,12 @@ function marksFor(current: string) {
     const dx = adj[0] - end[0], dy = adj[1] - end[1], len = Math.hypot(dx, dy) || 1;
     const dest = atFrom ? lk.to : lk.from;                             // sala vecina (destino del movimiento)
     const blocked = !byId[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
-    const dir = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? ARROW_RIGHT : ARROW_LEFT) : (dy >= 0 ? ARROW_DOWN : ARROW_UP);
     return {
       key: lk.from + "-" + lk.to, dest,
       x: end[0] + (dx / len) * ARROW_D,
       y: end[1] + (dy / len) * ARROW_D,
-      icon: blocked ? LOCK_ICON : dir,
+      icon: blocked ? LOCK_ICON : ARROW,
+      angle: blocked ? 0 : (Math.atan2(dy, dx) * 180) / Math.PI, // rota la flecha al ángulo del pasillo (respeta diagonales); el candado no rota
       blocked,
       ax: dx / len, ay: dy / len, // dirección unitaria (para el floating de la flecha)
     };
@@ -366,11 +365,11 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 className={m.blocked ? undefined : "minimap-arrow-float"}
                 style={m.blocked ? undefined : ({ "--ax": m.ax, "--ay": m.ay, cursor: "pointer" } as CSSProperties)}>
                 {!m.blocked && <rect x={m.x - 5} y={m.y - 5} width={10} height={10} fill="transparent" pointerEvents="all" />}
-                <g transform={placeIcon(m.icon, ARROW_H, m.x, m.y).tf}>
-                  {/* borde negro = capa negra (fill+stroke) DETRÁS, blanco encima: mismo px que el pin, e
-                      interior 100% blanco (nada de asta rellena de negro). */}
-                  <path d={m.icon.d} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="round" />
-                  {m.icon.d2 && <path d={m.icon.d2} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="round" />}
+                <g transform={`rotate(${m.angle.toFixed(1)} ${m.x.toFixed(2)} ${m.y.toFixed(2)}) ${placeIcon(m.icon, ARROW_H, m.x, m.y).tf}`}>
+                  {/* borde negro = capa negra (fill+stroke) DETRÁS, blanco encima: interior 100% blanco (sin
+                      asta rellena de negro) y banda negra tan gruesa como el borde del pin. */}
+                  <path d={m.icon.d} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={MARK_BORDER} strokeLinejoin="round" />
+                  {m.icon.d2 && <path d={m.icon.d2} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={MARK_BORDER} strokeLinejoin="round" />}
                   <path d={m.icon.d} fill="#fff" />
                   {m.icon.d2 && <path d={m.icon.d2} fill="#fff" />}
                 </g>
