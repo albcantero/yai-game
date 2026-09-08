@@ -52,12 +52,27 @@ const cy = (r: Room) => r.y + r.h / 2;
 const EDGE = "#5f685f", FLOOR = "#cfd6cf";
 const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e";
 const MARKER = "#e03131", MARKER_EDGE = "#000"; // "estáis aquí": pin de ubicación rojo con borde negro
-const MARKER_D = "M20 12V16H18V18H16V20H14V22H10V20H8V18H6V16H4V12H20ZM14 4H16V8H14V10H10V8H8V4H10V2H14V4Z";
+const FLAG = "#3a4038", FLAG_ACTIVE = "#00008a"; // bandera: gris normal / navy = sala abierta (activa)
 const linkD = (lk: Link) => "M" + lk.pts.map((p) => p.join(",")).join("L");
 const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
-// Insignia de cada sala: SOLO la bandera gris (tocable vía su propio wrapper con margen, no toda la sala).
-// En la sala ACTUAL la marca es el pin rojo en vez de la bandera.
-const FLAG = "#3a4038", FLAG_D = "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z";
+
+// Iconos de la insignia como {d, bb=[minX,minY,maxX,maxY]}. La colocación (escala + centrado) se calcula
+// SOLA desde el bbox: cambiar el icono o su tamaño NO obliga a re-tunear offsets a mano.
+type Icon = { d: string; bb: [number, number, number, number] };
+const FLAG_ICON: Icon = { d: "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z", bb: [4, 2, 20, 22] };
+const PIN_ICON: Icon = { d: "M20 12V16H18V18H16V20H14V22H10V20H8V18H6V16H4V12H20ZM14 4H16V8H14V10H10V8H8V4H10V2H14V4Z", bb: [4, 2, 20, 22] };
+// transform (translate+scale) que dibuja `icon` con altura `h` y su CENTRO en (px,py); w = ancho dibujado.
+const placeIcon = (icon: Icon, h: number, px: number, py: number) => {
+  const [x0, y0, x1, y1] = icon.bb;
+  const s = h / (y1 - y0);
+  return { tf: `translate(${(px - s * (x0 + x1) / 2).toFixed(3)} ${(py - s * (y0 + y1) / 2).toFixed(3)}) scale(${s.toFixed(4)})`, w: s * (x1 - x0) };
+};
+const FLAG_H = 4.4, PIN_H = 5.2, BADGE_GAP = 0.6; // alturas (unidades de viewBox) + hueco pin↔bandera (~2px)
+const PIN_W = placeIcon(PIN_ICON, PIN_H, 0, 0).w, FLAG_W = placeIcon(FLAG_ICON, FLAG_H, 0, 0).w;
+const PAIR_W = PIN_W + BADGE_GAP + FLAG_W; // sala actual: pin (izq) + hueco + bandera (der), conjunto centrado en 0
+const TF_FLAG_SOLO = placeIcon(FLAG_ICON, FLAG_H, 0, 0).tf;                       // salas normales: bandera sola centrada
+const TF_PIN_PAIR = placeIcon(PIN_ICON, PIN_H, -PAIR_W / 2 + PIN_W / 2, 0).tf;    // pin a la izquierda del par
+const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf; // bandera a la derecha del par
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
@@ -294,14 +309,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 <g key={"badge" + r.id} transform={`translate(${cx(r).toFixed(2)},${cy(r).toFixed(2)})`}
                   onClick={() => { if (movedRef.current) return; setSelected(r.id); setTab(0); }} style={{ cursor: "pointer" }}>
                   <rect x={-5} y={-5} width={10} height={10} fill="transparent" pointerEvents="all" />
-                  {/* grupo pin+bandera: en la sala actual se desplaza +2.12 para que el CONJUNTO quede centrado */}
-                  <g transform={cur ? "translate(2.12 0)" : undefined}>
-                    {cur && (
-                      <g transform="translate(-7.04,-3.12) scale(0.26)">
-                        <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
-                      </g>
-                    )}
-                    <g transform="translate(-2.64,-2.64) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
+                  {/* colocación por placeIcon (centrado calculado, sin offsets a mano). Sala actual: pin +
+                      bandera centrados como conjunto; resto: bandera sola. Azul = sala abierta (activa). */}
+                  {cur && (
+                    <g transform={TF_PIN_PAIR}>
+                      <path d={PIN_ICON.d} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
+                    </g>
+                  )}
+                  <g transform={cur ? TF_FLAG_PAIR : TF_FLAG_SOLO}>
+                    <path d={FLAG_ICON.d} fill={r.id === selected ? FLAG_ACTIVE : FLAG} />
                   </g>
                 </g>
               );
