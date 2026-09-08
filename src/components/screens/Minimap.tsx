@@ -136,6 +136,7 @@ function marksFor(current: string, disc: Set<string>) {
 }
 type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
+const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
 const START_KEYS = 0; // llaves iniciales del grupo: 0. Se ganan resolviendo puzzles (1 puzzle = 1 llave)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
@@ -167,6 +168,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
   const [keys, setKeys] = useState(START_KEYS); // llaves del grupo
   const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
+  const [solved, setSolved] = useState<Set<string>>(() => new Set()); // puzzles resueltos (id = "sala#índice"); cada uno da +1 llave
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
@@ -182,6 +184,12 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
 
   const selRoom = selected ? byId[selected] : null;
   const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
+  // resolver un puzzle: +1 llave (una sola vez por puzzle). id = "sala#índice".
+  const solvePuzzle = (id: string) => {
+    if (solved.has(id)) return;
+    setSolved((s) => new Set(s).add(id));
+    setKeys((k) => k + 1);
+  };
   // desbloquear una puerta: gasta las llaves y descubre la sala vecina (candado → flecha)
   const unlock = (m: Mark) => {
     if (keys < m.keys) return;
@@ -447,7 +455,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         </div>
       </div>
       <div className="minimap-hud-right">
-        <span className="hud-count">0/25</span>
+        <span className="hud-count">{solved.size}/{TOTAL_PUZZLES}</span>
         <svg className="hud-icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
       </div>
       {/* panel de sala: overlay en la MITAD INFERIOR (no refluye el mapa; el mapa se desplaza por debajo) */}
@@ -471,7 +479,21 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               <div className="window" role="tabpanel">
                 <div className="window-body">
                   {tab === 0 && <p>{selRoom.name ?? selRoom.id}</p>}
-                  {tab === 1 && <p>0/{selRoom.puzzles ?? 0} resueltos</p>}
+                  {tab === 1 && (
+                    <div className="puzzle-list">
+                      {(selRoom.puzzles ?? 0) === 0 && <p>Sin puzzles</p>}
+                      {Array.from({ length: selRoom.puzzles ?? 0 }, (_, i) => {
+                        const id = selRoom.id + "#" + i;
+                        const done = solved.has(id);
+                        return (
+                          <div key={i} className="puzzle-row">
+                            <span>Puzzle {i + 1}</span>
+                            <button type="button" disabled={done} onClick={() => solvePuzzle(id)}>{done ? "Resuelto" : "Resolver"}</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   {tab === 2 && <p>—</p>}
                 </div>
               </div>
