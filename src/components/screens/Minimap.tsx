@@ -28,10 +28,12 @@ type Link = { from: string; to: string; pts: [number, number][]; keys?: number }
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3 }, // puerta a la Tienda (Librería): 3 llaves
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]] },
-  // "Cruz" del almacén partida por estado: L sólida almacén↔r3 (ambas descubiertas) + ramal a r4
-  // (bloqueada) que sale en dashed. Al descubrir r4, el ramal pasa a sólido solo y reforma la cruz.
-  { from: "hub-almacen", to: "r3", pts: [[44, 44], [44, 15], [58, 15]] },
-  { from: "r4", to: "r3", pts: [[24, 15], [44, 15]] },
+  // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
+  // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
+  // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]] },
+  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]] },
+  { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]] },
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]] },
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1 }, // salida 1 de la sala central
@@ -45,13 +47,24 @@ const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 const cx = (r: Room) => r.x + r.w / 2;
 const cy = (r: Room) => r.y + r.h / 2;
 
+// Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
+// panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
+// CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15 }];
+// Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
+// grafo mezcla salas y junctions sin casos especiales. Un junction siempre está "descubierto" (es de paso).
+const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
+  ...Object.fromEntries(ROOMS.map((r) => [r.id, { x: cx(r), y: cy(r), discovered: r.discovered }])),
+  ...Object.fromEntries(JUNCTIONS.map((j) => [j.id, { x: j.x, y: j.y, discovered: true }])),
+};
+
 // Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; pin rojo = grupo
 const EDGE = "#5f685f", FLOOR = "#cfd6cf";
 const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e";
 const MARKER = "#e03131", MARKER_EDGE = "#000"; // "estáis aquí": pin de ubicación rojo con borde negro
 const FLAG = "#3a4038", FLAG_ACTIVE = "#00008a"; // bandera: gris normal / navy = sala abierta (activa)
 const linkD = (lk: Link) => "M" + lk.pts.map((p) => p.join(",")).join("L");
-const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
+const shown = (lk: Link) => !!NODE[lk.from]?.discovered && !!NODE[lk.to]?.discovered;
 
 // Iconos de la insignia como {d, bb=[minX,minY,maxX,maxY]}. La colocación (escala + centrado) se calcula
 // SOLA desde el bbox: cambiar el icono o su tamaño NO obliga a re-tunear offsets a mano.
@@ -84,18 +97,28 @@ const MARK_BORDER = 2.9; // grosor del borde negro de las marcas: como es "por f
 // RESPECTO a la sala en la que estás: cada marca nace en la salida de `current` y apunta a la vecina, así
 // que se invierte sola al cambiar de sala. REGLA AUTOMÁTICA (por niebla, sin llaves): vecina en niebla
 // ("?") = CANDADO; vecina despejada (con bandera) = FLECHA, siempre. `dest` = a dónde te mueve la flecha.
+// Punto donde el rayo (end→dir) sale del rect = la PUERTA real. Normaliza la posición de la marca aunque el
+// extremo del pasillo entre profundo en la sala (si no, la flecha quedaba "hacia atrás", pegada a la bandera).
+function rectExit(r: Room, ex: number, ey: number, dx: number, dy: number) {
+  const tx = dx > 0 ? (r.x + r.w - ex) / dx : dx < 0 ? (r.x - ex) / dx : Infinity;
+  const ty = dy > 0 ? (r.y + r.h - ey) / dy : dy < 0 ? (r.y - ey) / dy : Infinity;
+  const t = Math.max(0, Math.min(tx, ty));
+  return { x: ex + t * dx, y: ey + t * dy };
+}
 function marksFor(current: string) {
   return LINKS.filter((lk) => lk.from === current || lk.to === current).map((lk) => {
     const atFrom = lk.from === current;
-    const end = atFrom ? lk.pts[0] : lk.pts[lk.pts.length - 1];        // punto del pasillo en la sala actual
+    const end = atFrom ? lk.pts[0] : lk.pts[lk.pts.length - 1];        // punto del pasillo en la posición actual
     const adj = atFrom ? lk.pts[1] : lk.pts[lk.pts.length - 2];        // siguiente punto hacia la vecina
     const dx = adj[0] - end[0], dy = adj[1] - end[1], len = Math.hypot(dx, dy) || 1;
-    const dest = atFrom ? lk.to : lk.from;                             // sala vecina (destino del movimiento)
-    const blocked = !byId[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
+    const dest = atFrom ? lk.to : lk.from;                             // vecina (destino del movimiento)
+    const blocked = !NODE[dest]?.discovered;                          // vecina en niebla = candado; despejada = flecha
+    const room = byId[current];                                       // sala actual (undefined si estás en un junction)
+    const base = room ? rectExit(room, end[0], end[1], dx, dy) : { x: end[0], y: end[1] }; // puerta (borde) o el propio punto
     return {
       key: lk.from + "-" + lk.to, dest,
-      x: end[0] + (dx / len) * ARROW_D,
-      y: end[1] + (dy / len) * ARROW_D,
+      x: base.x + (dx / len) * ARROW_D,
+      y: base.y + (dy / len) * ARROW_D,
       icon: blocked ? LOCK_ICON : ARROW,
       angle: blocked ? 0 : (Math.atan2(dy, dx) * 180) / Math.PI, // rota la flecha al ángulo del pasillo (respeta diagonales); el candado no rota
       blocked,
@@ -355,6 +378,12 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 </g>
               );
             })}
+            {/* pin "estás aquí" cuando la posición actual es un JUNCTION (una sala lo pinta en su insignia) */}
+            {!byId[current] && NODE[current] && (
+              <g transform={placeIcon(PIN_ICON, PIN_H, NODE[current].x, NODE[current].y).tf} pointerEvents="none">
+                <path d={PIN_ICON.d} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
+              </g>
+            )}
             {/* 6. marcas de movimiento de la sala ACTUAL, en el pasillo a la salida: flecha si la salida es
                 libre, CANDADO si está bloqueada (llave o niebla). Todo BLANCO. Las flechas "flotan" hacia su
                 dirección (pixel); los candados no. Los iconos de dos trazos pintan d + d2 (evita el agujero). */}
