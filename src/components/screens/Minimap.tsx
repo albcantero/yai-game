@@ -52,7 +52,7 @@ const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discov
 // coloca el pin (icono 24×24) centrado en la sala, escalado a su tamaño
 // Insignia de cada sala: bandera azul (info, tocable en toda la sala) + contador de puzzles [?] 0/2 debajo.
 // En la sala ACTUAL la marca central es el pin rojo en vez de la bandera (para no solaparse).
-const FLAG = "#1971c2", FLAG_D = "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z";
+const FLAG = "#3a4038", FLAG_D = "M6 4h14v2h-2v2h-2v2h2v2h2v2H6v8H4V2h2v2Z";
 const PUZZLE_D = "M9 22H7V20H9V22ZM13 22H11V20H13V22ZM17 22H15V20H17V22ZM6 20H4V18H6V20ZM20 20H18V18H20V20ZM13 18H11V16H13V18ZM4 17H2V15H4V17ZM22 17H20V15H22V17ZM15 13H13V15H11V11H15V13ZM4 13H2V11H4V13ZM22 13H20V11H22V13ZM17 11H15V8H17V11ZM9 10H7V8H9V10ZM4 9H2V7H4V9ZM22 9H20V7H22V9ZM15 8H9V6H15V8ZM6 6H4V4H6V6ZM20 6H18V4H20V6ZM9 4H7V2H9V4ZM13 4H11V2H13V4ZM17 4H15V2H17V4Z";
 const BADGE_DARK = "#3a4038";
 
