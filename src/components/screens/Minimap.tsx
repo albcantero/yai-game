@@ -24,13 +24,16 @@ const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]] }, // L limpia de 90° (antes un codo muy abierto que parecía diagonal)
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]] },
   // corredor en CRUZ r4·r3·hub-almacen, unificado en UN solo elemento (dos ramas en un mismo path)
-  { from: "r3", to: "hub-almacen", subpaths: [[[24, 15], [58, 15]], [[44, 15], [44, 44]]] }, // cruz ortogonal exacta: horizontal r4·r3 (y=15) + vertical al almacén (x=44)
+  // "Cruz" del almacén partida por estado: L sólida almacén↔r3 (ambas descubiertas) + ramal a r4
+  // (bloqueada) que sale en dashed. Al descubrir r4, el ramal pasa a sólido solo y reforma la cruz.
+  { from: "hub-almacen", to: "r3", pts: [[44, 44], [44, 15], [58, 15]] },
+  { from: "r4", to: "r3", pts: [[24, 15], [44, 15]] },
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]] },
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]] },
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]] },
   { from: "r1", to: "r2", pts: [[71.5, 64.2], [67.2, 56.2]] },
-  { from: "r1", to: "hub-almacen", pts: [[58.3, 84.9], [44.0, 77.0], [44.0, 64.0]] }, // el final entra DENTRO del almacén (antes acababa justo fuera y no abría el muro)
+  { from: "r1", to: "hub-almacen", pts: [[44, 65], [58, 65]] }, // horizontal corto: derecha del almacén ↔ izquierda de r1, poca penetración (antes era largo y cortaba el borde)
 ];
 const CURRENT = "hub-almacen"; // sala donde empieza / está el grupo: el almacén (sala 1)
 
