@@ -19,11 +19,11 @@ const ROOMS: Room[] = [
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
-const LINKS: { from: string; to: string; pts: [number, number][] }[] = [
+const LINKS: { from: string; to: string; pts?: [number, number][]; subpaths?: [number, number][][] }[] = [
   { from: "libreria", to: "hub-almacen", pts: [[23.9, 54.7], [31.7, 47.5], [41.8, 43.9]] },
   { from: "r5", to: "r4", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
-  { from: "r4", to: "r3", pts: [[30.0, 9.6], [52.4, 10.2]] },
-  { from: "r3", to: "hub-almacen", pts: [[44.0, 10.2], [43.0, 41.6]] },
+  // corredor en CRUZ r4·r3·hub-almacen, unificado en UN solo elemento (dos ramas en un mismo path)
+  { from: "r3", to: "hub-almacen", subpaths: [[[30.0, 9.6], [52.4, 10.2]], [[44.0, 10.2], [43.0, 41.6]]] },
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]] },
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]] },
@@ -42,14 +42,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   return (
     <div className="minimap-screen">
       <svg className="minimap-svg" viewBox="-2 -2 104 104" preserveAspectRatio="xMidYMid meet">
-        {/* corredores: se pintan con sus ESQUINAS (polilínea), en gris si ambas salas están descubiertas */}
+        {/* corredores: cada uno es UN <path> (una o varias ramas), grosor uniforme, con sus esquinas.
+            Gris si ambas salas están descubiertas, apagado si no. */}
         {LINKS.map((lk, i) => {
           const ra = byId[lk.from], rb = byId[lk.to];
           if (!ra || !rb) return null;
-          const shown = ra.discovered && rb.discovered;
+          const stroke = ra.discovered && rb.discovered ? "#8a938a" : "#26302a";
+          const d = (lk.subpaths ?? [lk.pts!]).map((sp) => "M" + sp.map((p) => p.join(",")).join("L")).join(" ");
           return (
-            <polyline key={i} points={lk.pts.map((p) => p.join(",")).join(" ")}
-              fill="none" stroke={shown ? "#8a938a" : "#26302a"} strokeWidth={2.4}
+            <path key={i} d={d} fill="none" stroke={stroke} strokeWidth={2.4}
               strokeLinecap="round" strokeLinejoin="round" />
           );
         })}
