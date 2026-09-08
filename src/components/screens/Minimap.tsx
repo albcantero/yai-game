@@ -28,7 +28,7 @@ const ROOMS: Room[] = [
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offTo: 1 }, // puerta a la Tienda (Librería): 3 llaves. Almacén→Librería: +1
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offTo: 2 }, // puerta a la Tienda (Librería): 3 llaves. Almacén→Librería: +2
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 1, offTo: 2 }, // R5→R4: +1, R4→R5: +2
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
