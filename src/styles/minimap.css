@@ -36,7 +36,7 @@
 .minimap-lock{ z-index:7 }   /* por encima del HUD (z5) y el panel (z6) del minimapa */
 .minimap-lock .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 5px 0 1px;align-self:center }
 .minimap-lock .title-bar-text{ flex:1 }
-.minimap-lock .key-ico{ display:inline-block;width:.95em;height:.95em;vertical-align:-0.14em;fill:#222 } /* llave pegada al número, se comporta como un glifo de fuente */
+.minimap-lock .key-ico{ display:inline-block;width:.95em;height:.95em;vertical-align:-0.24em;fill:#222 } /* llave pegada al número (glifo); bajada para centrarse con el dígito */
 .minimap-lock button:disabled .key-ico{ fill:grey }                    /* disabled: la llave grisea como el texto */
 /* Flechas de movimiento: floating pixel (avanzan/retroceden unos px en su dirección, a pasos). El sentido
    viene en --ax/--ay (vector unitario). Los candados (salidas bloqueadas) NO llevan esta clase. */
