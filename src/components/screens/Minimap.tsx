@@ -15,7 +15,7 @@ const ROOMS: Room[] = [
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: true },
   { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: true },
   { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: true },
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 8.0, h: 26.2, discovered: true, name: "Almacén", puzzles: 1 }, // sala 1 (inicio)
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, name: "Almacén", puzzles: 1 }, // sala 1 (inicio); ensanchada hacia +x (w 8→13)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: true, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
   { id: "r1", x: 55.2, y: 63.0, w: 19.8, h: 25.5, discovered: true, name: "Sala de Máquinas", puzzles: 1 },
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: true },
@@ -299,7 +299,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                       <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
                     </g>
                   ) : (
-                    <g transform="translate(-2.6,-6.8) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
+                    <g transform="translate(-2.64,-2.64) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
                   )}
                 </g>
               );
