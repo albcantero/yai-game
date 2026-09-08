@@ -177,7 +177,7 @@ export default function Computer() {
                 <img className="title-icon" src={SCREENS[view].icon} alt="" />
                 <div className="title-bar-text">{SCREENS[view].title}</div>
                 <div className="title-bar-controls">
-                  <button type="button" aria-label="Información" onClick={() => setInfoOpen(true)}></button>
+                  <button type="button" aria-label="Información" onClick={() => setInfoOpen(true)}>i</button>
                   <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
                 </div>
               </div>
