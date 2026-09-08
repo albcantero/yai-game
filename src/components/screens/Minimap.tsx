@@ -108,7 +108,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         </div>
         <div className="hud-row">
           <button type="button" tabIndex={-1} className="hud-btn" aria-label="Puzzles">
-            <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M18 22H6V20H18V22ZM6 20H4V18H6V20ZM20 20H18V18H20V20ZM4 18H2V6H4V18ZM13 18H11V16H13V18ZM22 18H20V6H22V18ZM15 13H13V15H11V11H15V13ZM17 11H15V8H17V11ZM9 10H7V8H9V10ZM15 8H9V6H15V8ZM6 6H4V4H6V6ZM20 6H18V4H20V6ZM18 4H6V2H18V4Z" /></svg>
+            <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
           </button>
           <span className="hud-count">0/25</span>
         </div>
