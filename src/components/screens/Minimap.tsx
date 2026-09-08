@@ -6,31 +6,32 @@ import type { ScreenHandle, ScreenServices } from "./types";
 // Coordenadas en un viewBox 0..100, calcadas del plano PNG (pendiente de afinar a mano con Alberto).
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean };
 const ROOMS: Room[] = [
-  { id: "r1", x: 37.8, y: 6.4, w: 28.3, h: 32.6, discovered: true },
-  { id: "r3", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false },
-  { id: "r2", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false },
-  { id: "r4", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false },
-  { id: "r6", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false },
-  { id: "vthin", x: 26.0, y: 45.7, w: 8.0, h: 20.2, discovered: true },
-  { id: "hub", x: 42.0, y: 45.7, w: 33.0, h: 12.2, discovered: true },
-  { id: "big", x: 39.0, y: 63.0, w: 36.0, h: 29.0, discovered: true },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 30.0, discovered: false },
-  { id: "r9", x: 10.0, y: 69.0, w: 13.0, h: 17.0, discovered: false },
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: true },
+  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false },
+  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false },
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false },
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false },
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 8.0, h: 26.2, discovered: true },
+  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false },
+  { id: "r1", x: 55.2, y: 63.0, w: 19.8, h: 25.5, discovered: true },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false },
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: true },
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
 const LINKS: { from: string; to: string; pts: [number, number][] }[] = [
-  { from: "r9", to: "vthin", pts: [[16.0, 68.0], [15.9, 58.5], [26.0, 54.9]] },
-  { from: "r4", to: "r3", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
-  { from: "r3", to: "r1", pts: [[30.5, 15.7], [39.6, 15.6]] },
-  { from: "r2", to: "r6", pts: [[88.9, 21.9], [88.9, 31.1]] },
-  { from: "r6", to: "r8", pts: [[86.1, 48.0], [86.1, 57.1]] },
-  { from: "hub", to: "r6", pts: [[73, 49], [81, 49], [81, 40]] }, // corregido a r6 (tu path acababa en r2); L provisional, retócala en Affinity si quieres otra ruta
-  { from: "hub", to: "r1", pts: [[52.6, 47.9], [58.8, 39.0]] },
-  { from: "big", to: "hub", pts: [[71.5, 64.2], [67.2, 56.2]] },
-  { from: "big", to: "vthin", pts: [[39.0, 86.0], [30.0, 76.3], [30.0, 65.8]] },
+  { from: "libreria", to: "hub-almacen", pts: [[23.9, 54.7], [31.7, 47.5], [41.8, 43.9]] },
+  { from: "r5", to: "r4", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
+  { from: "r4", to: "r3", pts: [[30.0, 9.6], [52.4, 10.2]] },
+  { from: "r3", to: "hub-almacen", pts: [[44.0, 10.2], [43.0, 41.6]] },
+  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]] },
+  { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]] },
+  { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]] },
+  { from: "r2", to: "r3", pts: [[62.8, 45.3], [62.6, 28.3]] },
+  { from: "r1", to: "r2", pts: [[71.5, 64.2], [67.2, 56.2]] },
+  { from: "r1", to: "hub-almacen", pts: [[58.3, 84.9], [44.0, 77.0], [44.0, 68.4]] },
 ];
-const CURRENT = "hub"; // sala donde está el grupo ahora (demo)
+const CURRENT = "hub-almacen"; // sala donde empieza / está el grupo: el almacén (sala 1)
 
 const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 const cx = (r: Room) => r.x + r.w / 2;
