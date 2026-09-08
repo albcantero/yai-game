@@ -19,6 +19,14 @@ export type RoomPanelProps = {
 
 export default function RoomPanel({ title, roomId, puzzles, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
   const bigIcon = TAB_BIG[tab];
+  // "Resolver" del aside: resuelve el siguiente puzzle sin resolver de la sala (+1 llave). Provisional
+  // hasta que haya datos/navegación de puzzles; mantiene la economía jugable.
+  const solveNext = () => {
+    for (let i = 0; i < puzzles; i++) {
+      const id = roomId + "#" + i;
+      if (!solved.has(id)) { onSolve(id); return; }
+    }
+  };
   return (
     <div className="minimap-info win98">
       <div className="window minimap-panel">
@@ -52,28 +60,22 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
                   </>
                 )}
                 {tab === 1 && (
-                  <div className="sunken-panel room-fill">
-                    <div className="puzzle-list">
-                      {puzzles === 0 && <p>Sin puzzles</p>}
-                      {Array.from({ length: puzzles }, (_, i) => {
-                        const id = roomId + "#" + i;
-                        const done = solved.has(id);
-                        return (
-                          <div key={i} className="puzzle-row">
-                            <span>Puzzle {i + 1}</span>
-                            <button type="button" disabled={done} onClick={() => onSolve(id)}>{done ? "Resuelto" : "Resolver"}</button>
-                          </div>
-                        );
-                      })}
+                  <>
+                    {/* mismo layout que Información: "Puzzle: [nombre]" + "Descripción:" + panel */}
+                    <div className="field-row room-sala">
+                      <span>Puzzle:</span>
+                      <div className="sunken-panel room-name" />
                     </div>
-                  </div>
+                    <p className="room-field-label">Descripción:</p>
+                    <div className="sunken-panel room-info" />
+                  </>
                 )}
               </div>
             </div>
           <div className="minimap-panel-aside">
             {tab === 1 && (
               <div className="aside-actions">
-                <button type="button">Resolver</button>
+                <button type="button" onClick={solveNext}>Resolver</button>
                 <button type="button">Leer</button>
               </div>
             )}

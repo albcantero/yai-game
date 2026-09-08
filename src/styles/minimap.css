@@ -50,7 +50,7 @@
 .minimap-panel .sunken-panel{ padding:8px }   /* recuadro blanco hundido (98.css) */
 .minimap-panel .room-field-label{ flex:none;margin:0 0 3px }   /* etiqueta "Información:" (encima de su panel) */
 .minimap-panel .room-sala{ flex:none;margin:0 0 8px }          /* fila "Sala: [campo]" */
-.minimap-panel .room-name{ flex:1;min-width:0;padding:0 6px }   /* campo hundido con el nombre (1 línea, fino) */
+.minimap-panel .room-name{ flex:1;min-width:0;min-height:1.3em;padding:0 6px }   /* campo hundido con el nombre (1 línea, fino); min-height para que el vacío no colapse */
 .minimap-panel .room-info,
 .minimap-panel .room-fill{ flex:1;min-height:0 }   /* panel de descripción / contenido: ocupa el resto */
 /* pestaña ACTIVA: dejar fijo el borde punteado (el outline de foco del <a>), que 98.css quita en el seleccionado */
