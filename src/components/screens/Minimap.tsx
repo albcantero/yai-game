@@ -33,12 +33,12 @@ const LINKS: Link[] = [
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
   { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 6, offTo: 2 }, // Almacén→Intersección: +6; Intersección→Almacén: +2
-  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 1 }, // Intersección→R3: +2; R3→Intersección: +1
+  { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 5 }, // Intersección→R3: +2; R3→Intersección: +5
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 1, offTo: 1 }, // R6→R7: +1; R7→R6: +1
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], offFrom: 1, offTo: 1 }, // R7→R8: +1; R8→R7: +1
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 1, offFrom: 7, offTo: 0 }, // R2→R6: +7; R6→R2: 0
-  { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 1 }, // R2→R3: +5; R3→R2: +1
+  { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 5 }, // R2→R3: +5; R3→R2: +5
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], offFrom: 4, offTo: 2 }, // Sala de Máquinas→R2: +4; R2→S.Máquinas: +2
   { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 6 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +6
 ];
