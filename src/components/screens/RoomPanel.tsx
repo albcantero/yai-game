@@ -2,8 +2,8 @@
 // props el título, el nº de puzzles y el estado del juego (puzzles resueltos + callbacks). Así el Minimap
 // (o cualquier pantalla) lo reutiliza sin duplicar markup. Los estilos viven en styles/minimap.css.
 const TABS = ["Información", "Puzzles"];
-// Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab (Puzzles aún sin icono).
-const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", null];
+// Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab.
+const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", "/icons/keys-4.png"];
 
 export type RoomPanelProps = {
   title: string; // nombre de la sala (barra de título + pestaña Descripción)
