@@ -24,7 +24,7 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
       <div className="window minimap-panel">
         <div className="title-bar">
           <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
-          <div className="title-bar-text">{title}</div>
+          <div className="title-bar-text">Sala</div>
           <div className="title-bar-controls">
             <button type="button" aria-label="Close" onClick={onClose}></button>
           </div>
