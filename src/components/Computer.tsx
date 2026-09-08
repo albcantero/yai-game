@@ -177,7 +177,7 @@ export default function Computer() {
                 <img className="title-icon" src={SCREENS[view].icon} alt="" />
                 <div className="title-bar-text">{SCREENS[view].title}</div>
                 <div className="title-bar-controls">
-                  <button type="button" aria-label="Help" onClick={() => setInfoOpen(true)}></button>
+                  <button type="button" aria-label="Información" onClick={() => setInfoOpen(true)}></button>
                   <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
                 </div>
               </div>
@@ -219,7 +219,7 @@ export default function Computer() {
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
               <div className="window confirm-dialog">
                 <div className="title-bar">
-                  <img className="title-icon" src="/icons/msg_question-2.png" alt="" />
+                  <img className="title-icon" src="/icons/msg_information-2.png" alt="" />
                   <div className="title-bar-text">Información</div>
                   <div className="title-bar-controls">
                     <button type="button" aria-label="Close" onClick={() => setInfoOpen(false)}></button>
@@ -227,7 +227,7 @@ export default function Computer() {
                 </div>
                 <div className="window-body">
                   <div className="confirm-row">
-                    <img className="confirm-icon" src="/icons/msg_question.png" alt="" />
+                    <img className="confirm-icon" src="/icons/msg_information-0.png" alt="" />
                     <p>Santas Ochova · La Mejor Librería</p>
                   </div>
                   <div className="confirm-buttons">
