@@ -293,13 +293,16 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               return (
                 <g key={"badge" + r.id} transform={`translate(${cx(r).toFixed(2)},${cy(r).toFixed(2)})`}
                   onClick={() => { if (movedRef.current) return; setSelected(r.id); setTab(0); }} style={{ cursor: "pointer" }}>
-                  <rect x={cur ? -7.5 : -4.5} y={-8} width={cur ? 12 : 9} height={11} fill="transparent" pointerEvents="all" />
-                  {cur && (
-                    <g transform="translate(-7.04,-3.12) scale(0.26)">
-                      <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
-                    </g>
-                  )}
-                  <g transform="translate(-2.64,-2.64) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
+                  <rect x={-5} y={-5} width={10} height={10} fill="transparent" pointerEvents="all" />
+                  {/* grupo pin+bandera: en la sala actual se desplaza +2.12 para que el CONJUNTO quede centrado */}
+                  <g transform={cur ? "translate(2.12 0)" : undefined}>
+                    {cur && (
+                      <g transform="translate(-7.04,-3.12) scale(0.26)">
+                        <path d={MARKER_D} fill={MARKER} stroke={MARKER_EDGE} strokeWidth={1.4} strokeLinejoin="miter" />
+                      </g>
+                    )}
+                    <g transform="translate(-2.64,-2.64) scale(0.22)"><path d={FLAG_D} fill={FLAG} /></g>
+                  </g>
                 </g>
               );
             })}
