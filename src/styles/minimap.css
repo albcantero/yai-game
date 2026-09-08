@@ -36,9 +36,8 @@
 .minimap-lock{ z-index:7 }   /* por encima del HUD (z5) y el panel (z6) del minimapa */
 .minimap-lock .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 5px 0 1px;align-self:center }
 .minimap-lock .title-bar-text{ flex:1 }
-.minimap-lock .confirm-buttons button{ display:inline-flex;align-items:center;justify-content:center;gap:5px }
-.minimap-lock .key-ico{ width:14px;height:14px;flex:none;fill:#222 }   /* botón activo: texto e icono en #222 (98.css pinta el texto con text-shadow) */
-.minimap-lock button:disabled .key-ico{ fill:grey }                    /* disabled: el icono grisea como el texto */
+.minimap-lock .key-ico{ display:inline-block;width:.95em;height:.95em;vertical-align:-0.14em;fill:#222 } /* llave pegada al número, se comporta como un glifo de fuente */
+.minimap-lock button:disabled .key-ico{ fill:grey }                    /* disabled: la llave grisea como el texto */
 /* Flechas de movimiento: floating pixel (avanzan/retroceden unos px en su dirección, a pasos). El sentido
    viene en --ax/--ay (vector unitario). Los candados (salidas bloqueadas) NO llevan esta clase. */
 .minimap-arrow-float{ animation:minimap-arrow-float .7s steps(3) infinite alternate }

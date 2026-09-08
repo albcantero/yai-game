@@ -472,10 +472,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 <p>El camino está bloqueado.</p>
               </div>
               <div className="confirm-buttons">
-                <button type="button" disabled={HAVE_KEYS < locked.keys} onClick={() => setLocked(null)}>
-                  Desbloquear {locked.keys}
-                  <svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
-                </button>
+                <button type="button" disabled={HAVE_KEYS < locked.keys} onClick={() => setLocked(null)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>...</button>
                 <button type="button" onClick={() => setLocked(null)}>Salir</button>
               </div>
             </div>
