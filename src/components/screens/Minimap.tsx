@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
+import RoomPanel from "./RoomPanel";
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
@@ -137,8 +138,6 @@ function marksFor(current: string, disc: Set<string>) {
 type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
 const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
-// icono GRANDE del hueco derecho del panel, por pestaña [Descripción, Puzzles, Objetos]. Cambia al cambiar de tab.
-const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", null, null];
 const START_KEYS = 0; // llaves iniciales del grupo: 0. Se ganan resolviendo puzzles (1 puzzle = 1 llave)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
@@ -186,7 +185,6 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
 
   const selRoom = selected ? byId[selected] : null;
   const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
-  const bigIcon = TAB_BIG[tab]; // icono grande del hueco derecho, según la pestaña abierta
   // resolver un puzzle: +1 llave (una sola vez por puzzle). id = "sala#índice".
   const solvePuzzle = (id: string) => {
     if (solved.has(id)) return;
@@ -461,52 +459,19 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         <span className="hud-count">{solved.size}/{TOTAL_PUZZLES}</span>
         <svg className="hud-icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
       </div>
-      {/* panel de sala: overlay en la MITAD INFERIOR (no refluye el mapa; el mapa se desplaza por debajo) */}
+      {/* panel de sala: overlay en la MITAD INFERIOR (no refluye el mapa; el mapa se desplaza por debajo).
+          Extraído a RoomPanel (idéntico para todas las salas); aquí solo se le pasan datos + estado. */}
       {selRoom && (
-        <div className="minimap-info win98">
-          <div className="window minimap-panel">
-            <div className="title-bar">
-              <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
-              <div className="title-bar-text">{selRoom.name ?? selRoom.id}</div>
-              <div className="title-bar-controls">
-                <button type="button" aria-label="Close" onClick={() => setSelected(null)}></button>
-              </div>
-            </div>
-            <div className="window-body minimap-panel-body">
-              <div className="minimap-panel-tabs">
-              <menu role="tablist">
-                {["Descripción", "Puzzles", "Objetos"].map((t, i) => (
-                  <li key={t} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}>
-                    <a href="#" onClick={(e) => e.preventDefault()}>{t}</a>
-                  </li>
-                ))}
-              </menu>
-              <div className="window" role="tabpanel">
-                <div className="window-body">
-                  {tab === 0 && <p>{selRoom.name ?? selRoom.id}</p>}
-                  {tab === 1 && (
-                    <div className="puzzle-list">
-                      {(selRoom.puzzles ?? 0) === 0 && <p>Sin puzzles</p>}
-                      {Array.from({ length: selRoom.puzzles ?? 0 }, (_, i) => {
-                        const id = selRoom.id + "#" + i;
-                        const done = solved.has(id);
-                        return (
-                          <div key={i} className="puzzle-row">
-                            <span>Puzzle {i + 1}</span>
-                            <button type="button" disabled={done} onClick={() => solvePuzzle(id)}>{done ? "Resuelto" : "Resolver"}</button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {tab === 2 && <p>—</p>}
-                </div>
-              </div>
-              </div>
-              <div className="minimap-panel-aside">{bigIcon && <img src={bigIcon} alt="" />}</div>
-            </div>
-          </div>
-        </div>
+        <RoomPanel
+          title={selRoom.name ?? selRoom.id}
+          roomId={selRoom.id}
+          puzzles={selRoom.puzzles ?? 0}
+          tab={tab}
+          onTab={setTab}
+          solved={solved}
+          onSolve={solvePuzzle}
+          onClose={() => setSelected(null)}
+        />
       )}
       {/* popup del CANDADO: camino bloqueado + coste en llaves. Desbloquear DISABLED si no llegan las llaves. */}
       {locked && (
@@ -514,7 +479,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="title-bar">
               <img className="title-icon" src="/icons/key_padlock-1.png" alt="" />
-              <div className="title-bar-text">Bloqueado</div>
+              <div className="title-bar-text">Candado</div>
               <div className="title-bar-controls">
                 <button type="button" aria-label="Close" onClick={() => setLocked(null)}></button>
               </div>
