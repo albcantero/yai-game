@@ -28,7 +28,7 @@
 /* Sello de build estilo dev (esquina): ver el SHA horneado en el bundle => saber si es deploy actual o cache */
 .build-stamp{ position:fixed;left:4px;bottom:4px;z-index:99999;font:9px/1 'Courier Pixel',ui-monospace,monospace;letter-spacing:1px;color:#37f07d;opacity:.4;pointer-events:none;text-shadow:1px 0 0 currentColor, 0 1px 0 rgba(0,0,0,.6) }   /* text-shadow 1px a la derecha = falso bold ON-grid (nítido) para la fuente de píxel */
 
-:root{ color-scheme:dark; }
+:root{ color-scheme:dark; --ui-text:15px; }   /* --ui-text = tamaño normal de texto de la UI (paneles, botones, tabs, headers) */
 *{ box-sizing:border-box }
 html,body{ height:100% }
 body{
@@ -162,7 +162,7 @@ body{
 .win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222;text-shadow:none }  /* text-shadow:none = el chrome Win98 (header/diálogo/sidebar) NO hereda la aberración cromática animada de .crt. El verde del terminal (.crt-body, sin .win98) la conserva */
 /* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Sans, con acentos) */
 .win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif }  /* solo la fuente (acentos); tamaño NATIVO de 98.css (quitado el 16px forzado) */
-.win98 .title-bar-text{ letter-spacing:.5px;font-size:16px }  /* Determination en negrita sintética queda muy junta; la soltamos un poco. 16px: ambas barras de título unificadas */
+.win98 .title-bar-text{ letter-spacing:.5px;font-size:var(--ui-text) }  /* Determination en negrita sintética queda muy junta; la soltamos un poco. Tamaño normal (--ui-text) */
 
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
 .confirm-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* z2: tapa el contenido de pantalla (z1) pero queda POR DEBAJO de la rejilla (z3) y del cristal (z6): el diálogo vive dentro del CRT, no flotando sobre él */
@@ -170,6 +170,6 @@ body{
 .confirm-dialog .window-body{ margin:14px 16px 16px }
 .confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
 .confirm-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }
-.confirm-row p{ margin:0;font-size:12px;flex:1;min-width:0 }   /* mensaje del diálogo a 12px (igual que el panel de sala); flex+min-width:0 = envuelve dentro del ancho fijo */
+.confirm-row p{ margin:0;font-size:var(--ui-text);flex:1;min-width:0 }   /* mensaje del diálogo (tamaño normal); flex+min-width:0 = envuelve dentro del ancho fijo */
 .confirm-buttons{ display:flex;gap:10px;justify-content:center }
-.confirm-buttons button{ font-size:12px }   /* botones Sí/No al MISMO tamaño que el mensaje (12px) */
+.confirm-buttons button{ font-size:var(--ui-text) }   /* botones Sí/No al MISMO tamaño que el mensaje */
