@@ -74,6 +74,23 @@ const TF_FLAG_SOLO = placeIcon(FLAG_ICON, FLAG_H, 0, 0).tf;                     
 const TF_PIN_PAIR = placeIcon(PIN_ICON, PIN_H, -PAIR_W / 2 + PIN_W / 2, 0).tf;    // pin a la izquierda del par
 const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf; // bandera a la derecha del par
 
+// Flechas de dirección (izq/arriba/der/abajo). Arriba/abajo = las mismas de los botones del mentón.
+const ARROW_LEFT: Icon = { d: "M20 11v2H4v-2zM8 13v2H6v-2zm2 2v2H8v-2zm2 2v2h-2v-2zm-4-6V9H6v2zM10 15V7H8v8zm2 2V5h-2v12z", bb: [0, 0, 24, 24] };
+const ARROW_UP: Icon = { d: "M11 20h2V4h-2zm2-12h2V6h-2zm2 2h2V8h-2zm2 2h2v-2h-2zm-6-4H9V6h2zM15 10H7V8h8zm2 2H5v-2h12z", bb: [0, 0, 24, 24] };
+const ARROW_RIGHT: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2zM14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
+const ARROW_DOWN: Icon = { d: "M13 12h6v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5v-2h6V4h2v8Z", bb: [0, 0, 24, 24] };
+const ARROW_H = 6, ARROW_D = 5.5; // alto de la flecha (viewBox) + distancia hacia fuera del punto de entrada (cae en el pasillo)
+// Flechas de movimiento: SOLO de la sala actual, una por salida (cada LINK conectado). Se colocan en el
+// pasillo, justo fuera de la entrada de la sala, apuntando a la vecina (eje dominante del tramo de pasillo).
+const EXIT_ARROWS = LINKS.filter((lk) => lk.from === CURRENT || lk.to === CURRENT).map((lk) => {
+  const atFrom = lk.from === CURRENT;
+  const end = atFrom ? lk.pts[0] : lk.pts[lk.pts.length - 1];        // punto del pasillo en la sala actual
+  const adj = atFrom ? lk.pts[1] : lk.pts[lk.pts.length - 2];        // siguiente punto hacia la vecina
+  const dx = adj[0] - end[0], dy = adj[1] - end[1], len = Math.hypot(dx, dy) || 1;
+  const icon = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? ARROW_RIGHT : ARROW_LEFT) : (dy >= 0 ? ARROW_DOWN : ARROW_UP);
+  return { key: lk.from + "-" + lk.to, x: end[0] + (dx / len) * ARROW_D, y: end[1] + (dy / len) * ARROW_D, icon, locked: !!lk.keys };
+});
+
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
 // (origen 0,0, sin ambigüedad). Un punto de sala P se ve en viewBox en (x + k·P). Los gestos actualizan
@@ -322,6 +339,13 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 </g>
               );
             })}
+            {/* 6. flechas de movimiento de la sala ACTUAL: en el pasillo, a la salida, apuntando a la vecina.
+                Blancas con halo oscuro (paintOrder) para leerse sobre el suelo claro del pasillo. */}
+            {EXIT_ARROWS.map((a) => (
+              <g key={"arr" + a.key} transform={placeIcon(a.icon, ARROW_H, a.x, a.y).tf} pointerEvents="none">
+                <path d={a.icon.d} fill="#fff" stroke="#20261f" strokeWidth={2} strokeLinejoin="round" paintOrder="stroke" />
+              </g>
+            ))}
           </g>
         </svg>
       </div>
