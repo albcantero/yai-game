@@ -1,7 +1,7 @@
 // Panel de info de una sala (overlay Win98 con pestañas). IDÉNTICO para todas las banderas: recibe por
 // props el título, el nº de puzzles y el estado del juego (puzzles resueltos + callbacks). Así el Minimap
 // (o cualquier pantalla) lo reutiliza sin duplicar markup. Los estilos viven en styles/minimap.css.
-const TABS = ["Descripción", "Puzzles", "Objetos"];
+const TABS = ["Información", "Puzzles", "Objetos"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab (Puzzles/Objetos aún sin icono).
 const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", null, null];
 
@@ -47,7 +47,7 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
                       <span>Sala:</span>
                       <div className="sunken-panel room-name">{title}</div>
                     </div>
-                    <p className="room-field-label">Información:</p>
+                    <p className="room-field-label">Descripción:</p>
                     {/* panel de descripción: ocupa el 100% del espacio restante (aunque esté vacío) */}
                     <div className="sunken-panel room-info">{description && <p>{description}</p>}</div>
                   </>
