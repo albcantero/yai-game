@@ -167,6 +167,8 @@ body{
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
 .confirm-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4) }   /* z2: tapa el contenido de pantalla (z1) pero queda POR DEBAJO de la rejilla (z3) y del cristal (z6): el diálogo vive dentro del CRT, no flotando sobre él */
 .confirm-dialog{ width:min(300px,90vw);margin:0 }   /* ancho fijo: el texto largo crece en VERTICAL (envuelve), no ensancha el diálogo */
+.confirm-dialog .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 5px 0 1px;align-self:center }   /* icono pequeño (16px) en la franja de título */
+.confirm-dialog .title-bar-text{ flex:1 }
 .confirm-dialog .window-body{ margin:14px 16px 16px }
 .confirm-row{ display:flex;gap:14px;align-items:flex-start;margin:0 0 18px }
 .confirm-icon{ width:32px;height:32px;flex:none;image-rendering:pixelated }

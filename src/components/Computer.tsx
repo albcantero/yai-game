@@ -218,6 +218,7 @@ export default function Computer() {
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
               <div className="window confirm-dialog">
                 <div className="title-bar">
+                  <img className="title-icon" src="/icons/msg_question-1.png" alt="" />
                   <div className="title-bar-text">Información</div>
                   <div className="title-bar-controls">
                     <button type="button" aria-label="Close" onClick={() => setInfoOpen(false)}></button>
