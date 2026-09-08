@@ -30,7 +30,6 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
           </div>
         </div>
         <div className="window-body minimap-panel-body">
-          <div className="minimap-panel-tabs">
             <menu role="tablist">
               {TABS.map((t, i) => (
                 <li key={t} role="tab" aria-selected={tab === i} onClick={() => onTab(i)}>
@@ -71,7 +70,6 @@ export default function RoomPanel({ title, roomId, puzzles, description, tab, on
                 )}
               </div>
             </div>
-          </div>
           <div className="minimap-panel-aside">
             {tab === 1 && (
               <div className="aside-actions">
