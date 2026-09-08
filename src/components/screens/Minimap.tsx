@@ -91,11 +91,28 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           return (
             <g key={r.id}>
               <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />
-              {cur && <polygon points={starPoints(cx(r), cy(r), Math.min(3.6, Math.min(r.w, r.h) * 0.42))} fill={STAR} />}
+              {cur && (
+                <polygon points={starPoints(cx(r), cy(r), Math.min(3.6, Math.min(r.w, r.h) * 0.42))}
+                  fill={STAR} stroke="#20261f" strokeWidth={0.7} strokeLinejoin="round" />
+              )}
             </g>
           );
         })}
       </svg>
+      <div className="minimap-hud win98">
+        <div className="hud-row">
+          <button type="button" tabIndex={-1} className="hud-btn" aria-label="Llaves">
+            <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
+          </button>
+          <span className="hud-count">0</span>
+        </div>
+        <div className="hud-row">
+          <button type="button" tabIndex={-1} className="hud-btn" aria-label="Puzzles">
+            <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M18 22H6V20H18V22ZM6 20H4V18H6V20ZM20 20H18V18H20V20ZM4 18H2V6H4V18ZM13 18H11V16H13V18ZM22 18H20V6H22V18ZM15 13H13V15H11V11H15V13ZM17 11H15V8H17V11ZM9 10H7V8H9V10ZM15 8H9V6H15V8ZM6 6H4V4H6V6ZM20 6H18V4H20V6ZM18 4H6V2H18V4Z" /></svg>
+          </button>
+          <span className="hud-count">0/25</span>
+        </div>
+      </div>
     </div>
   );
 });
