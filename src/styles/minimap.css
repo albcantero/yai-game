@@ -48,8 +48,6 @@
 .minimap-panel .room-name{ flex:1;min-width:0;padding:0 6px }   /* campo hundido con el nombre (1 línea, fino) */
 .minimap-panel .room-info,
 .minimap-panel .room-fill{ flex:1;min-height:0 }   /* panel de descripción / contenido: ocupa el resto */
-/* tabs: 1px horizontal (98.css pone 6px de margen al <a>), para que las pestañas se ajusten más al texto */
-.minimap-panel menu[role="tablist"] > li > a{ margin:6px 1px }
 /* pestaña ACTIVA: dejar fijo el borde punteado (el outline de foco del <a>), que 98.css quita en el seleccionado */
 .minimap-panel menu[role="tablist"] > li[aria-selected="true"] > a,
 .minimap-panel menu[role="tablist"] > li[aria-selected="true"] > a:focus{ outline:1px dotted #222 }
