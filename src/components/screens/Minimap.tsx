@@ -469,6 +469,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               </div>
             </div>
             <div className="window-body minimap-panel-body">
+              <div className="minimap-panel-tabs">
               <menu role="tablist">
                 {["Descripción", "Puzzles", "Objetos"].map((t, i) => (
                   <li key={t} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}>
@@ -497,6 +498,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   {tab === 2 && <p>—</p>}
                 </div>
               </div>
+              </div>
+              <div className="minimap-panel-aside" />
             </div>
           </div>
         </div>
