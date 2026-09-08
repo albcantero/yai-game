@@ -21,7 +21,7 @@ const ROOMS: Room[] = [
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
 type Link = { from: string; to: string; pts?: [number, number][]; subpaths?: [number, number][][] };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[23.9, 54.7], [31.7, 47.5], [41.8, 43.9]] },
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]] }, // L limpia de 90° (antes un codo muy abierto que parecía diagonal)
   { from: "r5", to: "r4", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
   // corredor en CRUZ r4·r3·hub-almacen, unificado en UN solo elemento (dos ramas en un mismo path)
   { from: "r3", to: "hub-almacen", subpaths: [[[30.0, 9.6], [52.4, 10.2]], [[44.0, 10.2], [43.0, 41.6]]] },
@@ -38,11 +38,17 @@ const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 const cx = (r: Room) => r.x + r.w / 2;
 const cy = (r: Room) => r.y + r.h / 2;
 
-// Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; verde = grupo
-const EDGE = "#5f685f", FLOOR = "#cfd6cf", FLOOR_CUR = "#e7f5ed";
-const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e", ACCENT = "#37f07d";
+// Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; estrella = grupo
+const EDGE = "#5f685f", FLOOR = "#cfd6cf", STAR = "#f2c94c";
+const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e";
 const linkD = (lk: Link) => (lk.subpaths ?? [lk.pts!]).map((sp) => "M" + sp.map((p) => p.join(",")).join("L")).join(" ");
 const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
+// estrella de 5 puntas centrada en (cxv,cyv), radio exterior R (interior 0.42·R)
+const starPoints = (cxv: number, cyv: number, R: number) =>
+  Array.from({ length: 10 }, (_, i) => {
+    const a = ((-90 + i * 36) * Math.PI) / 180, rad = i % 2 ? R * 0.42 : R;
+    return `${(cxv + rad * Math.cos(a)).toFixed(2)},${(cyv + rad * Math.sin(a)).toFixed(2)}`;
+  }).join(" ");
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
@@ -52,8 +58,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         {/* 1. corredores por descubrir: trazo tenue punteado, debajo */}
         {LINKS.map((lk, i) =>
           shown(lk) ? null : (
-            <path key={"fog" + i} d={linkD(lk)} fill="none" stroke={FOG_EDGE} strokeWidth={1}
-              strokeDasharray="2 2.5" strokeLinecap="butt" strokeLinejoin="miter" />
+            <path key={"fog" + i} className="minimap-fog-link" d={linkD(lk)} fill="none"
+              stroke={FOG_EDGE} strokeWidth={0.8} strokeLinecap="butt" strokeLinejoin="miter" />
           ),
         )}
         {/* 2. pasillos descubiertos = suelo continuo: contorno oscuro + relleno claro, esquinas en PICO (miter) */}
@@ -75,8 +81,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           if (!r.discovered) {
             return (
               <g key={r.id}>
-                <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
-                  stroke={FOG_EDGE} strokeWidth={0.9} strokeDasharray="2 2.2" />
+                <rect className="minimap-fog-room" x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
+                  stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
                 <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={Math.min(r.w, r.h) * 0.5}
                   fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
               </g>
@@ -84,9 +90,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           }
           return (
             <g key={r.id}>
-              <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={cur ? FLOOR_CUR : FLOOR}
-                stroke={cur ? ACCENT : EDGE} strokeWidth={cur ? 2.2 : 1.2} />
-              {cur && <circle cx={cx(r)} cy={cy(r)} r={2.8} fill={ACCENT} />}
+              <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />
+              {cur && <polygon points={starPoints(cx(r), cy(r), Math.min(3.6, Math.min(r.w, r.h) * 0.42))} fill={STAR} />}
             </g>
           );
         })}
