@@ -19,7 +19,8 @@ const ROOMS: Room[] = [
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
-const LINKS: { from: string; to: string; pts?: [number, number][]; subpaths?: [number, number][][] }[] = [
+type Link = { from: string; to: string; pts?: [number, number][]; subpaths?: [number, number][][] };
+const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[23.9, 54.7], [31.7, 47.5], [41.8, 43.9]] },
   { from: "r5", to: "r4", pts: [[10.1, 31.1], [10.1, 21.5], [20.1, 17.9]] },
   // corredor en CRUZ r4·r3·hub-almacen, unificado en UN solo elemento (dos ramas en un mismo path)
@@ -37,37 +38,55 @@ const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 const cx = (r: Room) => r.x + r.w / 2;
 const cy = (r: Room) => r.y + r.h / 2;
 
+// Paleta del mapa: suelo claro con borde oscuro; niebla oscura con "?"; verde = grupo
+const EDGE = "#5f685f", FLOOR = "#cfd6cf", FLOOR_CUR = "#e7f5ed";
+const FOG_FILL = "#141a16", FOG_EDGE = "#333b34", FOG_Q = "#5a675e", ACCENT = "#37f07d";
+const linkD = (lk: Link) => (lk.subpaths ?? [lk.pts!]).map((sp) => "M" + sp.map((p) => p.join(",")).join("L")).join(" ");
+const shown = (lk: Link) => !!byId[lk.from]?.discovered && !!byId[lk.to]?.discovered;
+
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
   return (
     <div className="minimap-screen">
-      <svg className="minimap-svg" viewBox="-2 -2 104 104" preserveAspectRatio="xMidYMid meet">
-        {/* corredores: cada uno es UN <path> (una o varias ramas), grosor uniforme, con sus esquinas.
-            Gris si ambas salas están descubiertas, apagado si no. */}
-        {LINKS.map((lk, i) => {
-          const ra = byId[lk.from], rb = byId[lk.to];
-          if (!ra || !rb) return null;
-          const stroke = ra.discovered && rb.discovered ? "#8a938a" : "#26302a";
-          const d = (lk.subpaths ?? [lk.pts!]).map((sp) => "M" + sp.map((p) => p.join(",")).join("L")).join(" ");
-          return (
-            <path key={i} d={d} fill="none" stroke={stroke} strokeWidth={2.4}
-              strokeLinecap="round" strokeLinejoin="round" />
-          );
-        })}
-        {/* salas: descubierta = clara; no descubierta = oscura con "?"; actual = resaltada + punto del grupo */}
+      <svg className="minimap-svg" viewBox="-3 -3 106 106" preserveAspectRatio="xMidYMid meet">
+        {/* 1. corredores por descubrir: trazo tenue punteado, debajo */}
+        {LINKS.map((lk, i) =>
+          shown(lk) ? null : (
+            <path key={"fog" + i} d={linkD(lk)} fill="none" stroke={FOG_EDGE} strokeWidth={1.8}
+              strokeDasharray="3 3" strokeLinecap="butt" strokeLinejoin="miter" />
+          ),
+        )}
+        {/* 2. pasillos descubiertos = suelo continuo: contorno oscuro + relleno claro, esquinas en PICO (miter) */}
+        {LINKS.map((lk, i) =>
+          shown(lk) ? (
+            <path key={"out" + i} d={linkD(lk)} fill="none" stroke={EDGE} strokeWidth={4.6}
+              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
+          ) : null,
+        )}
+        {LINKS.map((lk, i) =>
+          shown(lk) ? (
+            <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
+              strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} />
+          ) : null,
+        )}
+        {/* 3. salas: por descubrir = oscura punteada con "?"; descubierta = suelo claro; actual = verde + punto */}
         {ROOMS.map((r) => {
           const cur = r.id === CURRENT;
+          if (!r.discovered) {
+            return (
+              <g key={r.id}>
+                <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={FOG_FILL}
+                  stroke={FOG_EDGE} strokeWidth={1.2} strokeDasharray="2.6 2.6" />
+                <text x={cx(r)} y={cy(r)} fill={FOG_Q} fontSize={Math.min(r.w, r.h) * 0.5}
+                  fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
+              </g>
+            );
+          }
           return (
             <g key={r.id}>
-              <rect x={r.x} y={r.y} width={r.w} height={r.h}
-                fill={r.discovered ? (cur ? "#dff4e6" : "#d2d8d2") : "#161d18"}
-                stroke={cur ? "#37f07d" : r.discovered ? "#8a938a" : "#343e36"}
-                strokeWidth={cur ? 2 : 1.4} shapeRendering="crispEdges" />
-              {!r.discovered && (
-                <text x={cx(r)} y={cy(r)} fill="#4c5c50" fontSize="9" fontFamily="'Courier Pixel',monospace"
-                  textAnchor="middle" dominantBaseline="central">?</text>
-              )}
-              {cur && <circle cx={cx(r)} cy={cy(r)} r={2.8} fill="#37f07d" />}
+              <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={cur ? FLOOR_CUR : FLOOR}
+                stroke={cur ? ACCENT : EDGE} strokeWidth={cur ? 2.2 : 1.2} />
+              {cur && <circle cx={cx(r)} cy={cy(r)} r={2.8} fill={ACCENT} />}
             </g>
           );
         })}
