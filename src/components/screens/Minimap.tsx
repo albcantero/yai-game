@@ -7,7 +7,7 @@ import RoomPanel from "./RoomPanel";
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
 // Coordenadas en un viewBox 0..100, calcadas del plano PNG (pendiente de afinar a mano con Alberto).
 // name = nombre amable (barra de título del panel); puzzles = nº de puzzles de la sala (contador del panel).
-type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; name?: string; puzzles?: number };
+type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; name?: string; puzzles?: number; description?: string };
 // Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
   { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false },
@@ -466,6 +466,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           title={selRoom.name ?? selRoom.id}
           roomId={selRoom.id}
           puzzles={selRoom.puzzles ?? 0}
+          description={selRoom.description}
           tab={tab}
           onTab={setTab}
           solved={solved}

@@ -5,10 +5,13 @@ const TABS = ["Descripción", "Puzzles", "Objetos"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab (Puzzles/Objetos aún sin icono).
 const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", null, null];
 
+const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+
 export type RoomPanelProps = {
   title: string; // nombre de la sala (barra de título + pestaña Descripción)
   roomId: string; // para los ids de puzzle ("sala#índice")
   puzzles: number; // nº de puzzles de la sala
+  description?: string; // texto de la descripción (si no hay, se usa un lorem de relleno)
   tab: number;
   onTab: (i: number) => void;
   solved: Set<string>; // puzzles resueltos del juego
@@ -16,7 +19,7 @@ export type RoomPanelProps = {
   onClose: () => void;
 };
 
-export default function RoomPanel({ title, roomId, puzzles, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
+export default function RoomPanel({ title, roomId, puzzles, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
   const bigIcon = TAB_BIG[tab];
   return (
     <div className="minimap-info win98">
@@ -41,7 +44,12 @@ export default function RoomPanel({ title, roomId, puzzles, tab, onTab, solved, 
               <div className="window-body">
                 {/* recuadro blanco hundido con borde (clase nativa de 98.css) */}
                 <div className="sunken-panel">
-                  {tab === 0 && <p>{title}</p>}
+                  {tab === 0 && (
+                    <div className="room-desc">
+                      <p className="room-desc-title">{title}</p>
+                      <p>{description ?? LOREM}</p>
+                    </div>
+                  )}
                   {tab === 1 && (
                     <div className="puzzle-list">
                       {puzzles === 0 && <p>Sin puzzles</p>}
