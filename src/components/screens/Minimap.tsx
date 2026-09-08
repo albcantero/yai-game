@@ -27,12 +27,12 @@ const ROOMS: Room[] = [
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offFrom: 1, offTo: 4 }, // puerta a la Tienda (Librería): 3 llaves. Librería→Almacén: +1; Almacén→Librería: +4
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offFrom: 1, offTo: 6 }, // puerta a la Tienda (Librería): 3 llaves. Librería→Almacén: +1; Almacén→Librería: +6
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 1, offTo: 2 }, // R5→R4: +1, R4→R5: +2
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
-  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 4, offTo: 2 }, // Almacén→Intersección: +4; Intersección→Almacén: +2
+  { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], offFrom: 6, offTo: 2 }, // Almacén→Intersección: +6; Intersección→Almacén: +2
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 1 }, // Intersección→R3: +2; R3→Intersección: +1
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], offFrom: 1, offTo: 1 }, // R6→R7: +1; R7→R6: +1
