@@ -119,7 +119,8 @@ más o menos lo que da cada puzzle (economía ajustada, saldo casi plano). Así 
 - **Tarjeta de seguridad del Almacén**: abre la puerta Almacén → Librería. Se consigue en el **Sótano**.
 - **Llave Maestra**: abre la **salida final** (fin del juego). Se consigue en **La Cámara**.
 
-Contenido concreto (Blue Prince, deducción): POR DISEÑAR. De momento, las dependencias:
+El detalle pieza a pieza (físico, enunciado "Leer", panel "Descripción", solución OTP, sobre, nota, dependencia)
+vive en **`puzzles.md`**. Aquí solo el resumen de dependencias:
 
 | Sala | Requiere (para resolverse) | Da (al resolverse) |
 |------|----------------------------|--------------------|
