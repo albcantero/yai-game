@@ -100,6 +100,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   const barRef = useRef<SVGPathElement>(null); // arco (color de trazo + sube/baja)
   const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (bajan + opacity)
   const responseRef = useRef<HTMLSpanElement>(null); // texto de respuesta (sube + opacity)
+  const triedRef = useRef<HTMLDivElement>(null); // combinación probada (persiste y desaparece IGUAL que el mensaje)
   const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
   const slideRef = useRef<HTMLDivElement>(null); // wrapper que sube deslizándose al aparecer
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
@@ -154,9 +155,13 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     if (killed.current) return;
     setResponse(msg);
     if (responseRef.current) responseRef.current.style.color = color;
-    await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
+    await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished; // entra solo el mensaje (los dígitos ya están y persisten)
     await wait(2000);
-    await animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished;
+    // SALEN a la vez y con la MISMA animación (suben 30 + fade): mensaje (30→0) y combinación (0→-30)
+    await Promise.all([
+      animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
+      triedRef.current ? animate(triedRef.current, { y: -30, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished : Promise.resolve(),
+    ]);
   };
   // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)
   const restore = async () => {
@@ -216,8 +221,8 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
         </div>
         {/* combinación probada: cada dígito en el pixel EXACTO donde su dial lo mostraba (misma fila/celda/gap).
             Se ve mientras se resuelve (aunque las ruedas caigan) y se oculta al aparecer el mensaje. */}
-        {busy && !response && (
-          <div className="padlock-tried">
+        {busy && (
+          <div className="padlock-tried" ref={triedRef}>
             {digits.map((d, i) => <span key={i} className="padlock-tried-cell">{d}</span>)}
           </div>
         )}
