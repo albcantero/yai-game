@@ -156,7 +156,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   // (luminosidad 100→60, hue 120) desde UNA sola animación (power1.out) → sin costura entre caja y arco
   const resultCorrect = () => Promise.all([
     animate(barRef.current!, { y: -20 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
-    animate(bodyRef.current!, { scale: 1.2 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
+    animate(bodyRef.current!, { scale: 1 }, { duration: 0.3, ease: BACK_OUT_4 }).finished, // mismo zoom que INCORRECTO (referencia)
     animate(100, 60, { duration: 0.3, ease: E_OUT, onUpdate: (L) => paint(120, L) }).finished,
   ]);
   // incorrecto: barra baja + candado escala 1 (0.1s lineal) + rojo (hue 0, luminosidad 100→60); luego SHAKE

@@ -150,7 +150,7 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
   };
   const resultCorrect = () => Promise.all([
     animate(barRef.current!, { y: -20 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
-    animate(bodyRef.current!, { scale: 1.2 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
+    animate(bodyRef.current!, { scale: 1 }, { duration: 0.3, ease: BACK_OUT_4 }).finished, // mismo zoom que INCORRECTO (referencia)
     animate(100, 60, { duration: 0.3, ease: E_OUT, onUpdate: (L) => paint(120, L) }).finished,
   ]);
   const resultIncorrect = () => {
