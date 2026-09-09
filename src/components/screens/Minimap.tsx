@@ -28,9 +28,9 @@ const ROOMS: Room[] = [
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 // reveals = nodos EXTRA que se descubren al desbloquear esta puerta (además del destino). Ej.: abrir
 // Almacén→Intersección abre también R3 (la intersección es de paso: "Almacén→R3 directo").
-type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number; reveals?: string[] };
+type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 1, offFrom: 1, offTo: 6 }, // Librería: en DISEÑO se abre por ITEM (Tarjeta de seguridad del Almacén); placeholder 1 llave hasta la mecánica de items
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -111,6 +111,7 @@ const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf
 // Flecha base: apunta a la DERECHA (+x, 0°). Se ROTA al ángulo del pasillo, así respeta rectas y diagonales.
 const ARROW: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
 const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
+const TARJETA_PATH = "M22 20H2V4h20v16ZM4 18h16v-6H4v6Zm8-2H6v-2h6v2ZM4 8h16V6H4v2Z"; // Tarjeta de seguridad (HUD + candado de la Librería)
 const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto (junctions)
 const MARK_ROOM_OFFSET = -1; // salas: offset desde la PUERTA (negativo = hacia dentro): marca cerca de la sala, antes de cualquier codo del pasillo
 const MARK_BORDER = 2.9; // grosor del borde negro de las marcas: como es "por fuera" (blanco lleno encima), va al doble del trazo del pin (1.4 a caballo) para que la banda negra se vea igual de gruesa
@@ -147,6 +148,7 @@ function marksFor(current: string, disc: Set<string>) {
       blocked,
       keys: lk.keys ?? 1, // llaves para cruzar esta puerta (popup del candado); por defecto 1
       reveals: lk.reveals ?? [], // nodos extra que abre esta puerta al desbloquearla
+      item: lk.item, // si la puerta se abre por ITEM (p.ej. "tarjeta") en vez de por llaves
       ax: dx / len, ay: dy / len, // dirección unitaria (para el floating de la flecha)
     };
   });
@@ -155,6 +157,7 @@ type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
 const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
 const START_KEYS = 99; // TEMPORAL (pruebas): 99 llaves para ver los costes en vivo. Volver a 0 para jugar
+const START_TARJETAS = 1; // TEMPORAL (pruebas): 1 Tarjeta para verla en el HUD. En juego se consigue en el Sótano (0 al empezar)
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
@@ -184,6 +187,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [current, setCurrent] = useState(START_ROOM); // sala en la que estás (te mueves tocando las flechas)
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
   const [keys, setKeys] = useState(START_KEYS); // llaves del grupo
+  const [tarjetas] = useState(START_TARJETAS); // items "Tarjeta" (abren la Librería; no se gastan)
   const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
   const [solved, setSolved] = useState<Set<string>>(() => new Set()); // puzzles resueltos (id = "sala#índice"); cada uno da +1 llave
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
@@ -207,10 +211,14 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
     setSolved((s) => new Set(s).add(id));
     setKeys((k) => k + 1);
   };
-  // desbloquear una puerta: gasta las llaves y descubre la sala vecina (candado → flecha)
+  // desbloquear una puerta: gasta llaves (o requiere un ITEM, p.ej. la Tarjeta) y descubre la sala vecina
   const unlock = (m: Mark) => {
-    if (keys < m.keys) return;
-    setKeys((k) => k - m.keys);
+    if (m.item) {
+      if (m.item === "tarjeta" && tarjetas < 1) return; // necesitas la Tarjeta; NO se gasta (llave-tarjeta reutilizable)
+    } else {
+      if (keys < m.keys) return;
+      setKeys((k) => k - m.keys);
+    }
     setDiscovered((d) => { const n = new Set(d); n.add(m.dest); m.reveals.forEach((id) => n.add(id)); return n; }); // destino + extras (p.ej. R3)
     setLocked(null);
   };
@@ -470,6 +478,14 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           </button>
           <span className="hud-count">{keys}</span>
         </div>
+        {tarjetas > 0 && (
+          <div className="hud-row" style={{ marginLeft: 10 }}>
+            <button type="button" tabIndex={-1} className="hud-btn" aria-label="Tarjeta">
+              <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
+            </button>
+            <span className="hud-count">{tarjetas}</span>
+          </div>
+        )}
       </div>
       <div className="minimap-hud-right">
         <span className="hud-count">{solved.size}/{TOTAL_PUZZLES}</span>
@@ -510,7 +526,11 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 <p>El camino está bloqueado.</p>
               </div>
               <div className="confirm-buttons">
-                <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
+                {locked.item === "tarjeta" ? (
+                  <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
+                ) : (
+                  <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
+                )}
                 <button type="button" onClick={() => setLocked(null)}>Salir</button>
               </div>
             </div>
