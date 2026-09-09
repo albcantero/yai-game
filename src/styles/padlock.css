@@ -37,7 +37,7 @@
   font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* línea horizontal por número: ranuras del dial (giran con el cilindro) */
 
 /* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas (aparece cuando estas se han deslizado) */
-.padlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none }
+.padlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none;transform:translateY(32px) }   /* baja el mensaje un poco (la animación va sobre el <span>, esto solo desplaza el contenedor) */
 .padlock-response{ opacity:0;font-size:72px;color:#fff;white-space:nowrap;text-shadow:none;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
 /* combinación probada: fila superpuesta a las ruedas, MISMO ancho de celda (52px) y gap (10px) que .padlock-dials,
