@@ -112,6 +112,11 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
     if (slideRef.current) animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
   }, []);
 
+  // la combinación probada aparece con FADE-IN (0→1) al empezar el intento (no de golpe)
+  useEffect(() => {
+    if (busy && triedRef.current) animate(triedRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT });
+  }, [busy]);
+
   const setDigit = (i: number, v: number) => setDigits((d) => d.map((x, j) => (j === i ? v : x)));
   const isCorrect = () => digits.every((v, i) => v === combo[i]);
 
@@ -214,7 +219,7 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
         {/* combinación probada: cada dígito en el pixel EXACTO donde su dial lo mostraba (misma fila/celda/gap).
             Se ve mientras se resuelve (aunque las ruedas caigan) y se oculta al aparecer el mensaje. */}
         {busy && (
-          <div className="letterlock-tried" ref={triedRef}>
+          <div className="letterlock-tried" ref={triedRef} style={{ opacity: 0 }}>
             {digits.map((d, i) => <span key={i} className="letterlock-tried-cell">{d}</span>)}
           </div>
         )}
