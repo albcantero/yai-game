@@ -42,9 +42,9 @@
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
 /* combinación probada: fila superpuesta a las ruedas, MISMO ancho de celda (52px) y gap (10px) que .padlock-dials,
    así cada dígito cae en el pixel exacto donde su dial lo mostraba (centro del dial). */
-.padlock-tried{ position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;pointer-events:none }
-.padlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:#fff;text-shadow:none;
-  font-family:'Pixelated Times New Roman','Determination Mono',serif }
+.padlock-tried{ position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;pointer-events:none;color:#fff }
+.padlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:inherit;text-shadow:none;
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* color:inherit → se tiñe con el candado (paint) */
 
 /* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
    Mono. En columna, debajo. Motion los baja + desvanece durante el intento. */

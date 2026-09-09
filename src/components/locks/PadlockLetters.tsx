@@ -122,6 +122,7 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
     const c = `hsl(${hue},50%,${L}%)`;
     if (boxRef.current) boxRef.current.style.fill = c;
     if (barRef.current) barRef.current.style.stroke = c;
+    if (triedRef.current) triedRef.current.style.color = c; // los números de la combinación se colorean con el candado
   };
 
   // ---- fases de la animación (timeline CLAVADA del original GSAP) ----

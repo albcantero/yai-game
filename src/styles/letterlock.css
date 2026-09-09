@@ -30,9 +30,9 @@
 .letterlock-response{ opacity:0;font-size:72px;color:#fff;white-space:nowrap;text-shadow:none;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
 /* combinación probada: fila superpuesta a las ruedas, MISMO ancho de celda (52px) y gap (10px) que .letterlock-dials */
-.letterlock-tried{ position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;pointer-events:none }
-.letterlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:#fff;text-shadow:none;
-  font-family:'Pixelated Times New Roman','Determination Mono',serif }
+.letterlock-tried{ position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;pointer-events:none;color:#fff }
+.letterlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:inherit;text-shadow:none;
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* color:inherit → se tiñe con el candado (paint) */
 
 /* botones Win98 (98.css): bisel real, fondo transparente, sin icono, texto blanco en Determination Mono */
 .letterlock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
