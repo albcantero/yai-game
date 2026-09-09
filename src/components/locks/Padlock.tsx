@@ -101,6 +101,12 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
 
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const dials = () => dialRefs.current.filter(Boolean) as HTMLDivElement[];
+  // pinta caja y arco con EL MISMO color (una sola fuente → nunca se ve la costura de las dos piezas del SVG)
+  const paint = (hue: number, L: number) => {
+    const c = `hsl(${hue},50%,${L}%)`;
+    if (boxRef.current) boxRef.current.style.fill = c;
+    if (barRef.current) barRef.current.style.stroke = c;
+  };
 
   // ---- fases de la animación (timeline CLAVADA del original GSAP) ----
   // startUnlockAttempt: el BOTÓN cae en t0 (0.5s); las RUEDAS caen UNA A UNA desde t0.25 (stagger 0.1s); el
@@ -113,17 +119,18 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     animate(barRef.current!, { y: 10 }, { duration: 1, ease: E_OUT, delay: 1.55 });
     return animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: E_OUT, delay: 1.55 }).finished; // fin t2.55
   };
-  // correcto (0.3s): barra sube (-20) y candado escala 1.2 con Back.easeOut(4); caja a verde (power1.out)
+  // correcto (0.3s): barra sube (-20) y candado escala 1.2 con Back.easeOut(4); color de AMBAS piezas verde
+  // (luminosidad 100→60, hue 120) desde UNA sola animación (power1.out) → sin costura entre caja y arco
   const resultCorrect = () => Promise.all([
-    animate(barRef.current!, { y: -20, stroke: "hsl(120,50%,60%)" }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
+    animate(barRef.current!, { y: -20 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
     animate(bodyRef.current!, { scale: 1.2 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
-    animate(boxRef.current!, { fill: "hsl(120,50%,60%)" }, { duration: 0.3, ease: E_OUT }).finished,
+    animate(100, 60, { duration: 0.3, ease: E_OUT, onUpdate: (L) => paint(120, L) }).finished,
   ]);
-  // incorrecto: barra baja + candado escala 1 + rojo (0.1s lineal); luego SHAKE x +10/-10/+10/0 (4×0.1s)
+  // incorrecto: barra baja + candado escala 1 (0.1s lineal) + rojo (hue 0, luminosidad 100→60); luego SHAKE
   const resultIncorrect = () => {
-    animate(barRef.current!, { y: 0, stroke: "hsl(0,50%,60%)" }, { duration: 0.1, ease: "linear" });
+    animate(barRef.current!, { y: 0 }, { duration: 0.1, ease: "linear" });
     animate(bodyRef.current!, { scale: 1 }, { duration: 0.1, ease: "linear" });
-    animate(boxRef.current!, { fill: "hsl(0,50%,60%)" }, { duration: 0.1, ease: E_OUT });
+    animate(100, 60, { duration: 0.1, ease: E_OUT, onUpdate: (L) => paint(0, L) });
     return animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
   };
   // respuesta: entra (0.5s, +30 + opacity) → aguanta 2s → sale (0.5s)
@@ -137,8 +144,8 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)
   const restore = async () => {
     await Promise.all([
-      animate(boxRef.current!, { fill: RESTING }, { duration: 0.25, ease: E_INOUT }).finished,
-      animate(barRef.current!, { stroke: RESTING, y: 0 }, { duration: 0.25, ease: E_INOUT }).finished,
+      animate(60, 100, { duration: 0.25, ease: E_INOUT, onUpdate: (L) => paint(0, L) }).finished, // color de ambas piezas de rojo (L60) a blanco (L100), hue 0
+      animate(barRef.current!, { y: 0 }, { duration: 0.25, ease: E_INOUT }).finished,
       animate(bodyRef.current!, { scale: 1, y: 0 }, { duration: 0.25, ease: E_OUT }).finished,
     ]);
     animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT });
