@@ -106,6 +106,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras CORRECTO)
   const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
   const slideRef = useRef<HTMLDivElement>(null); // wrapper que sube deslizándose al aparecer
+  const closing = useRef(false); // ya se está deslizando hacia fuera (evita cerrar dos veces)
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
 
   useEffect(() => () => { killed.current = true; }, []);
@@ -190,6 +191,17 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     await Promise.all(dials().map((el, i) => animate(el, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT, delay: 0.25 + i * 0.1 }).finished));
   };
 
+  // salir: animación INVERSA a la de aparecer (la placa se desliza de 0 hacia abajo, fuera del viewport) y al
+  // terminar ejecuta el cierre (onSolved / onClose). Mismo sonido y mismo spring que al aparecer.
+  const slideOut = (cb: () => void) => {
+    if (closing.current) return;
+    closing.current = true;
+    playSfx("/audio/paper-slide.mp3", 1);
+    const el = slideRef.current;
+    if (el) animate(el, { y: [0, window.innerHeight] }, { type: "spring", bounce: 0, visualDuration: 0.55 }).finished.then(cb);
+    else cb();
+  };
+
   const onUnlock = async () => {
     if (busy) return;
     setBusy(true);
@@ -253,13 +265,13 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
       {/* botones Win98 (98.css): bisel real, transparentes, sin icono. Bajan + fade en el intento. */}
       <div className="padlock-actions win98" ref={actionsRef}>
         <button type="button" onClick={onUnlock}>Resolver</button>
-        <button type="button" onClick={() => { if (!busy) onClose(); }}>Cancelar</button>
+        <button type="button" onClick={() => { if (!busy) slideOut(onClose); }}>Cancelar</button>
       </div>
 
       {/* tras CORRECTO: botón "Salir" (aparece con fade-in; CORRECTO + combinación persisten arriba) */}
       {exit && (
         <div className="padlock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={onSolved}>Salir</button>
+          <button type="button" onClick={() => slideOut(onSolved)}>Salir</button>
         </div>
       )}
     </div>
