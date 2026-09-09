@@ -35,7 +35,7 @@
 /* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas (aparece cuando estas se han deslizado) */
 .padlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none }
 .padlock-response{ opacity:0;font-size:52px;color:#fff;white-space:nowrap;text-shadow:none;
-  font-family:'Determination Mono','Determination Sans',monospace }
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }
 
 /* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
    Mono. En columna, debajo. Motion los baja + desvanece durante el intento. */
