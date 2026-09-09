@@ -13,7 +13,8 @@ const E_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]; // Pow
 const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
 const OK_GREEN = "hsl(120,50%,60%)"; // color del texto "CORRECTO" (mismo verde que el cuerpo del candado)
 const BAD_RED = "hsl(0,50%,60%)"; // color del texto "INCORRECTO" (mismo rojo que el cuerpo del candado)
-const HOLD_MS = 2000; // lo que el MENSAJE (CORRECTO/INCORRECTO) aguanta antes del fade-out
+const HOLD_MS = 1500; // lo que el MENSAJE (CORRECTO/INCORRECTO) aguanta antes del fade-out
+const TRIED_HOLD_MS = 1500; // lo que la COMBINACIÓN aguanta antes del fade-out
 const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" (antes que el aguante del mensaje)
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
@@ -166,11 +167,12 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
     setResponse(msg);
     if (responseRef.current) responseRef.current.style.color = color;
     await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished; // entra solo el mensaje (los dígitos ya están y persisten)
+    // la COMBINACIÓN se va a los 1,5s (solo fade, sin subir); el MENSAJE también a 1,5s (sube 30 + fade)
+    const triedExit = triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT, delay: TRIED_HOLD_MS / 1000 }).finished : Promise.resolve();
     await wait(HOLD_MS);
-    // SALEN a la vez y con la MISMA animación (suben 30 + fade): mensaje (30→0) y combinación (0→-30)
     await Promise.all([
       animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
-      triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT, delay: 0.5 }).finished : Promise.resolve(), // solo fade, SIN subir; 0,5s más tarde (espera 2,5s)
+      triedExit, // esperamos también a la combinación (acaba un poco después) antes de restaurar
     ]);
   };
   const restore = async () => {
