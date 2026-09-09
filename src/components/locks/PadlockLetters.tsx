@@ -204,6 +204,8 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
         <div className="letterlock-response-wrap">
           <span className="letterlock-response" ref={responseRef}>{response}</span>
         </div>
+        {/* combinación probada en texto plano (se ve mientras se resuelve, aunque las ruedas ya hayan caído) */}
+        {busy && <div className="letterlock-tried">{digits.join("  ")}</div>}
       </div>
 
       {/* botones Win98 (98.css): bisel real, transparentes, sin icono. Bajan + fade en el intento. */}

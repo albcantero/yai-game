@@ -40,6 +40,10 @@
 .padlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none }
 .padlock-response{ opacity:0;font-size:72px;color:#fff;white-space:nowrap;text-shadow:none;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
+/* combinación probada en texto plano, justo bajo la banda de las ruedas */
+.padlock-tried{ position:absolute;top:100%;left:0;right:0;margin-top:10px;text-align:center;white-space:nowrap;
+  color:#fff;font-size:30px;letter-spacing:4px;text-shadow:none;pointer-events:none;
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }
 
 /* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
    Mono. En columna, debajo. Motion los baja + desvanece durante el intento. */
