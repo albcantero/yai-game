@@ -154,7 +154,7 @@ function marksFor(current: string, disc: Set<string>) {
 type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
 const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
-const START_KEYS = 0; // llaves iniciales del grupo: 0. Se ganan resolviendo puzzles (1 puzzle = 1 llave)
+const START_KEYS = 99; // TEMPORAL (pruebas): 99 llaves para ver los costes en vivo. Volver a 0 para jugar
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
