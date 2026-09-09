@@ -4,7 +4,7 @@
    NUNCA se solapan). Clic fuera del escenario (backdrop) = cerrar, lo gestiona Computer. */
 .lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75) }
 .padlock-stage{ display:flex;flex-direction:column;align-items:center;gap:14px;width:min(96%,460px) }
-.padlock-svg{ width:100%;height:auto;display:block;overflow:hidden }   /* alto por el aspect del viewBox; overflow hidden recorta la caída de las ruedas */
+.padlock-svg{ width:100%;height:auto;display:block;overflow:visible }   /* alto por el aspect del viewBox; overflow VISIBLE: la caída de las ruedas NO se recorta (se deslizan hacia abajo) */
 .padlock-svg text{ user-select:none;font-family:'Determination Mono','Determination Sans',monospace }   /* mensajes + dígitos en Determination Mono (retro) */
 .padlock-body{ transform-box:fill-box;transform-origin:center }   /* la escala del candado gira sobre su propio centro */
 
