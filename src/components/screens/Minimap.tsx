@@ -158,6 +158,7 @@ const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered)
 const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
 const START_KEYS = 99; // TEMPORAL (pruebas): 99 llaves para ver los costes en vivo. Volver a 0 para jugar
 const START_TARJETAS = 1; // TEMPORAL (pruebas): 1 Tarjeta para verla en el HUD. En juego se consigue en el Sótano (0 al empezar)
+const START_LLAVE_MAESTRA = 1; // TEMPORAL (pruebas): ver la Llave Maestra (roja) en el HUD. En juego se consigue en La Cámara
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
@@ -188,6 +189,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
   const [keys, setKeys] = useState(START_KEYS); // llaves del grupo
   const [tarjetas] = useState(START_TARJETAS); // items "Tarjeta" (abren la Librería; no se gastan)
+  const [llaveMaestra] = useState(START_LLAVE_MAESTRA); // Copia de la Llave Maestra (item del final; se pinta roja en el HUD)
   const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
   const [solved, setSolved] = useState<Set<string>>(() => new Set()); // puzzles resueltos (id = "sala#índice"); cada uno da +1 llave
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
@@ -472,18 +474,26 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         </svg>
       </div>
       <div className="minimap-hud win98">
-        <div className="hud-row">
-          <button type="button" tabIndex={-1} className="hud-btn" aria-label="Llaves">
-            <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
-          </button>
-          <span className="hud-count">{keys}</span>
-        </div>
-        {tarjetas > 0 && (
-          <div className="hud-row" style={{ marginLeft: 10 }}>
-            <button type="button" tabIndex={-1} className="hud-btn" aria-label="Tarjeta">
-              <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
+        <div className="hud-line">
+          <div className="hud-row">
+            <button type="button" tabIndex={-1} className="hud-btn" aria-label="Llaves">
+              <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
             </button>
-            <span className="hud-count">{tarjetas}</span>
+            <span className="hud-count">{keys}</span>
+          </div>
+          {tarjetas > 0 && (
+            <div className="hud-row" style={{ marginLeft: 16 }}>
+              <button type="button" tabIndex={-1} className="hud-btn" aria-label="Tarjeta">
+                <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
+              </button>
+              <span className="hud-count">{tarjetas}</span>
+            </div>
+          )}
+        </div>
+        {llaveMaestra > 0 && (
+          <div className="hud-line hud-master">
+            <svg className="hud-master-ico" viewBox="0 0 24 24" fill="#e03131" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
+            <span className="hud-count">{llaveMaestra}</span>
           </div>
         )}
       </div>
