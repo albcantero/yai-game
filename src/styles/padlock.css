@@ -29,7 +29,7 @@
   border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.3) }
 /* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW=30 debe coincidir con Padlock.tsx */
 .dial-num{ position:absolute;left:0;right:0;top:50%;height:30px;margin-top:-15px;line-height:30px;text-align:center;
-  font-size:26px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
+  font-size:34px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
 
 /* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas (aparece cuando estas se han deslizado) */
