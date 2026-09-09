@@ -17,9 +17,9 @@ const ROOMS: Room[] = [
   { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9 },
   { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén", puzzles: 1 }, // sala de inicio (nº 2); la ÚNICA despejada
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
-  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 1 },
+  { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10 },
-  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería" }, // = la TIENDA (pegada al Almacén), 3 llaves
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería", puzzles: 1 }, // = la TIENDA (pegada al Almacén), 3 llaves
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
@@ -466,6 +466,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           title={selRoom.name ?? selRoom.id}
           num={selRoom.num}
           roomId={selRoom.id}
+          isCurrent={selected === current}
           puzzles={selRoom.puzzles ?? 0}
           description={selRoom.description}
           tab={tab}
