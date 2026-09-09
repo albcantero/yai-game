@@ -12,7 +12,7 @@ const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
 const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, cilindro más "cerrado"/curvado)
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
-const RENDER = 6; // números renderizados a cada lado del centro (los de detrás se ocultan solos por opacidad)
+const RENDER = 4; // slots renderizados a cada lado del centro (ventana FIJA que sigue al scroll; < 9 evita que el cilindro dé la vuelta y solape)
 
 // Una RUEDA (dial) 3D: los números viven en un CILINDRO real (rotateX + translateZ bajo perspective). El del
 // centro mira al frente; los de arriba/abajo se giran y se DESVANECEN (profundidad). Se arrastra en vertical
@@ -38,30 +38,35 @@ function Dial({ value, disabled, onChange }: { value: number; disabled: boolean;
   const finish = () => {
     if (!active.current) return;
     active.current = false;
-    const steps = Math.max(-3, Math.min(3, Math.round(drag / ROW))); // nº de números movidos (limitado)
+    const steps = Math.round(drag / ROW); // nº de números movidos (sin límite: scroll largo válido)
     if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
     settling.current = true;
     setAnim(true);
-    setDrag(steps * ROW); // gira hasta encajar en el número destino
+    setDrag(steps * ROW); // gira hasta encajar en el número destino (solo anima la fracción)
     window.setTimeout(() => {
-      onChange((value - steps + 100) % 10); // arrastrar hacia abajo (steps>0) = número anterior
+      onChange(((value - steps) % 10 + 10) % 10); // arrastrar hacia abajo (steps>0) = número anterior
       setAnim(false);
       setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
       settling.current = false;
     }, 190);
   };
 
-  const shift = drag / ROW; // desplazamiento en números (fraccionario) según el arrastre
+  // ventana FIJA de slots que SIGUE al scroll: el centro se calcula en vivo, y solo pintamos unos pocos slots
+  // alrededor. Así nunca hay dos números en el mismo punto del cilindro (adiós solapes/"runas" y el pop al soltar).
+  const s = drag / ROW;        // desplazamiento continuo en números
+  const r = Math.round(s);     // parte entera (números completos ya girados)
+  const f = s - r;             // fracción (-0.5..0.5)
+  const center = value - r;    // número que está AHORA en el centro (arrastrar hacia abajo = anterior)
   return (
     <div className="lock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
       <div className="dial-cylinder">
-        {Array.from({ length: RENDER * 2 + 1 }, (_, k) => k - RENDER).map((o) => {
-          const angle = -(o + shift) * ITEM_ANGLE; // ángulo del número en el cilindro
+        {Array.from({ length: RENDER * 2 + 1 }, (_, i) => i - RENDER).map((k) => {
+          const angle = -(k - f) * ITEM_ANGLE; // slot k del cilindro (corrige la fracción del arrastre)
           const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // los que giran hacia atrás se desvanecen
           return (
-            <div className="dial-num" key={o}
+            <div className="dial-num" key={k}
               style={{ transform: `rotateX(${angle}deg) translateZ(${RADIUS}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
-              {(value + o + 100) % 10}
+              {((center + k) % 10 + 10) % 10}
             </div>
           );
         })}
