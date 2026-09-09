@@ -424,7 +424,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 relleno del pasillo (pase 4) pase por ENCIMA y una la línea con la sala, igual que el resto.
                 OCULTA hasta abrir el candado BLANCO; luego "?" hasta el rojo. */}
             {salidaRevealed && (discovered.has("salida") ? (
-              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill="transparent" stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
+              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill="transparent" stroke="none" pointerEvents="none" />
             ) : (
               <g pointerEvents="none">
                 <rect className="minimap-fog-room" x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FOG_FILL} stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
