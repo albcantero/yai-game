@@ -20,8 +20,8 @@
 .minimap-hud{ left:8px;flex-direction:column;align-items:flex-start;gap:4px }   /* columna: fila superior (llaves + tarjeta) + fila inferior (llave maestra roja) */
 .minimap-hud-right{ right:8px;gap:9px }   /* [cifra][icono] flotando, todo blanco, sin marco */
 .minimap-hud .hud-line{ display:flex;align-items:center }   /* una fila horizontal del HUD */
-.minimap-hud .hud-master{ gap:9px;padding-left:6px }        /* llave maestra: solo el icono rojo + nº, SIN botón ni borde */
-.minimap-hud .hud-master-ico{ width:24px;height:24px;display:block }
+.minimap-hud .hud-item{ gap:9px;padding-left:6px }          /* items (tarjeta verde, llave maestra roja): solo icono + nº, SIN botón ni borde */
+.minimap-hud .hud-item-ico{ width:24px;height:24px;display:block }
 .minimap-hud .hud-row{ display:flex;align-items:center;gap:9px }
 .minimap-hud .hud-btn{ width:36px;height:36px;min-width:0;min-height:0;padding:0;display:flex;align-items:center;justify-content:center }
 .minimap-hud .hud-btn svg{ width:24px;height:24px;display:block }

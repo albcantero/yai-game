@@ -481,18 +481,16 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             </button>
             <span className="hud-count">{keys}</span>
           </div>
-          {tarjetas > 0 && (
-            <div className="hud-row" style={{ marginLeft: 16 }}>
-              <button type="button" tabIndex={-1} className="hud-btn" aria-label="Tarjeta">
-                <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
-              </button>
-              <span className="hud-count">{tarjetas}</span>
-            </div>
-          )}
         </div>
+        {tarjetas > 0 && (
+          <div className="hud-line hud-item">
+            <svg className="hud-item-ico" viewBox="0 0 24 24" fill="#37f07d" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
+            <span className="hud-count">{tarjetas}</span>
+          </div>
+        )}
         {llaveMaestra > 0 && (
-          <div className="hud-line hud-master">
-            <svg className="hud-master-ico" viewBox="0 0 24 24" fill="#e03131" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
+          <div className="hud-line hud-item">
+            <svg className="hud-item-ico" viewBox="0 0 24 24" fill="#e03131" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
             <span className="hud-count">{llaveMaestra}</span>
           </div>
         )}
