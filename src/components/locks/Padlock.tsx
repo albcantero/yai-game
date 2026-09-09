@@ -113,7 +113,10 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   // al APARECER (pulsar Resolver): la placa entra deslizándose desde abajo (de fuera del viewport hasta su sitio),
   // sin opacidad, con spring bounce 0. Empieza en translateY(100vh) (inline) para no parpadear el primer frame.
   useEffect(() => {
-    if (slideRef.current) animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
+    if (slideRef.current) {
+      playSfx("/audio/paper-slide.mp3", 1); // sonido del deslizamiento del candado al aparecer
+      animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
+    }
   }, []);
 
   // la combinación probada aparece con FADE-IN (0→1) al empezar el intento (no de golpe)
