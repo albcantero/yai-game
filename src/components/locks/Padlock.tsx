@@ -23,23 +23,28 @@ const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro
 
 // Una RUEDA (dial) cilindro 3D. Se arrastra en vertical: los números ruedan (keyeados por índice absoluto j, así
 // entran/salen por los bordes en vez de mutar). Snap al soltar, con wrap 0..9. Arrastrar hacia abajo = anterior.
-function Dial({ value, disabled, onChange }: { value: number; disabled: boolean; onChange: (v: number) => void }) {
+function Dial({ value, disabled, onChange, tick }: { value: number; disabled: boolean; onChange: (v: number) => void; tick: () => void }) {
   const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
   const [anim, setAnim] = useState(false); // transición al soltar (snap)
   const startY = useRef(0);
   const active = useRef(false);
   const settling = useRef(false); // en el snap post-soltar: ignora nuevos arrastres
+  const lastC = useRef(value); // último número en el centro (para el "tick" al cruzar cada número)
 
   const onDown = (e: ReactPointerEvent) => {
     if (disabled || settling.current) return;
     active.current = true;
     startY.current = e.clientY;
+    lastC.current = value;
     setAnim(false);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
   const onMove = (e: ReactPointerEvent) => {
     if (!active.current) return;
-    setDrag(e.clientY - startY.current);
+    const nd = e.clientY - startY.current;
+    const nc = Math.round(value - nd / ROW); // número que pasa por el centro ahora
+    if (nc !== lastC.current) { lastC.current = nc; tick(); } // "tick" en cada paso (cruce de número)
+    setDrag(nd);
   };
   const finish = () => {
     if (!active.current) return;
@@ -79,11 +84,13 @@ function Dial({ value, disabled, onChange }: { value: number; disabled: boolean;
 
 export type PadlockProps = {
   combo: number[]; // combinación correcta (un dígito 0..9 por rueda)
+  playSfx: (src: string, vol?: number) => void; // SFX del armazón (para el "tick" de cada paso del dial)
   onSolved: () => void; // combo correcto: el candado se abre → resolver el puzzle + cerrar el overlay
   onClose: () => void; // cancelar (backdrop / botón Cancelar): cerrar sin resolver
 };
 
-export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
+export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockProps) {
+  const tick = () => playSfx("/audio/tick.mp3", 0.6); // clic mecánico en cada paso del dial
   const [digits, setDigits] = useState<number[]>(() => combo.map(() => 0)); // ruedas (empiezan a 0)
   const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "Resolver"
   const [response, setResponse] = useState(""); // texto "CORRECTO"/"INCORRECTO"
@@ -199,7 +206,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
         <div className="padlock-dials">
           {digits.map((d, i) => (
             <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className="dial-slot">
-              <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} />
+              <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} tick={tick} />
             </div>
           ))}
         </div>

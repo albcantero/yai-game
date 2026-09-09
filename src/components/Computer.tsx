@@ -210,6 +210,7 @@ export default function Computer() {
               <div className="padlock-stage">
                 <Padlock
                   combo={lock.combo}
+                  playSfx={playSfx}
                   onSolved={() => { lock.onSolved(); setLock(null); }}
                   onClose={() => setLock(null)}
                 />
