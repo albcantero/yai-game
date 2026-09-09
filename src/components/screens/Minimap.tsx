@@ -32,7 +32,7 @@ type Link = { from: string; to: string; pts: [number, number][]; keys?: number; 
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
   { from: "libreria", to: "pre-salida", pts: [[19.8, 93.5], [19.8, 95.5]], keys: 1, offFrom: -5, offTo: 0 }, // SALIDA (1/2): candado BLANCO DENTRO de la Librería (será el de "llaves libres"; placeholder 1)
-  { from: "pre-salida", to: "salida", pts: [[19.8, 95.5], [19.8, 97]], item: "llave-maestra", offFrom: -5, offTo: 0 }, // SALIDA (2/2): candado ROJO en el camino a la Salida (pide la Llave Maestra)
+  { from: "pre-salida", to: "salida", pts: [[19.8, 95.5], [19.8, 99]], item: "llave-maestra", offFrom: -5, offTo: 0 }, // SALIDA (2/2): candado ROJO en el camino a la Salida (pide la Llave Maestra)
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -72,8 +72,8 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "pre-salida", x: 19.8, y: 95.5, discovered: false }, { id: "salida", x: 19.8, y: 99.5, discovered: false }]; // cruz N + tramo de salida (waypoint) + SALIDA final
-const SALIDA = { x: 15.8, y: 97, w: 8, h: 5 }; // rect de la SALIDA: sala gris pequeña, SEPARADA bajo la Librería
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "pre-salida", x: 19.8, y: 95.5, discovered: false }, { id: "salida", x: 19.8, y: 101.5, discovered: false }]; // cruz N + tramo de salida (waypoint) + SALIDA final
+const SALIDA = { x: 15.8, y: 99, w: 8, h: 5 }; // rect de la SALIDA: sala gris pequeña, SEPARADA (más abajo) bajo la Librería
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
 // grafo mezcla salas y junctions sin casos especiales.
 const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
