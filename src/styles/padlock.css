@@ -13,11 +13,11 @@
 /* overlay SIN oscurecido: solo centra el candado y capta el clic en el backdrop (cerrar). El fondo oscuro ahora
    lo lleva el propio candado (.padlock-slide) y sube con él, en vez de aparecer de golpe. */
 .lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center }
-.padlock-stage{ display:flex;flex-direction:column;align-items:center;gap:16px;width:min(96%,460px) }
-/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo, así el
-   oscurecido entra deslizándose con el candado. Mantiene la columna del contenido. */
-.padlock-slide{ display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;will-change:transform;
-  background:rgba(0,0,0,.9);border-radius:12px;padding:22px 16px 26px }
+.padlock-stage{ width:100%;height:100% }   /* la tarjeta ocupa TODA la pantalla interna (overlay = .crt-body, el header queda fuera) */
+/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo (la "tarjeta" que
+   llena el 100% del interior), así el oscurecido entra deslizándose con el candado. Centra el contenido. */
+.padlock-slide{ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;
+  background:rgba(0,0,0,.9);will-change:transform }
 
 /* cuerpo del candado (SVG) */
 .padlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }

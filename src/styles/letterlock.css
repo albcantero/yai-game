@@ -1,0 +1,35 @@
+/* CANDADO DE LETRAS: duplicado del de números con clases propias (letterlock-*), para modificarlo sin afectar al
+   otro. La fuente 'Pixelated Times New Roman' se declara (global) en padlock.css; aquí solo se referencia. */
+
+/* overlay SIN oscurecido: solo centra el candado y capta el clic en el backdrop (cerrar) */
+.letterlock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center }
+.letterlock-stage{ width:100%;height:100% }   /* la tarjeta ocupa TODA la pantalla interna (overlay = .crt-body, el header queda fuera) */
+/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo (la "tarjeta" que
+   llena el 100% del interior). Centra el contenido. */
+.letterlock-slide{ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;
+  background:rgba(0,0,0,.9);will-change:transform }
+
+/* cuerpo del candado (SVG) */
+.letterlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }
+.letterlock-body{ transform-box:fill-box;transform-origin:center }   /* la escala del candado gira sobre su propio centro */
+
+/* ruedas de la combinación (cilindro 3D): número centrado, vecinos girados/desvanecidos */
+.letterlock-dials-wrap{ position:relative;display:flex;justify-content:center }
+.letterlock-dials{ display:flex;gap:10px }
+.letterlock-slot{ width:52px;height:60px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }   /* SOLO este recorta (overflow+perspective juntos aplanan el 3D) */
+.letterlock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow) */
+.letterlock-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
+/* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW debe coincidir con PadlockLetters.tsx */
+.letterlock-num{ position:absolute;left:0;right:0;top:50%;height:28px;margin-top:-14px;line-height:28px;text-align:center;
+  box-sizing:border-box;border-top:1px solid rgba(255,255,255,.22);border-bottom:1px solid rgba(255,255,255,.22);
+  font-size:40px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* línea horizontal por número: ranuras del dial */
+
+/* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas */
+.letterlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none }
+.letterlock-response{ opacity:0;font-size:72px;color:#fff;white-space:nowrap;text-shadow:none;
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }
+
+/* botones Win98 (98.css): bisel real, fondo transparente, sin icono, texto blanco en Determination Mono */
+.letterlock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
+.letterlock-actions button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }
