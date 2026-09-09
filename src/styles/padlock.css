@@ -1,12 +1,14 @@
 /* CANDADO principal: overlay que OSCURECE la pantalla interior (dentro de .crt-body, debajo del header, encima
-   del contenido y bajo las scanlines), MISMO patrón que .confirm-overlay pero más oscuro (~80%). El candado va
-   centrado en un escenario cuadrado; el resto es backdrop (clic fuera del candado = cerrar, lo gestiona Computer). */
+   del contenido y bajo las scanlines), MISMO patrón que .confirm-overlay pero más oscuro (~65%). El candado va
+   centrado en un escenario en COLUMNA: el SVG arriba (candado + ruedas), los botones Win98 debajo (en flujo, así
+   NUNCA se solapan). Clic fuera del escenario (backdrop) = cerrar, lo gestiona Computer. */
 .lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65) }
-.padlock-stage{ position:relative;width:min(92%,460px);aspect-ratio:1/1 }
-/* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
-   Mono. Se apoyan abajo del escenario, en columna. Motion los baja + desvanece durante el intento. */
-.padlock-actions{ position:absolute;left:0;right:0;bottom:7%;display:flex;flex-direction:column;align-items:center;gap:8px }
-.padlock-actions button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;min-width:130px }
-.padlock-svg{ width:100%;height:100%;display:block;overflow:visible }   /* overflow visible: la caída del botón/dígitos (y~550) no se recorta */
-.padlock-svg text{ user-select:none;font-family:'Determination Mono','Determination Sans',monospace }   /* botones + mensajes + dígitos en Determination Mono (retro) */
+.padlock-stage{ display:flex;flex-direction:column;align-items:center;gap:14px;width:min(96%,460px) }
+.padlock-svg{ width:100%;height:auto;display:block;overflow:hidden }   /* alto por el aspect del viewBox; overflow hidden recorta la caída de las ruedas */
+.padlock-svg text{ user-select:none;font-family:'Determination Mono','Determination Sans',monospace }   /* mensajes + dígitos en Determination Mono (retro) */
 .padlock-body{ transform-box:fill-box;transform-origin:center }   /* la escala del candado gira sobre su propio centro */
+
+/* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
+   Mono. En columna, debajo del candado. Motion los baja + desvanece durante el intento. */
+.padlock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
+.padlock-actions button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }

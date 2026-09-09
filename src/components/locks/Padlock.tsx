@@ -108,7 +108,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
 
   return (
     <>
-    <svg className="padlock-svg" viewBox="0 0 500 500" width="100%" height="100%">
+    <svg className="padlock-svg" viewBox="50 125 400 300" width="100%" height="100%">
       {/* candado: wrapper con la posición base (atributo, lo maneja React) + inner que anima Motion desde 0 */}
       <g transform="translate(250,220)">
         <g ref={bodyRef} className="padlock-body">
@@ -118,7 +118,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
       </g>
 
       {/* ruedas de la combinación */}
-      <g transform="translate(250,365)">
+      <g transform="translate(250,350)">
         {digits.map((d, i) => {
           const x = i * INPUT_WIDTH - (digits.length - 1) * INPUT_WIDTH / 2;
           return (
