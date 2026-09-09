@@ -31,7 +31,7 @@ const ROOMS: Room[] = [
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
-  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 97]], item: "llave-maestra", offFrom: -5, offTo: 0 }, // SALIDA FINAL: candado DENTRO de la Librería (abajo); se abre con la Llave Maestra (+ llaves libres, pendiente)
+  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 97]], item: "llave-maestra", offFrom: 2, offTo: 0 }, // SALIDA FINAL: camino Librería→Salida con CANDADO ROJO (pide la Llave Maestra; + llaves libres, pendiente)
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -71,8 +71,8 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 97, discovered: false }]; // cruz N + SALIDA final (justo bajo la Librería)
-const SALIDA = { x: 15.8, y: 93.5, w: 8, h: 6 }; // rect de la SALIDA final (rojo), pegado bajo la Librería
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 99.5, discovered: false }]; // cruz N + SALIDA final (sala separada bajo la Librería)
+const SALIDA = { x: 15.8, y: 97, w: 8, h: 5 }; // rect de la SALIDA: sala gris pequeña, SEPARADA bajo la Librería
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
 // grafo mezcla salas y junctions sin casos especiales.
 const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
@@ -425,13 +425,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             {JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida").map((j) => (
               <rect key={"jfil" + j.id} x={j.x - 1.3} y={j.y - 1.3} width={2.6} height={2.6} fill={FLOOR} pointerEvents="none" />
             ))}
-            {/* SALIDA final: rect rojo pequeño pegado bajo la Librería, con el candado. La puerta a la calle. */}
-            <g pointerEvents="none">
-              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />
-              <g transform={placeIcon(LOCK_ICON, 3.6, SALIDA.x + SALIDA.w / 2, SALIDA.y + SALIDA.h / 2).tf}>
-                <path d={LOCK_ICON.d} fill="#e03131" fillRule="evenodd" />
+            {/* SALIDA: sala gris pequeña SEPARADA bajo la Librería. Fog "?" hasta abrir el candado rojo del camino. */}
+            {discovered.has("salida") ? (
+              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
+            ) : (
+              <g pointerEvents="none">
+                <rect className="minimap-fog-room" x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FOG_FILL} stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
+                <text x={SALIDA.x + SALIDA.w / 2} y={SALIDA.y + SALIDA.h / 2} fill={FOG_Q} fontSize={4} fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
               </g>
-            </g>
+            )}
             {/* 5. insignia por sala: la bandera gris centrada (wrapper tocable con margen). En la sala ACTUAL
                 se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
                 movedRef = si el gesto fue un arrastre/pinza, NO se abre panel. */}
@@ -475,8 +477,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                       asta rellena de negro) y banda negra tan gruesa como el borde del pin. */}
                   <path d={m.icon.d} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={MARK_BORDER} strokeLinejoin="round" />
                   {m.icon.d2 && <path d={m.icon.d2} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={MARK_BORDER} strokeLinejoin="round" />}
-                  <path d={m.icon.d} fill="#fff" />
-                  {m.icon.d2 && <path d={m.icon.d2} fill="#fff" />}
+                  <path d={m.icon.d} fill={m.item === "llave-maestra" ? "#e03131" : "#fff"} />
+                  {m.icon.d2 && <path d={m.icon.d2} fill={m.item === "llave-maestra" ? "#e03131" : "#fff"} />}
                 </g>
               </g>
             ))}
@@ -547,7 +549,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 {locked.item === "tarjeta" ? (
                   <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
                 ) : locked.item === "llave-maestra" ? (
-                  <button type="button" disabled={llaveMaestra < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
+                  <button type="button" disabled={llaveMaestra < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" style={{ fill: "#e03131" }} viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 ) : (
                   <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 )}
