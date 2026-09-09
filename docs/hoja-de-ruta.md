@@ -115,27 +115,37 @@ Sótano por tu cuenta**: llegas a **~4/5** (los candados de 2 llaves + los puzzl
 
 ### Números cableados (sep 2026)
 
-**Puzzles por sala — 1ª mitad (YA cableado, números de Alberto), Puzzle 1..14**:
+**Puzzles por sala (21 en total, Puzzle 1..21):**
 
 | Sala | Puzzles | Nº | Info que necesita |
 |---|---|---|---|
 | Almacén de tienda | 1 | 1 | : |
 | Biblioteca privada | 2 | 2-3 | : |
-| Depósito | 3 | 4-6 | los 3: info de otra sala (por definir) |
-| Proyecto de sala de lectura | 4 | 7-10 | ≥1: info de otra sala (por definir) |
+| Depósito | 3 | 4-6 | **info de la Librería** (se resuelven en el backtracking) |
+| Proyecto de sala de lectura | 4 | 7-10 | ≥1: info de otra sala |
 | Sala de Máquinas | 2 | 11-12 | : |
-| Despacho | 2 | 13-14 | uno necesita **info del Sótano** (backtracking) |
+| Despacho | 2 | 13-14 | uno necesita **info del Sótano** (revela la puerta secreta a la Antesala) |
+| Sótano | 1 | 15 | da la **Tarjeta** + info para el Despacho |
+| Librería | 3 | 16-18 | da la **info** de los puzzles bloqueados de otras salas |
+| Antesala | 2 | 19-20 | uno necesita **info de la Librería** |
+| La Cámara | 1 | 21 | **info de la Librería**; da la **Copia de la Llave Maestra** |
 
-**2ª mitad — Sótano, Librería, Antesala, La Cámara: nº de puzzles POR DEFINIR** (hoy provisional 3 c/u en el
-código). **Es lo que falta por completar.**
+**Puertas (precios cableados)**: Almacén→Biblioteca 1 · Almacén→Máquinas 1 · Biblioteca→Depósito 1 ·
+Biblioteca→Proyecto 1 · Proyecto→Despacho 2 · Máquinas→Proyecto 2 · Depósito→**Sótano 5** (muro) ·
+**Despacho→Antesala 1** (SECRETA: se revela al resolver el último puzzle del Despacho) · **Antesala→Cámara 2** ·
+Almacén→Librería por **ITEM Tarjeta** (placeholder 1 llave en código).
 
-**Puertas (precios YA cableados)**: Almacén→Biblioteca 1 · Almacén→Máquinas 1 · Biblioteca→Depósito 1 ·
-Biblioteca→Proyecto 1 · **Proyecto→Despacho 2 · Máquinas→Proyecto 2 · Despacho→Antesala 2** · Depósito→**Sótano 5**
-(muro) · Librería por **ITEM Tarjeta** (placeholder 1 llave). Nota: la topología actual (con la Intersección como
-pasillo) da **los mismos costes** que la de Alberto (Biblioteca 1, Depósito 2 acumulados), el número no cambia.
+**Candado FINAL (idea de Alberto)**: entre la Librería y el FIN, coste = **llaves libres** = (Σ todas las llaves −
+Σ todos los candados). Fuerza a resolver TODOS los puzzles antes de acabar. Hoy: Σ llaves = 21, Σ candados ≈ 16 →
+**≈ 5**. Recomendación: calcularlo sobre la **suma de TODOS los candados** (no los "abiertos"), así no depende del
+camino ni deja soft-lock por las puertas redundantes (las dos vías a Máquinas). Además pide la **Copia de la Llave Maestra** (item de La Cámara).
 
-**Siguiente**: (1) el **mapa de info** (lo único que puede ahogar la economía); (2) opcional/cosmético: re-dibujar
-el norte para que la **Biblioteca** sea el nudo (Depósito colgando de ella) en vez del junction, mismo coste.
+**Cajón (a confirmar)**: con estos números llegas al Sótano con **~3** (el Depósito está bloqueado por info de la
+Librería, que es posterior) y el muro es 5 → faltan **~2**: el **cajón sigue siendo necesario**. ¿+2 en un puzzle
+del Despacho, o pieza aparte "código → +2"?
+
+**Pendiente**: fijar el **mapa de info** completo y verificar con el checker (sin deadlock; que aterrizas en ~4/5
+para que el cajón remate; que el candado final fuerza el 100%).
 
 ## 5. Slots de puzzle (contrato: REQUIERE → DA)
 

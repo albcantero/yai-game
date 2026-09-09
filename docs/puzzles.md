@@ -30,18 +30,25 @@
 | Puzzle 11 | Sala de Máquinas | — | — | — | — | +1 llave | — | — |
 | Puzzle 12 | Sala de Máquinas | — | — | — | — | +1 llave | — | — |
 | Puzzle 13 | Despacho | — | — | — | — | +1 llave | — | — |
-| Puzzle 14 | Despacho | — | — | — | — | +1 llave | — | **info del Sótano** (backtracking) |
+| Puzzle 14 | Despacho | — | — | — | — | +1 llave | — | **info del Sótano** (revela la puerta secreta a la Antesala) |
+| Puzzle 15 | Sótano | — | — | — | — | +1 llave + **ITEM Tarjeta de seguridad** + info para el Despacho | — | — |
+| Puzzle 16 | Librería | — | — | — | — | +1 llave + **info** para puzzles bloqueados | — | Librería por ITEM Tarjeta |
+| Puzzle 17 | Librería | — | — | — | — | +1 llave + **info** | — | — |
+| Puzzle 18 | Librería | — | — | — | — | +1 llave + **info** | — | — |
+| Puzzle 19 | Antesala | — | — | — | — | +1 llave | — | — |
+| Puzzle 20 | Antesala | — | — | — | — | +1 llave | — | **info de la Librería** |
+| Puzzle 21 | La Cámara | — | — | — | — | +1 llave + **Copia de la Llave Maestra** | — | **info de la Librería** |
 
-**Puzzle 15+ (2ª mitad): POR DEFINIR.** Salas: **Sótano, Librería, Antesala, La Cámara** (hoy 3 c/u provisional
-en código). Estructura conocida: el Sótano da la **Tarjeta de seguridad**; la Librería da **info para La Cámara**
-(y se abre con la Tarjeta); La Cámara da el **libro** + la **Llave Maestra** → salida + voto.
+**Candado FINAL** (entre la Librería y el FIN): coste = **llaves libres** (Σ llaves − Σ candados ≈ 5) + la **Copia
+de la Llave Maestra**. Fuerza a resolver los 21 puzzles antes de acabar → voto. La puerta **Despacho→Antesala** es
+SECRETA: se revela al resolver el último puzzle del Despacho.
 
 ## Tabla 2 — Objetos / pistas / herramientas (piezas físicas)
 
 | Objeto | Qué es (físico) | Tipo | Cómo se consigue (sobre nº · o "al resolver X") | Sala | Notas |
 |---|---|---|---|---|---|
-| Tarjeta de seguridad del Almacén | — | item especial | al resolver un puzzle del Sótano | Sótano | abre la puerta Almacén → Librería |
-| Llave Maestra | — | item especial | al resolver el último puzzle de La Cámara | La Cámara | abre la salida final → voto |
+| Tarjeta de seguridad del Almacén | — | item especial | al resolver Puzzle 15 (Sótano) | Sótano | bloquea/desbloquea la compuerta de seguridad: abre Almacén → Librería |
+| Copia de la Llave Maestra de la Librería | — | item especial | al resolver Puzzle 21 (La Cámara) | La Cámara | abre la salida final (junto al candado de llaves libres) → voto |
 | La jauría humana (1975, "Hawes") | libro físico real (Plaza y Janés, 1975) | objeto/pista clave | en La Cámara | La Cámara | el "libro perdido"; núcleo del lore |
 | — | — | — | — | — | (añadir pistas/herramientas/objetos según se diseñen los puzzles) |
 

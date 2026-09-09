@@ -13,12 +13,12 @@ const ROOMS: Room[] = [
   { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada", puzzles: 2 }, // nudo norte
   { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito", puzzles: 3 }, // sus 3 puzzles necesitan info de otras salas (por definir cuáles)
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho", puzzles: 2 }, // 2 puzzles; uno necesita info del Sótano (backtracking). Fin de la 1ª mitad
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 3 }, // sala avanzada
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 3 }, // sala avanzada
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 1 }, // callejón; 1 puzzle: da la Tarjeta + info para el Despacho
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 2 }, // 2 puzzles; uno necesita info de la Librería
   { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 4 }, // nudo de rutas; al menos 1 necesita info de otra sala
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 3 }, // sala avanzada; el último puzzle da el libro + Llave Maestra
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 1 }, // 1 puzzle (necesita info de Librería): da la Copia de la Llave Maestra
   { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería", puzzles: 3 }, // la TIENDA (pegada al Almacén); sala avanzada
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
@@ -38,8 +38,8 @@ const LINKS: Link[] = [
   { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], keys: 1, offFrom: 6, offTo: 2, reveals: ["r3"] }, // camino 2: 1 llave. offsets +6/+2. Al abrir descubre también R3 (Almacén→R3 directo)
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 5 }, // Intersección→R3: +2; R3→Intersección: +5
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
-  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], keys: 2, offFrom: 3, offTo: 3 }, // Despacho↔Antesala: 2 llaves
-  { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], offFrom: 3, offTo: 3 }, // R7→R8: +3; R8→R7: +3
+  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], keys: 1, offFrom: 3, offTo: 3 }, // Despacho→Antesala: puerta SECRETA (1 llave); se revela al resolver el último puzzle del Despacho
+  { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], keys: 2, offFrom: 3, offTo: 3 }, // Antesala→Cámara: 2 llaves
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 2, offFrom: 6, offTo: 0 }, // Proyecto↔Despacho: 2 llaves
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 5 }, // R2→R3: +5; R3→R2: +5
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], keys: 2, offFrom: 4, offTo: 3 }, // Máquinas↔Proyecto: 2 llaves
