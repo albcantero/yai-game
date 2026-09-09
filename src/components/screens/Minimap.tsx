@@ -10,7 +10,7 @@ import RoomPanel from "./RoomPanel";
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; num?: number; name?: string; puzzles?: number; description?: string };
 // Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
-  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca" },
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada" },
   { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito" },
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho" },
   { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano" },

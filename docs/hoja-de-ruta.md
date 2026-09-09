@@ -28,7 +28,7 @@
 | 2 | Almacén de tienda | `hub-almacen` | 1 | tronco | inicio |
 | 3 | Depósito | `r4` | (1)\* | norte | da lo necesario para abrir el Despacho |
 | 4 | Sótano | `r5` | (1)\* | norte | callejón; su puerta cuesta ~5-6 llaves (el muro); da la Tarjeta de seguridad del Almacén |
-| 5 | Biblioteca | `r3` | (1)\* | norte | toca el Proyecto (conector) |
+| 5 | Biblioteca privada | `r3` | (1)\* | norte | toca el Proyecto (conector) |
 | 6 | Proyecto de sala de lectura | `r2` | 3 | sur | central, nudo |
 | 7 | Sala de Máquinas | `r1` | 2 | sur | calderas, plomos |
 | 8 | Despacho | `r6` | código | sur | carta + código físicos → golpe de llaves de una vez (de 1-3 a 5-6, para el Sótano) |
@@ -40,7 +40,7 @@
 **Recorrido forzado** (orden en que se puede *progresar*):
 
 1. **Almacén** (inicio).
-2. **NORTE**: Almacén → Intersección → **Biblioteca** y **Depósito**. El **Depósito** da lo necesario para abrir el Despacho.
+2. **NORTE**: Almacén → Intersección → **Biblioteca privada** y **Depósito**. El **Depósito** da lo necesario para abrir el Despacho.
 3. **SUR**: Almacén → Sala de Máquinas → **Proyecto de sala de lectura** → **Despacho** (se abre con lo del
    Depósito). Dentro, una **carta física** dice que el personal de limpieza pierde las llaves y guarda repuestos;
    un sobre trae un **código** que, al introducirlo, suelta un **golpe de llaves de una vez** (mirando en el
@@ -62,7 +62,7 @@ flowchart TD
 
     subgraph NORTE
         INT{{Intersección}}
-        BIB[Biblioteca]
+        BIB[Biblioteca privada]
         DEP[Depósito]
         SOT[Sótano]
         INT --> BIB
@@ -121,7 +121,7 @@ Contenido concreto (Blue Prince, deducción): POR DISEÑAR. De momento, las depe
 | Almacén de tienda | : | +1 llave |
 | Sala de Máquinas | : | +2 llaves |
 | Proyecto de sala de lectura | : | +3 llaves |
-| Biblioteca | : | +1 llave |
+| Biblioteca privada | : | +1 llave |
 | Depósito | : | +1 llave + lo necesario para **abrir el Despacho** |
 | Despacho | lo del Depósito (para abrir) | **código físico → golpe de llaves de una vez** (de 1-3 a 5-6, sin puzzle); abre el **Sótano** |
 | Sótano | 5-6 llaves | +1 llave + **ITEM "Tarjeta de seguridad del Almacén"** |
