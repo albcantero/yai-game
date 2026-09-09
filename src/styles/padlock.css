@@ -13,8 +13,8 @@
    en vertical para cambiarlo. La máscara difumina arriba/abajo (efecto cilindro). */
 .padlock-dials-wrap{ position:relative;display:flex;justify-content:center }
 .padlock-dials{ display:flex;gap:10px }
-.dial-slot{ width:52px;height:120px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }
-.lock-dial{ position:relative;width:100%;height:100%;overflow:hidden;cursor:ns-resize;touch-action:none;perspective:600px }   /* perspective = da profundidad al cilindro */
+.dial-slot{ width:52px;height:144px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }   /* SOLO este recorta (el overflow va aquí, no en .lock-dial: overflow+perspective juntos aplanan el 3D) */
+.lock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow): da profundidad real al cilindro */
 .dial-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
 /* banda de selección: dos líneas tenues que enmarcan el número del centro */
 .lock-dial::after{ content:"";position:absolute;left:0;right:0;top:50%;height:52px;margin-top:-26px;pointer-events:none;

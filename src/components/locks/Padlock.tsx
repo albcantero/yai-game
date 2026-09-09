@@ -12,7 +12,7 @@ const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
 const ROW = 52; // alto de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
 const ITEM_ANGLE = 20; // grados que gira el cilindro por número (a más grados, cilindro más "cerrado")
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
-const RENDER = 5; // números renderizados a cada lado del centro (los de detrás se ocultan solos por opacidad)
+const RENDER = 6; // números renderizados a cada lado del centro (los de detrás se ocultan solos por opacidad)
 
 // Una RUEDA (dial) 3D: los números viven en un CILINDRO real (rotateX + translateZ bajo perspective). El del
 // centro mira al frente; los de arriba/abajo se giran y se DESVANECEN (profundidad). Se arrastra en vertical
