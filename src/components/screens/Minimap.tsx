@@ -31,7 +31,7 @@ const ROOMS: Room[] = [
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; secret?: boolean; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
-  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 101]], item: "llave-maestra", secret: true, offFrom: 4, offTo: 0 }, // SALIDA: camino + candado ROJO (Llave Maestra). SECRETO: pasillo/salida/candado ocultos hasta abrir el candado BLANCO de la Librería
+  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 115]], item: "llave-maestra", secret: true, offFrom: 4, offTo: 0 }, // SALIDA: camino + candado ROJO (Llave Maestra). SECRETO: pasillo/salida/candado ocultos hasta abrir el candado BLANCO de la Librería
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -71,8 +71,8 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 103.5, discovered: false }]; // cruz N + SALIDA final (secreta: se revela con el candado blanco de la Librería)
-const SALIDA = { x: 15.8, y: 101, w: 8, h: 5 }; // rect de la SALIDA: sala gris pequeña, SEPARADA (más abajo) bajo la Librería
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 117.5, discovered: false }]; // cruz N + SALIDA final (secreta: se revela con el candado blanco de la Librería)
+const SALIDA = { x: 15.8, y: 115, w: 8, h: 5 }; // rect de la SALIDA: sala gris pequeña, SEPARADA (más abajo) bajo la Librería
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
 // grafo mezcla salas y junctions sin casos especiales.
 const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
@@ -384,7 +384,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
       {/* .minimap-view: alto FIJO (pantalla sin teclado); recibe los gestos (touch-action:none en CSS) */}
       <div className="minimap-view" style={frozenH ? { height: frozenH } : undefined}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-        <svg ref={svgRef} className="minimap-svg" viewBox="-3 -3 106 110" preserveAspectRatio="xMidYMid meet">
+        <svg ref={svgRef} className="minimap-svg" viewBox="-3 -3 106 126" preserveAspectRatio="xMidYMid meet">
           <g className="minimap-camera" transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             {/* 1. corredores por descubrir (no interceptan el toque) */}
             {LINKS.map((lk, i) =>
