@@ -385,6 +385,18 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
       <div className="minimap-view" style={frozenH ? { height: frozenH } : undefined}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
         <svg ref={svgRef} className="minimap-svg" viewBox="-3 -3 106 125" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            {/* fade-out del pasillo Librería→Salida: opaco en la Librería (y92) → transparente en la Salida (y111).
+                userSpaceOnUse = las coords del degradado son las MISMAS del pasillo (aguanta zoom/pan de la cámara). */}
+            <linearGradient id="salida-fade-edge" gradientUnits="userSpaceOnUse" x1="19.8" y1="94" x2="19.8" y2="111">
+              <stop offset="0" stopColor={EDGE} stopOpacity="1" />
+              <stop offset="1" stopColor={EDGE} stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="salida-fade-floor" gradientUnits="userSpaceOnUse" x1="19.8" y1="94" x2="19.8" y2="111">
+              <stop offset="0" stopColor={FLOOR} stopOpacity="1" />
+              <stop offset="1" stopColor={FLOOR} stopOpacity="0" />
+            </linearGradient>
+          </defs>
           <g className="minimap-camera" transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             {/* 1. corredores por descubrir (no interceptan el toque) */}
             {LINKS.map((lk, i) =>
@@ -396,7 +408,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             {/* 2. CONTORNO oscuro de los pasillos, DEBAJO de las salas (esquinas en pico) */}
             {LINKS.map((lk, i) =>
               shown(lk, discovered) && !(lk.secret && !salidaRevealed) ? (
-                <path key={"out" + i} d={linkD(lk)} fill="none" stroke={EDGE} strokeWidth={4.6}
+                <path key={"out" + i} d={linkD(lk)} fill="none" stroke={lk.secret ? "url(#salida-fade-edge)" : EDGE} strokeWidth={4.6}
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
             )}
@@ -434,7 +446,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: abre la puerta en la unión */}
             {LINKS.map((lk, i) =>
               shown(lk, discovered) && !(lk.secret && !salidaRevealed) ? (
-                <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
+                <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={lk.secret ? "url(#salida-fade-floor)" : FLOOR} strokeWidth={2.6}
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
             )}
