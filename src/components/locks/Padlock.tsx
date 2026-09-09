@@ -26,7 +26,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   const bodyRef = useRef<SVGGElement>(null); // cuerpo del candado (escala + baja + shake)
   const boxRef = useRef<SVGRectElement>(null); // caja (color de relleno)
   const barRef = useRef<SVGPathElement>(null); // arco (color de trazo + sube/baja)
-  const unlockRef = useRef<SVGGElement>(null); // botón unlock (baja + opacity)
+  const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (HTML 98.css; bajan + opacity)
   const responseRef = useRef<SVGTextElement>(null); // texto de respuesta (sube + opacity)
   const inputRefs = useRef<(SVGGElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
@@ -44,7 +44,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
 
   // ---- fases de la animación (equivalentes a las timelines de GSAP del original) ----
   const intro = async () => {
-    animate(unlockRef.current!, { y: 100, opacity: 0 }, { duration: 0.5, ease: EASE_IO });
+    animate(actionsRef.current!, { y: 60, opacity: 0 }, { duration: 0.5, ease: EASE_IO });
     await animate(inputs(), { y: 200, opacity: 0 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished;
     await animate(bodyRef.current!, { y: 30 }, { duration: 0.5, ease: EASE_IO }).finished;
     await Promise.all([
@@ -81,7 +81,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
       animate(bodyRef.current!, { scale: 1, y: 0 }, { duration: 0.25, ease: EASE_IO }).finished,
     ]);
     await Promise.all([
-      animate(unlockRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
+      animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
       animate(inputs(), { y: 0, opacity: 1 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished,
     ]);
   };
@@ -107,6 +107,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   };
 
   return (
+    <>
     <svg className="padlock-svg" viewBox="0 0 500 500" width="100%" height="100%">
       {/* candado: wrapper con la posición base (atributo, lo maneja React) + inner que anima Motion desde 0 */}
       <g transform="translate(250,220)">
@@ -135,19 +136,15 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
         })}
       </g>
 
-      {/* botones: "Resolver" (comprueba la combinación) y "Cancelar" (cierra el candado). Ambos se ocultan
-          juntos durante el intento (mismo grupo que anima Motion). */}
-      <g transform="translate(250,435)">
-        <g ref={unlockRef}>
-          <text x={0} y={6} fontSize={16} fill="white" textAnchor="middle" pointerEvents="none">Resolver</text>
-          <rect x={-55} y={-18} width={110} height={36} fill="transparent" stroke="white" strokeWidth={2} rx={3} pointerEvents="all" style={{ cursor: "pointer" }} onPointerUp={onUnlock} />
-          <text x={0} y={54} fontSize={16} fill="white" textAnchor="middle" pointerEvents="none">Cancelar</text>
-          <rect x={-55} y={30} width={110} height={36} fill="transparent" stroke="white" strokeWidth={2} rx={3} pointerEvents="all" style={{ cursor: "pointer" }} onPointerUp={() => { if (!busy) onClose(); }} />
-        </g>
-      </g>
-
       {/* texto de respuesta */}
-      <text ref={responseRef} x={250} y={360} fontSize={50} fill="white" textAnchor="middle" opacity={0} pointerEvents="none">{response}</text>
+      <text ref={responseRef} x={250} y={360} fontSize={60} fill="white" textAnchor="middle" opacity={0} pointerEvents="none">{response}</text>
     </svg>
+
+    {/* botones Win98 (98.css) sobre el candado: bisel real, transparentes, sin icono. Bajan + fade en el intento. */}
+    <div className="padlock-actions win98" ref={actionsRef}>
+      <button type="button" onClick={onUnlock}>Resolver</button>
+      <button type="button" onClick={() => { if (!busy) onClose(); }}>Cancelar</button>
+    </div>
+    </>
   );
 }
