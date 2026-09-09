@@ -15,8 +15,9 @@
 
 /* ruedas de la combinación (cilindro 3D): número centrado, vecinos girados/desvanecidos */
 .letterlock-dials-wrap{ position:relative;display:flex;justify-content:center }
-.letterlock-dials{ display:flex;gap:10px }
-.letterlock-slot{ width:52px;height:60px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }   /* SOLO este recorta (overflow+perspective juntos aplanan el 3D) */
+/* UNA sola caja con todos los diales dentro (el borde va aquí, no en cada slot); recorta la fila (top/bottom) */
+.letterlock-dials{ display:flex;gap:10px;padding:0 8px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }
+.letterlock-slot{ width:52px;height:60px }   /* sin borde propio: la caja de arriba enmarca y recorta todos */
 .letterlock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow) */
 .letterlock-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
 /* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW debe coincidir con PadlockLetters.tsx */
