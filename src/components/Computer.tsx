@@ -82,6 +82,10 @@ export default function Computer() {
     screenRef.current?.setPaused(confirmClose || infoOpen || lock !== null);
   }, [confirmClose, infoOpen, lock]);
 
+  // El candado pertenece a la pantalla activa: si cambia la vista (cerrar el programa con la "X", navegar...),
+  // la pantalla que lo abrió se desmonta, así que el candado debe cerrarse también (si no, se queda en el DOM).
+  useEffect(() => { setLock(null); }, [view]);
+
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
   const chinKey = (k: string) => {
