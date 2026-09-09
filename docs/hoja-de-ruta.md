@@ -101,15 +101,17 @@ flowchart TD
 
 ## 4. Economía de llaves (traslado)
 
-**Modelo (propuesta de Alberto, sep 2026)**: economía de **acumulación**. La primera mitad tiene **14 puzzles**
-con puertas de 1-2 llaves; acumulas y con **~6-7 llaves** rompes el **muro del Sótano (5)**. Ya **NO** hace falta
-el "cajón → golpe de llaves": el Sótano se paga acumulando, así que **se cae el gotcha de build** (ya es superable).
+**Modelo (propuesta de Alberto, sep 2026)**: acumulas llaves en la 1ª mitad pero **NO llegas a las 5 del muro del
+Sótano por tu cuenta**: llegas a **~4/5** (los candados de 2 llaves + los puzzles que dan llave pero están
+**info-bloqueados** te mantienen corto). El **cajón del Despacho** da el golpe que te lleva de 4/5 a 5+: el cajón
+**es NECESARIO** para romper el muro.
 
-- **Margen fino a propósito**: al Sótano llegas con **~6-7** (14 producibles − puertas − los puzzles que aún no
-  puedes resolver por estar info-bloqueados). Margen de 1-2 sobre el 5.
-- **Riesgo a vigilar (lo único que puede romperlo)**: el **mapa de info**. Si demasiados puzzles que dan llave
-  están bloqueados por info que vive *detrás* del Sótano, llegas con < 5 y te encierras. Hay que fijar de qué
-  sala sale la info de cada puzzle bloqueado y verificarlo con el script (sin deadlock; 5+ llaves antes del Sótano).
+- **Landing objetivo**: llegar al Sótano con **~4/5** llaves; el cajón (~+1-2) lo remata a 5+.
+- **Lo que te mantiene corto**: los candados de **2 llaves** (Proyecto→Despacho, Máquinas→Proyecto) + que varios
+  puzzles que dan llave (los 3 del **Depósito**, ≥1 del Proyecto) estén **info-bloqueados** hasta *después* del
+  Sótano (se resuelven al volver, backtracking). Si se resolvieran antes, te pasarías de 5 y el cajón sobraría.
+- **Riesgo (a verificar con el script)**: que llegues con lo justo para que el cajón remate (ni de más ni de
+  menos) y que no haya deadlock de info. Es el mapa de info lo que hay que clavar.
 
 ### Números cableados (sep 2026)
 
