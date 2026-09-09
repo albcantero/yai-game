@@ -9,7 +9,7 @@ import { animate, stagger } from "motion";
 
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
-const ROW = 52; // alto de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
+const ROW = 40; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
 const ITEM_ANGLE = 20; // grados que gira el cilindro por número (a más grados, cilindro más "cerrado")
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
 const RENDER = 6; // números renderizados a cada lado del centro (los de detrás se ocultan solos por opacidad)

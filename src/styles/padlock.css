@@ -21,14 +21,14 @@
    en vertical para cambiarlo. La máscara difumina arriba/abajo (efecto cilindro). */
 .padlock-dials-wrap{ position:relative;display:flex;justify-content:center }
 .padlock-dials{ display:flex;gap:10px }
-.dial-slot{ width:52px;height:144px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }   /* SOLO este recorta (el overflow va aquí, no en .lock-dial: overflow+perspective juntos aplanan el 3D) */
+.dial-slot{ width:52px;height:96px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }   /* SOLO este recorta (el overflow va aquí, no en .lock-dial: overflow+perspective juntos aplanan el 3D) */
 .lock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow): da profundidad real al cilindro */
 .dial-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
 /* banda de selección: dos líneas tenues que enmarcan el número del centro */
-.lock-dial::after{ content:"";position:absolute;left:0;right:0;top:50%;height:52px;margin-top:-26px;pointer-events:none;
+.lock-dial::after{ content:"";position:absolute;left:0;right:0;top:50%;height:40px;margin-top:-20px;pointer-events:none;
   border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.3) }
-/* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW=52 debe coincidir con Padlock.tsx */
-.dial-num{ position:absolute;left:0;right:0;top:50%;height:52px;margin-top:-26px;line-height:52px;text-align:center;
+/* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW=40 debe coincidir con Padlock.tsx */
+.dial-num{ position:absolute;left:0;right:0;top:50%;height:40px;margin-top:-20px;line-height:40px;text-align:center;
   font-size:34px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
 
