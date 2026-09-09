@@ -1,51 +1,94 @@
-// CANDADO PRINCIPAL (combo-lock). Port del SVG que pasó Alberto, con las animaciones rehechas en Motion
-// (motion@13, ya en el proyecto) en vez de GSAP: intro (esconde botón + dígitos, baja y encoge el candado),
-// resultado (correcto = se abre en verde; incorrecto = rojo + shake), respuesta ("correct"/"incorrect") y,
-// solo si falla, restaurar para reintentar. Al acertar llama a onSolved (resolver puzzle + cerrar overlay).
-// Estética 1:1 del original de momento (blanco sobre oscuro); ya lo pasaremos a nuestro retro.
+// CANDADO PRINCIPAL. Cuerpo del candado en SVG (animado con Motion: intro, resultado correcto/incorrecto con
+// shake, respuesta). Las RUEDAS de la combinación son dials tipo carrusel (HTML): arrastras arriba/abajo y ves
+// el número centrado con el anterior/siguiente cortados (máscara de cilindro). Los botones Resolver/Cancelar son
+// Win98 (98.css). Al acertar llama a onSolved (resolver puzzle + cerrar overlay). Estética provisional
+// (blanco sobre oscuro); ya lo pasaremos a nuestro retro.
 import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { animate, stagger } from "motion";
 
-const INPUT_WIDTH = 60; // separación entre dígitos (unidades del viewBox 0..500)
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
+const ROW = 52; // alto de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
 
-const rollOver = (val: number) => (val > 9 ? val % 10 : val < 0 ? val + 10 : val); // 0..9 cíclico
+// Una RUEDA (dial): muestra `value` centrado, con value-1 arriba y value+1 abajo, cortados. Se arrastra en
+// vertical para cambiarlo (con wrap 0..9). No hay flechas: el carrusel ES la interacción.
+function Dial({ value, disabled, onChange }: { value: number; disabled: boolean; onChange: (v: number) => void }) {
+  const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
+  const [anim, setAnim] = useState(false); // transición al soltar (snap)
+  const startY = useRef(0);
+  const active = useRef(false);
+  const settling = useRef(false); // en el snap post-soltar: ignora nuevos arrastres
+
+  const onDown = (e: ReactPointerEvent) => {
+    if (disabled || settling.current) return;
+    active.current = true;
+    startY.current = e.clientY;
+    setAnim(false);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+  };
+  const onMove = (e: ReactPointerEvent) => {
+    if (!active.current) return;
+    setDrag(e.clientY - startY.current);
+  };
+  const finish = () => {
+    if (!active.current) return;
+    active.current = false;
+    const steps = Math.max(-3, Math.min(3, Math.round(drag / ROW))); // nº de números movidos (limitado)
+    if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
+    settling.current = true;
+    setAnim(true);
+    setDrag(steps * ROW); // desliza hasta encajar en el número destino
+    window.setTimeout(() => {
+      onChange((value - steps + 100) % 10); // arrastrar hacia abajo (steps>0) = número anterior
+      setAnim(false);
+      setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
+      settling.current = false;
+    }, 170);
+  };
+
+  return (
+    <div className="lock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
+      <div className="dial-strip" style={{ transform: `translateY(calc(-50% + ${drag}px))`, transition: anim ? "transform .17s ease-out" : "none" }}>
+        {[-3, -2, -1, 0, 1, 2, 3].map((o) => (
+          <div className="dial-num" key={o}>{(value + o + 10) % 10}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export type PadlockProps = {
   combo: number[]; // combinación correcta (un dígito 0..9 por rueda)
   onSolved: () => void; // combo correcto: el candado se abre → resolver el puzzle + cerrar el overlay
-  onClose: () => void; // cancelar (lo dispara el backdrop desde Computer; aquí no se usa directamente)
+  onClose: () => void; // cancelar (backdrop / botón Cancelar): cerrar sin resolver
 };
 
 export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   const [digits, setDigits] = useState<number[]>(() => combo.map(() => 0)); // ruedas (empiezan a 0)
-  const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "unlock"
-  const [response, setResponse] = useState(""); // texto "correct"/"incorrect"
+  const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "Resolver"
+  const [response, setResponse] = useState(""); // texto "CORRECTO"/"INCORRECTO"
 
   const bodyRef = useRef<SVGGElement>(null); // cuerpo del candado (escala + baja + shake)
   const boxRef = useRef<SVGRectElement>(null); // caja (color de relleno)
   const barRef = useRef<SVGPathElement>(null); // arco (color de trazo + sube/baja)
-  const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (HTML 98.css; bajan + opacity)
-  const responseRef = useRef<SVGTextElement>(null); // texto de respuesta (sube + opacity)
-  const inputRefs = useRef<(SVGGElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
+  const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (bajan + opacity)
+  const responseRef = useRef<HTMLSpanElement>(null); // texto de respuesta (sube + opacity)
+  const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
 
   useEffect(() => () => { killed.current = true; }, []);
 
-  const bump = (i: number, delta: number) => {
-    if (busy) return;
-    setDigits((d) => d.map((v, j) => (j === i ? rollOver(v + delta) : v)));
-  };
+  const setDigit = (i: number, v: number) => setDigits((d) => d.map((x, j) => (j === i ? v : x)));
   const isCorrect = () => digits.every((v, i) => v === combo[i]);
 
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  const inputs = () => inputRefs.current.filter(Boolean) as SVGGElement[];
+  const dials = () => dialRefs.current.filter(Boolean) as HTMLDivElement[];
 
-  // ---- fases de la animación (equivalentes a las timelines de GSAP del original) ----
+  // ---- fases de la animación ----
   const intro = async () => {
     animate(actionsRef.current!, { y: 60, opacity: 0 }, { duration: 0.5, ease: EASE_IO });
-    await animate(inputs(), { y: 200, opacity: 0 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished;
+    await animate(dials(), { y: 130, opacity: 0 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished;
     await animate(bodyRef.current!, { y: 30 }, { duration: 0.5, ease: EASE_IO }).finished;
     await Promise.all([
       animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: EASE_IO }).finished,
@@ -54,14 +97,14 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   };
   const resultCorrect = async () => {
     await Promise.all([
-      animate(barRef.current!, { y: -20, stroke: "hsl(120,50%,60%)" }, { duration: 0.3, ease: "backOut" }).finished, // arco (color + sube) en UNA llamada
+      animate(barRef.current!, { y: -20, stroke: "hsl(120,50%,60%)" }, { duration: 0.3, ease: "backOut" }).finished,
       animate(bodyRef.current!, { scale: 1.2 }, { duration: 0.3, ease: "backOut" }).finished,
       animate(boxRef.current!, { fill: "hsl(120,50%,60%)" }, { duration: 0.3 }).finished,
     ]);
   };
   const resultIncorrect = async () => {
     await Promise.all([
-      animate(barRef.current!, { y: 0, stroke: "hsl(0,50%,60%)" }, { duration: 0.1, ease: "linear" }).finished, // arco (color + baja) en UNA llamada
+      animate(barRef.current!, { y: 0, stroke: "hsl(0,50%,60%)" }, { duration: 0.1, ease: "linear" }).finished,
       animate(bodyRef.current!, { scale: 1 }, { duration: 0.1, ease: "linear" }).finished,
       animate(boxRef.current!, { fill: "hsl(0,50%,60%)" }, { duration: 0.1 }).finished,
     ]);
@@ -82,7 +125,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     ]);
     await Promise.all([
       animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
-      animate(inputs(), { y: 0, opacity: 1 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished,
+      animate(dials(), { y: 0, opacity: 1 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished,
     ]);
   };
 
@@ -108,43 +151,35 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
 
   return (
     <>
-    <svg className="padlock-svg" viewBox="50 125 400 300" width="100%" height="100%">
-      {/* candado: wrapper con la posición base (atributo, lo maneja React) + inner que anima Motion desde 0 */}
-      <g transform="translate(250,250)">
-        <g ref={bodyRef} className="padlock-body">
-          <rect ref={boxRef} x={-60} y={-45} width={120} height={90} rx={5} fill={RESTING} />
-          <path ref={barRef} d="M-35 -45 v-40 c 0 -40, 70 -40, 70,0 v80" strokeWidth={15} strokeLinecap="round" fill="none" stroke={RESTING} />
+      {/* cuerpo del candado (SVG): wrapper con la posición base + inner que anima Motion desde 0 */}
+      <svg className="padlock-svg" viewBox="160 120 180 190" width="100%" height="100%">
+        <g transform="translate(250,250)">
+          <g ref={bodyRef} className="padlock-body">
+            <rect ref={boxRef} x={-60} y={-45} width={120} height={90} rx={5} fill={RESTING} />
+            <path ref={barRef} d="M-35 -45 v-40 c 0 -40, 70 -40, 70,0 v80" strokeWidth={15} strokeLinecap="round" fill="none" stroke={RESTING} />
+          </g>
         </g>
-      </g>
+      </svg>
 
-      {/* ruedas de la combinación */}
-      <g transform="translate(250,350)">
-        {digits.map((d, i) => {
-          const x = i * INPUT_WIDTH - (digits.length - 1) * INPUT_WIDTH / 2;
-          return (
-            <g key={i} transform={`translate(${x},0)`}>
-              <g ref={(el) => { inputRefs.current[i] = el; }} className="combination-input">
-                <rect x={-25} y={-40} width={50} height={80} fill="none" stroke="white" strokeWidth={2} rx={3} />
-                <text className="padlock-digit" x={0} y={13} fontSize={36} fill="white" textAnchor="middle">{d}</text>
-                <path d="M0 -32 l5 10 l-10 0 z" fill="white" />
-                <path d="M0 32 l5 -10 l-10 0 z" fill="white" />
-                <rect className="up-button" x={-25} y={-40} width={50} height={40} fill="transparent" pointerEvents="all" style={{ cursor: "pointer" }} onPointerUp={() => bump(i, 1)} />
-                <rect className="down-button" x={-25} y={0} width={50} height={40} fill="transparent" pointerEvents="all" style={{ cursor: "pointer" }} onPointerUp={() => bump(i, -1)} />
-              </g>
-            </g>
-          );
-        })}
-      </g>
+      {/* ruedas de la combinación (carrusel) + el mensaje de respuesta superpuesto en su banda */}
+      <div className="padlock-dials-wrap">
+        <div className="padlock-dials">
+          {digits.map((d, i) => (
+            <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className="dial-slot">
+              <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} />
+            </div>
+          ))}
+        </div>
+        <div className="padlock-response-wrap">
+          <span className="padlock-response" ref={responseRef}>{response}</span>
+        </div>
+      </div>
 
-      {/* texto de respuesta */}
-      <text ref={responseRef} x={250} y={360} fontSize={60} fill="white" textAnchor="middle" opacity={0} pointerEvents="none">{response}</text>
-    </svg>
-
-    {/* botones Win98 (98.css) sobre el candado: bisel real, transparentes, sin icono. Bajan + fade en el intento. */}
-    <div className="padlock-actions win98" ref={actionsRef}>
-      <button type="button" onClick={onUnlock}>Resolver</button>
-      <button type="button" onClick={() => { if (!busy) onClose(); }}>Cancelar</button>
-    </div>
+      {/* botones Win98 (98.css): bisel real, transparentes, sin icono. Bajan + fade en el intento. */}
+      <div className="padlock-actions win98" ref={actionsRef}>
+        <button type="button" onClick={onUnlock}>Resolver</button>
+        <button type="button" onClick={() => { if (!busy) onClose(); }}>Cancelar</button>
+      </div>
     </>
   );
 }
