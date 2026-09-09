@@ -101,48 +101,39 @@ flowchart TD
 
 ## 4. Economía de llaves (traslado)
 
-**Principio**: el saldo del grupo se mantiene BAJO casi todo el juego, **1-3 llaves**, porque cada puerta cuesta
-más o menos lo que da cada puzzle (economía ajustada, saldo casi plano). Así nunca acumulan de más.
+**Modelo (propuesta de Alberto, sep 2026)**: economía de **acumulación**. La primera mitad tiene **14 puzzles**
+con puertas de 1-2 llaves; acumulas y con **~6-7 llaves** rompes el **muro del Sótano (5)**. Ya **NO** hace falta
+el "cajón → golpe de llaves": el Sótano se paga acumulando, así que **se cae el gotcha de build** (ya es superable).
 
-- El **Sótano** es el muro: cuesta **5-6 llaves** (número exacto por afinar). Con el saldo normal (1-3) no se puede pagar.
-- El **Despacho** da un **golpe de llaves de una vez** (el cajón con los repuestos): sube el saldo de 1-3 a las
-  5-6 justas para el Sótano. Es la **única** fuente de ese pico, así que el muro **no se puede abrir antes** del
-  Despacho. Esto resuelve la fragilidad del muro por nº de llaves, sin necesidad de item específico.
-- La **Librería** se abre por Tarjeta (item), no por llaves.
-- **A verificar con el script** (`npm run economy`, pendiente): que el saldo se mantiene en 1-3, que solo el
-  Despacho permite llegar a 5-6, y que nunca te quedas sin pagar la siguiente puerta necesaria.
+- **Margen fino a propósito**: al Sótano llegas con **~6-7** (14 producibles − puertas − los puzzles que aún no
+  puedes resolver por estar info-bloqueados). Margen de 1-2 sobre el 5.
+- **Riesgo a vigilar (lo único que puede romperlo)**: el **mapa de info**. Si demasiados puzzles que dan llave
+  están bloqueados por info que vive *detrás* del Sótano, llegas con < 5 y te encierras. Hay que fijar de qué
+  sala sale la info de cada puzzle bloqueado y verificarlo con el script (sin deadlock; 5+ llaves antes del Sótano).
 
 ### Números cableados (sep 2026)
 
-**Puzzles por sala** (= llaves que produce), **20 en total**, placeholders "Puzzle 1..20". Inicio/ruta con pocos;
-**salas avanzadas (Sótano, Librería, Antesala, La Cámara) con 3** cada una (más puzzles = más **notas** de historia en el clímax):
+**Puzzles por sala — 1ª mitad (YA cableado, números de Alberto), Puzzle 1..14**:
 
-| Sala | Puzzles | Nº |
-|---|---|---|
-| Almacén de tienda | 1 (con esa llave eliges norte/sur) | 1 |
-| Biblioteca privada | 1 | 2 |
-| Depósito | 1 | 3 |
-| Sala de Máquinas | 2 | 4-5 |
-| Proyecto de sala de lectura | 2 | 6-7 |
-| Despacho | 1 (el cajón: da el GOLPE de llaves) | 8 |
-| Sótano | 3 | 9-11 |
-| Librería | 3 | 12-14 |
-| Antesala | 3 | 15-17 |
-| La Cámara | 3 (el último: libro + Llave Maestra) | 18-20 |
+| Sala | Puzzles | Nº | Info que necesita |
+|---|---|---|---|
+| Almacén de tienda | 1 | 1 | : |
+| Biblioteca privada | 2 | 2-3 | : |
+| Depósito | 3 | 4-6 | los 3: info de otra sala (por definir) |
+| Proyecto de sala de lectura | 4 | 7-10 | ≥1: info de otra sala (por definir) |
+| Sala de Máquinas | 2 | 11-12 | : |
+| Despacho | 2 | 13-14 | uno necesita **info del Sótano** (backtracking) |
 
-**Puertas**: todas cuestan **1 llave** salvo el **Sótano = 5** (el muro). La Librería queda placeholder 1 (en
-diseño se abre por ITEM Tarjeta).
+**2ª mitad — Sótano, Librería, Antesala, La Cámara: nº de puzzles POR DEFINIR** (hoy provisional 3 c/u en el
+código). **Es lo que falta por completar.**
 
-**Elegir ruta con 1 llave**: el Almacén da 1. Vas **norte** (abrir Almacén→Intersección, que además **revela la
-Biblioteca gratis**) o **sur** (abrir Almacén→Máquinas). Ambas te dejan en una sala con puzzle que te refresca.
+**Puertas — PROPUESTA de Alberto, aún POR CABLEAR** (hoy el código conserva la topología vieja con Intersección y
+puertas de 1, salvo Sótano 5): Almacén→Biblioteca 1 · Almacén→Máquinas 1 · Biblioteca→Depósito 1 ·
+Biblioteca→Proyecto 1 · Proyecto→Despacho 2 · Máquinas→Proyecto 2 · Despacho→Antesala 2 · Depósito→**Sótano 5**
+(muro) · Librería por **ITEM Tarjeta**.
 
-**Muro seguro**: antes del Despacho el máximo acumulable son **~3 llaves** (< 5), así que el Sótano no se puede
-forzar; el cajón mete el golpe (~+5) para pagarlo. **Tras el Despacho ya no hay muros de llave** (los gates son
-items/info), así que las llaves de las salas avanzadas se acumulan sin gastarse: ahí valen sobre todo por las
-**notas**, no por la economía.
-
-**GOTCHA de build**: con el Sótano a 5 y **sin** la mecánica "código → +N llaves" (pendiente), el build actual
-**NO es superable** (el Despacho solo da +1). Esperado; cuadra al montar esa mecánica (o con llaves de test).
+**Siguiente**: re-cablear la topología (la **Biblioteca** pasa a ser el nudo norte; Depósito y Proyecto cuelgan
+de ella, la Intersección deja de ser parada) + las puertas de arriba + fijar el **mapa de info**, y verificarlo.
 
 ## 5. Slots de puzzle (contrato: REQUIERE → DA)
 
