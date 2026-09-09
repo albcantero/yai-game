@@ -129,13 +129,13 @@ Sótano por tu cuenta**: llegas a **~4/5** (los candados de 2 llaves + los puzzl
 **2ª mitad — Sótano, Librería, Antesala, La Cámara: nº de puzzles POR DEFINIR** (hoy provisional 3 c/u en el
 código). **Es lo que falta por completar.**
 
-**Puertas — PROPUESTA de Alberto, aún POR CABLEAR** (hoy el código conserva la topología vieja con Intersección y
-puertas de 1, salvo Sótano 5): Almacén→Biblioteca 1 · Almacén→Máquinas 1 · Biblioteca→Depósito 1 ·
-Biblioteca→Proyecto 1 · Proyecto→Despacho 2 · Máquinas→Proyecto 2 · Despacho→Antesala 2 · Depósito→**Sótano 5**
-(muro) · Librería por **ITEM Tarjeta**.
+**Puertas (precios YA cableados)**: Almacén→Biblioteca 1 · Almacén→Máquinas 1 · Biblioteca→Depósito 1 ·
+Biblioteca→Proyecto 1 · **Proyecto→Despacho 2 · Máquinas→Proyecto 2 · Despacho→Antesala 2** · Depósito→**Sótano 5**
+(muro) · Librería por **ITEM Tarjeta** (placeholder 1 llave). Nota: la topología actual (con la Intersección como
+pasillo) da **los mismos costes** que la de Alberto (Biblioteca 1, Depósito 2 acumulados), el número no cambia.
 
-**Siguiente**: re-cablear la topología (la **Biblioteca** pasa a ser el nudo norte; Depósito y Proyecto cuelgan
-de ella, la Intersección deja de ser parada) + las puertas de arriba + fijar el **mapa de info**, y verificarlo.
+**Siguiente**: (1) el **mapa de info** (lo único que puede ahogar la economía); (2) opcional/cosmético: re-dibujar
+el norte para que la **Biblioteca** sea el nudo (Depósito colgando de ella) en vez del junction, mismo coste.
 
 ## 5. Slots de puzzle (contrato: REQUIERE → DA)
 
