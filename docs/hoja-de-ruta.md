@@ -5,13 +5,18 @@
 
 ## 1. Premisa y meta
 
-- **Premisa**: librería de mercado negro de libros "Santas Ochova". 8 jugadoras buscan el libro perdido.
-- **Meta / victoria**: encontrar el libro (objeto) en **La Cámara** (hab. 10) y salir por la **puerta final de la
-  Librería** (hab. 1). La salida se abre con la **Llave Maestra** que suelta el puzzle de La Cámara.
+- **Premisa**: librería de mercado negro de libros "Santas Ochova". 6 jugadoras buscan el libro perdido.
+- **Meta / final**: llegar a **La Cámara** (hab. 10), la cámara oculta de Santas Ochova, y hallar allí ***La
+  jauría humana*** (ed. 1975, con "Hawes") y la verdad sobre Higgins y Ruby. La **Llave Maestra** del puzzle final
+  abre la **salida de la Librería** y dispara el **voto grupal** (§ final). Salir no es "ganar": abre la decisión moral.
 - **Llaves**: fungibles genéricas. Resolver un puzzle = +1 llave; cruzar una puerta cerrada cuesta llaves.
 - **Ruta única**: aunque el mapa tiene dos ramas (norte/sur), la ruta EFECTIVA es **una sola**, forzada por las
   **dependencias de los puzzles** (§3), no por las puertas. Te puedes mover libre si tienes llaves, pero solo
   *progresas* (resolver, conseguir items) en un orden.
+- **El minimapa es UN programa** dentro de `Computer.tsx` (con la terminal, la tienda online, el chat, más los
+  documentos físicos de la mesa). La ruta de puzzles es guiada, pero la partida NO es lineal: las 6 jugadoras
+  trastean a la vez distintas superficies. El paralelismo y lo colaborativo vienen de ahí, no de ramificar los
+  puzzles. (Sustituye a la idea vieja de "3 ramas paralelas" de `escape-room-libreria.md` §8.)
 
 ## 2. Dos capas (clave del diseño)
 
@@ -48,7 +53,7 @@
 4. **Backtrack al Sótano** (norte), ya con 5 llaves. Da el **ITEM "Tarjeta de seguridad del Almacén"**.
 5. **Librería** (se abre con la Tarjeta). Da la **INFO** para pasar de la **Antesala** a **La Cámara**.
 6. **Antesala → La Cámara** (Antesala: rol concreto por definir). Puzzle final → **ITEM "Llave Maestra"**.
-7. Vuelta a la **Librería** → la Llave Maestra abre la **SALIDA** → fin.
+7. Vuelta a la **Librería** → la Llave Maestra abre la **SALIDA** → se dispara el **voto grupal** (publicar todo / callar), con sus implicaciones sobre Higgins. Ahí acaba el juego.
 
 Sin bucles: Depósito →(abre)→ Despacho →(+llaves → 5)→ Sótano →(Tarjeta)→ Librería →(info)→ Antesala → La Cámara →(Llave Maestra)→ Salida.
 
@@ -91,7 +96,7 @@ flowchart TD
     DESP -.->|2. cajón: golpe de llaves → 5-6| SOT
     SOT -.->|3. Tarjeta de seguridad| LIB
     LIB -.->|4. INFO| ANT
-    CAM -.->|5. Llave Maestra| SAL([Salir por la Librería])
+    CAM -.->|5. Llave Maestra| SAL([Salir de la Librería → voto grupal])
 ```
 
 ## 4. Economía de llaves (traslado)
@@ -127,8 +132,8 @@ Contenido concreto (Blue Prince, deducción): POR DISEÑAR. De momento, las depe
 | Sótano | 5-6 llaves | +1 llave + **ITEM "Tarjeta de seguridad del Almacén"** |
 | Librería | **ITEM "Tarjeta de seguridad del Almacén"** | +1 llave + **INFO para la Antesala / La Cámara** |
 | Antesala | **INFO de la Librería** | +1 llave (rol concreto por definir) |
-| La Cámara | pasar la Antesala | +1 llave + **ITEM "Llave Maestra"** (victoria) |
-| Salida (Librería) | **Llave Maestra** | fin del juego |
+| La Cámara | pasar la Antesala | +1 llave + ***La jauría humana* (1975)** + la verdad de Higgins/Ruby + **ITEM "Llave Maestra"** |
+| Salida (Librería) | **Llave Maestra** | se sale de la librería → **voto grupal** (publicar / callar) → fin |
 
 ## 6. Orden de desarrollo
 

@@ -7,9 +7,9 @@ Documento de trabajo para diseñar el escape room narrativo + terminal web colab
 ## 1. Concepto general
 
 - **Nombre ficticio de la librería**: **Librería Manto Rochoa** (alteración mínima del nombre real, reconocible al instante).
-- **Formato**: escape room colaborativo en papel + web-app tipo terminal (móvil, individual por jugadora), dividido en 3 webs distintas.
-- **Jugadoras**: 8
-- **Duración objetivo**: 75–90 minutos
+- **Formato**: escape room colaborativo en papel + web-app (móvil, individual por jugadora), con varios programas en un mismo shell (`Computer.tsx`): tienda online, notas, fax, terminal y libro de juego (ver §3).
+- **Jugadoras**: 6 fijas (roles ocultos) + 2 opcionales (Ángela, Macarena)
+- **Duración objetivo**: 2-3 horas
 - **Proporción físico/digital**: 50-50, honestamente
 - **Tono**: (pendiente — ¿ligero/cómico o intriga seria tipo thriller?)
 - **Lore base**: todas trabajan en la Librería Manto Rochoa, que en secreto busca, compra y vende libros prohibidos. Los datos de ese mercado negro están ocultos en la base de datos interna de la librería (el "terminal").
@@ -34,13 +34,18 @@ Nombres alterados mínimamente respecto a personas reales, con cambio de sonido 
 
 ---
 
-## 3. Las tres webs
+## 3. Los programas del Computer.tsx — [Actualizado sep 2026]
 
-| Web | Función | Contenido |
+**[Actualizado sep 2026]** La vieja idea de "3 webs" queda sustituida por **un único shell (`Computer.tsx`) con
+varios programas** que cada jugadora abre desde el móvil. Progreso compartido vía Supabase.
+
+| Programa | Función | Contenido / estado |
 |---|---|---|
-| **Web ficticia de Librería Manto Rochoa** | Worldbuilding, exploración libre, easter eggs | Sitio "normal" de la librería (catálogo público, sobre nosotros, etc.) con pistas escondidas: código fuente, enlaces ocultos en el footer, productos con nombres en clave |
-| **Terminal / System** | Mecánica dura del escape room | Accesos por rol, modo admin, comandos ocultos, progreso compartido vía Supabase |
-| **Lobby / Main-Menu** | Sistema de recompensas y gating por fases | 4–5 audios (ElevenLabs) bloqueados por contraseña/puzzle, tipo launcher de niveles |
+| **Tienda online** | Escaparate puro, investigar/mirar | Catálogo, "sobre nosotros", easter eggs; sin interacción. Fácil de montar |
+| **Notas** | Reconstruir la historia | Cada puzzle resuelto suelta 1 nota numerada; se descubren desordenadas; leídas en orden = la historia real |
+| **Fax electrónico** | Chat con el Informante | Diálogo lineal con opciones tipo *Lifeline*. Por desarrollar |
+| **Terminal** | Investigar: buscar, consultar, encontrar | Accesos por rol, modo admin, comandos ocultos. Importante para muchos puzzles |
+| **Libro de juego** | Navegar y progresar | El minimapa + llaves + resolver puzzles (ver `hoja-de-ruta.md`) |
 
 ---
 
@@ -111,7 +116,12 @@ Patrón de bucle cerrado que alterna soporte en cada fase:
 
 ## 8. Estructura de puzzles (diseño en paralelo, no lineal)
 
-Regla de oro: con 6 jugadoras, evitar una cadena lineal de puzzles. Usar 3 ramas paralelas que confluyen en un bottleneck final.
+> **[Actualizado sep 2026]** Lo de "3 ramas paralelas" queda **superado**. El paralelismo y lo colaborativo
+> vienen de los **5 programas** (§3) + las 6 jugadoras trasteando a la vez, no de ramificar los puzzles: la ruta
+> de puzzles del **Libro de juego** es guiada/casi lineal (ver `hoja-de-ruta.md`). El resto de esta sección
+> (ramas A/B/C) queda como material histórico.
+
+Regla de oro (histórica): con 6 jugadoras, evitar una cadena lineal de puzzles. Usar 3 ramas paralelas que confluyen en un bottleneck final.
 
 ### Rama A — (pendiente de nombrar, ej. Catálogo sospechoso)
 - Jugadoras implicadas:

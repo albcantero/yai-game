@@ -146,6 +146,11 @@ Principio de diseño clave: **no hay culpable final**. El juego es colaborativo.
 | 5 | **Infiltrada gubernamental** (1) | Sabe la verdad completa sobre la empresa. **[Corr. sep 2026]** Habilidad asimétrica: permisos de **admin** en el terminal. |
 | 6 | **Infiltrada revolucionaria** (1) | Publica el libro del detonante sin querer causar el caos. Su identidad no debe revelarse por nombre en ningún audio o chat compartido con el resto del grupo (ver sección 15). **[Corr. sep 2026]** Habilidad asimétrica: un **hack** para publicar en la tienda online sin validación (misma vía del detonante y del voto final). |
 
+### Reparto real — [sep 2026]
+
+- **6 fijas** (llevan los roles ocultos de la tabla; mapeo nombre↔rol pendiente): **Yaiza, Claudia, Celia, Uxoa, Laura, Raquel**.
+- **2 opcionales** (personajes opcionales si vienen; se cablean aparte): **Ángela, Macarena**.
+
 ### Motivaciones inmediatas tras el detonante
 
 | Rol | Motivación inmediata |
@@ -157,7 +162,7 @@ Principio de diseño clave: **no hay culpable final**. El juego es colaborativo.
 
 ### Pendientes de esta sección
 
-- [ ] Asignar nombres y personalidad a las 6 jugadoras
+- [ ] Mapear cada nombre (Yaiza, Claudia, Celia, Uxoa, Laura, Raquel) a su rol oculto + personalidad
 - [ ] Definir motivación de fondo de cada empleada normal y de la nº3
 - [ ] Definir el peligro/situación concreta que corre A en el futuro de B (en 2056)
 - [ ] **Cerrar la forma exacta en que B llega a trabajar junto a A en 2026 (Hueco 3 acotado)**
@@ -312,6 +317,14 @@ Principio de diseño clave: **no hay culpable final**. El juego es colaborativo.
 > B. No, borrarlo
 >
 > Respuesta: ______
+
+### Implicaciones de cada opción — [Corr. sep 2026]
+
+Se **sale de la librería** y entonces se vota. Dilema moral, sin ganador limpio:
+
+- **A. Publicar todo** (filtrarlo en internet): cae el régimen opresor, pero al destaparse la trama de la
+  librería que censuraba, **Higgins acaba arrestado y pierde su bucle temporal** con Ruby.
+- **B. Callar** (borrarlo): **Higgins sigue en su bucle** en secreto, a salvo, pero **se mantiene el orden opresor**.
 
 ### Preguntas abiertas
 
