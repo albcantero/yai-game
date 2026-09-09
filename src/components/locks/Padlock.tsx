@@ -90,7 +90,7 @@ export type PadlockProps = {
 };
 
 export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockProps) {
-  const tick = () => playSfx("/audio/tick.mp3", 0.6); // clic mecánico en cada paso del dial
+  const tick = () => playSfx("/audio/tick.mp3", 1); // clic mecánico en cada paso del dial (volumen 100%)
   const [digits, setDigits] = useState<number[]>(() => combo.map(() => 0)); // ruedas (empiezan a 0)
   const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "Resolver"
   const [response, setResponse] = useState(""); // texto "CORRECTO"/"INCORRECTO"
