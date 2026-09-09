@@ -1,11 +1,18 @@
 import type { MutableRefObject } from "react";
 
+// Config de un CANDADO que una pantalla pide abrir al armazón (combinación + qué hacer al acertar).
+export interface LockConfig {
+  combo: number[]; // combinación correcta (un dígito 0..9 por rueda)
+  onSolved: () => void; // combo correcto: la pantalla resuelve su puzzle (y el armazón cierra el overlay)
+}
+
 // Servicios que el ARMAZÓN (Computer) da a cada pantalla montada encima (entradas: audio + shift).
 export interface ScreenServices {
   playSfx: (src: string, vol?: number) => void;
   shiftModeRef: MutableRefObject<"off" | "shift" | "caps">;
   consumeShift: () => void;
   navigate: (id: string) => void; // saltar a otra pantalla del registro por su id (lo usa el menú de Home)
+  openLock: (config: LockConfig) => void; // abrir el candado (oscurece + pausa la pantalla, MISMO proceso que la "X")
 }
 
 // Formulario TUI (login, y el compose del chat): campos + acción (Enviar/Conectar) + Salir, navegable

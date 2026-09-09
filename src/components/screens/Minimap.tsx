@@ -184,7 +184,10 @@ const BB = ROOMS.reduce(
   { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
 );
 
-const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props, ref) {
+// Combinación del candado por puzzle: de momento un placeholder para todos (luego saldrá de los datos del puzzle).
+const PLACEHOLDER_COMBO = [6, 3, 7, 5];
+
+const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock }, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
   const [tab, setTab] = useState(0); // pestaña activa del panel
   const [view, setView] = useState<View>(FIT); // transform de la cámara
@@ -555,7 +558,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           tab={tab}
           onTab={setTab}
           solved={solved}
-          onSolve={solvePuzzle}
+          onResolve={(id) => openLock({ combo: PLACEHOLDER_COMBO, onSolved: () => solvePuzzle(id) })}
           onClose={() => setSelected(null)}
         />
       )}

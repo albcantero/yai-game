@@ -5,7 +5,8 @@ import { usePressAnimation } from "./usePressAnimation";
 import { useWarpFilter } from "./useWarpFilter";
 import { useTerminalAudio } from "./useTerminalAudio";
 import { SCREENS, type ScreenId } from "./screens";
-import type { ScreenHandle } from "./screens/types";
+import type { ScreenHandle, LockConfig } from "./screens/types";
+import Padlock from "./locks/Padlock";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -25,6 +26,7 @@ const BUZZ_MS = 10;
 export default function Computer() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false); // popup de "Información" (botón "?" de la barra de título)
+  const [lock, setLock] = useState<LockConfig | null>(null); // candado abierto (oscurece + pausa la pantalla)
   const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
   const [powerOn, setPowerOn] = useState(true);
   const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // off=minús, shift=1 letra, caps=bloqueo
@@ -57,6 +59,9 @@ export default function Computer() {
   const navigate = (id: string) => {
     if (id in SCREENS) setView(id as ScreenId);
   };
+  // Abrir el candado: la pantalla activa (p.ej. el Minimap al pulsar "Resolver") lo pide con su combinación
+  // y qué hacer al acertar. Oscurece + pausa la pantalla igual que el diálogo de cerrar (la "X").
+  const openLock = (config: LockConfig) => setLock(config);
   // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega en la pantalla activa.
   const dispatchKey = (k: string) => {
     keyTick(); // el TECLADO es INDEPENDIENTE: SIEMPRE suena, aunque haya menú/diálogo abierto o un loader
@@ -66,7 +71,7 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    if (confirmClose || infoOpen) return; // diálogo/info abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
+    if (confirmClose || infoOpen || lock) return; // diálogo/info/candado abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
     screenRef.current?.handleKey(k); // delega en la pantalla activa (home incluido: su menú navega con flechas + OK)
   };
   dispatchRef.current = dispatchKey;
@@ -74,8 +79,8 @@ export default function Computer() {
   // Diálogo de cierre abierto => PAUSA la pantalla activa (congela boot/typeLine/spinners, esté como
   // esté). Al cerrarlo, reanuda donde iba. Vía screenRef.setPaused.
   useEffect(() => {
-    screenRef.current?.setPaused(confirmClose || infoOpen);
-  }, [confirmClose, infoOpen]);
+    screenRef.current?.setPaused(confirmClose || infoOpen || lock !== null);
+  }, [confirmClose, infoOpen, lock]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
@@ -191,6 +196,7 @@ export default function Computer() {
             shiftModeRef={shiftModeRef}
             consumeShift={consumeShift}
             navigate={navigate}
+            openLock={openLock}
           />
           {confirmClose && (
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
@@ -234,6 +240,19 @@ export default function Computer() {
                     <button type="button" onClick={() => setInfoOpen(false)}>Cerrar</button>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+          {/* CANDADO: oscurece la pantalla interior (menos el header) y muestra el candado centrado. Mismo
+              proceso que la "X" (oscurecer + pausa). Clic en el backdrop (fuera del candado) = cerrar. */}
+          {lock && (
+            <div className="lock-overlay" onPointerDown={(e) => { if (e.target === e.currentTarget) setLock(null); }}>
+              <div className="padlock-stage">
+                <Padlock
+                  combo={lock.combo}
+                  onSolved={() => { lock.onSolved(); setLock(null); }}
+                  onClose={() => setLock(null)}
+                />
               </div>
             </div>
           )}

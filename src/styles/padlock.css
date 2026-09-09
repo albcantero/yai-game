@@ -1,0 +1,8 @@
+/* CANDADO principal: overlay que OSCURECE la pantalla interior (dentro de .crt-body, debajo del header, encima
+   del contenido y bajo las scanlines), MISMO patrón que .confirm-overlay pero más oscuro (~80%). El candado va
+   centrado en un escenario cuadrado; el resto es backdrop (clic fuera del candado = cerrar, lo gestiona Computer). */
+.lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8) }
+.padlock-stage{ width:min(92%,460px);aspect-ratio:1/1 }
+.padlock-svg{ width:100%;height:100%;display:block;overflow:visible }   /* overflow visible: la caída del botón/dígitos (y~550) no se recorta */
+.padlock-svg text{ user-select:none }
+.padlock-body{ transform-box:fill-box;transform-origin:center }   /* la escala del candado gira sobre su propio centro */

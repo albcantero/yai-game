@@ -21,11 +21,11 @@ export type RoomPanelProps = {
   tab: number;
   onTab: (i: number) => void;
   solved: Set<string>; // puzzles resueltos del juego
-  onSolve: (id: string) => void; // resolver un puzzle (+1 llave)
+  onResolve: (id: string) => void; // pedir abrir el candado de un puzzle (al acertar la combinación: +1 llave)
   onClose: () => void;
 };
 
-export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
+export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onResolve, onClose }: RoomPanelProps) {
   const bigIcon = TAB_BIG[tab];
   // una opción por puzzle de la sala (placeholder hasta tener los nombres reales)
   const puzzleOptions = Array.from({ length: puzzles }, (_, i) => `Puzzle ${puzzleBase + i + 1}`);
@@ -35,8 +35,9 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
   const idx = puzzleIdx < puzzleOptions.length ? puzzleIdx : 0; // índice válido (por si el reinicio va un frame por detrás)
   const puzzleId = roomId + "#" + idx;
   const puzzleSolved = solved.has(puzzleId);
-  // "Resolver": resuelve el puzzle seleccionado (+1 llave). Luego queda resuelto y el botón se desactiva.
-  const resolveSelected = () => { if (!puzzleSolved && puzzleOptions.length > 0) onSolve(puzzleId); };
+  // "Resolver": abre el candado del puzzle seleccionado. Si se acierta la combinación, se resuelve (+1 llave)
+  // y el botón queda desactivado. Oscurece + pausa la pantalla mientras el candado está abierto.
+  const resolveSelected = () => { if (!puzzleSolved && puzzleOptions.length > 0) onResolve(puzzleId); };
   return (
     <div className="minimap-info win98">
       <div className="window minimap-panel">
