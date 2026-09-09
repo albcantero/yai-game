@@ -388,11 +388,11 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           <defs>
             {/* fade-out del pasillo Librería→Salida: opaco en la Librería (y92) → transparente en la Salida (y111).
                 userSpaceOnUse = las coords del degradado son las MISMAS del pasillo (aguanta zoom/pan de la cámara). */}
-            <linearGradient id="salida-fade-edge" gradientUnits="userSpaceOnUse" x1="19.8" y1="94" x2="19.8" y2="111">
+            <linearGradient id="salida-fade-edge" gradientUnits="userSpaceOnUse" x1="19.8" y1="94" x2="19.8" y2="106">
               <stop offset="0" stopColor={EDGE} stopOpacity="1" />
               <stop offset="1" stopColor={EDGE} stopOpacity="0" />
             </linearGradient>
-            <linearGradient id="salida-fade-floor" gradientUnits="userSpaceOnUse" x1="19.8" y1="94" x2="19.8" y2="111">
+            <linearGradient id="salida-fade-floor" gradientUnits="userSpaceOnUse" x1="19.8" y1="94" x2="19.8" y2="106">
               <stop offset="0" stopColor={FLOOR} stopOpacity="1" />
               <stop offset="1" stopColor={FLOOR} stopOpacity="0" />
             </linearGradient>
