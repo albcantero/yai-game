@@ -71,8 +71,8 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 113.5, discovered: false }]; // cruz N + SALIDA final (secreta: se revela con el candado blanco de la Librería)
-const SALIDA = { x: 14.3, y: 110, w: 11, h: 7 }; // rect de la SALIDA: sala gris pequeña, SEPARADA (más abajo) bajo la Librería
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 114, discovered: false }]; // cruz N + SALIDA final (secreta: se revela con el candado blanco de la Librería)
+const SALIDA = { x: 15.8, y: 110, w: 8, h: 8 }; // rect de la SALIDA: sala gris pequeña, SEPARADA (más abajo) bajo la Librería
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
 // grafo mezcla salas y junctions sin casos especiales.
 const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
