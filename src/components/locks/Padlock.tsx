@@ -161,7 +161,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     // SALEN a la vez y con la MISMA animación (suben 30 + fade): mensaje (30→0) y combinación (0→-30)
     await Promise.all([
       animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
-      triedRef.current ? animate(triedRef.current, { y: [0, -30], opacity: [1, 0] }, { duration: 0.5, ease: E_OUT }).finished : Promise.resolve(),
+      triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT }).finished : Promise.resolve(), // solo fade, SIN subir
     ]);
   };
   // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)

@@ -153,7 +153,7 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
     // SALEN a la vez y con la MISMA animación (suben 30 + fade): mensaje (30→0) y combinación (0→-30)
     await Promise.all([
       animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
-      triedRef.current ? animate(triedRef.current, { y: [0, -30], opacity: [1, 0] }, { duration: 0.5, ease: E_OUT }).finished : Promise.resolve(),
+      triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT }).finished : Promise.resolve(), // solo fade, SIN subir
     ]);
   };
   const restore = async () => {
