@@ -10,15 +10,15 @@ import RoomPanel from "./RoomPanel";
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; num?: number; name?: string; puzzles?: number; description?: string };
 // Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
-  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5 },
-  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3 },
-  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8 },
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4 },
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9 },
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén", puzzles: 1 }, // sala de inicio (nº 2); la ÚNICA despejada
-  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca" },
+  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito" },
+  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho" },
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano" },
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala" },
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 1 }, // sala de inicio (nº 2); la ÚNICA despejada
+  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10 },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara" },
   { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería", puzzles: 1 }, // = la TIENDA (pegada al Almacén), 3 llaves
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
@@ -45,6 +45,14 @@ const LINKS: Link[] = [
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], offFrom: 4, offTo: 3 }, // Sala de Máquinas→R2: +4; R2→S.Máquinas: +3
   { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 6 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +6
 ];
+// Las DOS rutas del recorrido (pertenencia de salas), norte y sur. Metadata de diseño/balanceo (y futura UI):
+// TODAS las salas son obligatorias (hacen falta todas las llaves). Ambas ramas arrancan del Almacén y forman
+// un BUCLE que se cierra por el CONECTOR Biblioteca <-> Proyecto de sala de lectura (r3 <-> r2). El clímax es
+// el BACKTRACK final: con el libro de La Cámara vuelves a la Librería (puerta de 3 llaves) a abrir la salida.
+const ROUTES: Record<"norte" | "sur", string[]> = {
+  norte: ["hub-almacen", "cross-north", "r3", "r4", "r5"], // Almacén -> Intersección -> Biblioteca; ramal muerto Depósito -> Sótano
+  sur: ["hub-almacen", "r1", "r2", "r6", "r7", "r8"], // Almacén -> S.Máquinas -> Proyecto -> Despacho -> Antesala -> La Cámara (el libro)
+};
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
 
 const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
