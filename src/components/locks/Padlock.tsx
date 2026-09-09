@@ -10,9 +10,13 @@ import { animate, stagger } from "motion";
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
 const ROW = 52; // alto de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
+const ITEM_ANGLE = 20; // grados que gira el cilindro por número (a más grados, cilindro más "cerrado")
+const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
+const RENDER = 5; // números renderizados a cada lado del centro (los de detrás se ocultan solos por opacidad)
 
-// Una RUEDA (dial): muestra `value` centrado, con value-1 arriba y value+1 abajo, cortados. Se arrastra en
-// vertical para cambiarlo (con wrap 0..9). No hay flechas: el carrusel ES la interacción.
+// Una RUEDA (dial) 3D: los números viven en un CILINDRO real (rotateX + translateZ bajo perspective). El del
+// centro mira al frente; los de arriba/abajo se giran y se DESVANECEN (profundidad). Se arrastra en vertical
+// para girarlo (wrap 0..9). No hay flechas: el carrusel ES la interacción.
 function Dial({ value, disabled, onChange }: { value: number; disabled: boolean; onChange: (v: number) => void }) {
   const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
   const [anim, setAnim] = useState(false); // transición al soltar (snap)
@@ -38,21 +42,29 @@ function Dial({ value, disabled, onChange }: { value: number; disabled: boolean;
     if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
     settling.current = true;
     setAnim(true);
-    setDrag(steps * ROW); // desliza hasta encajar en el número destino
+    setDrag(steps * ROW); // gira hasta encajar en el número destino
     window.setTimeout(() => {
       onChange((value - steps + 100) % 10); // arrastrar hacia abajo (steps>0) = número anterior
       setAnim(false);
       setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
       settling.current = false;
-    }, 170);
+    }, 190);
   };
 
+  const shift = drag / ROW; // desplazamiento en números (fraccionario) según el arrastre
   return (
     <div className="lock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
-      <div className="dial-strip" style={{ transform: `translateY(calc(-50% + ${drag}px))`, transition: anim ? "transform .17s ease-out" : "none" }}>
-        {[-3, -2, -1, 0, 1, 2, 3].map((o) => (
-          <div className="dial-num" key={o}>{(value + o + 10) % 10}</div>
-        ))}
+      <div className="dial-cylinder">
+        {Array.from({ length: RENDER * 2 + 1 }, (_, k) => k - RENDER).map((o) => {
+          const angle = -(o + shift) * ITEM_ANGLE; // ángulo del número en el cilindro
+          const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // los que giran hacia atrás se desvanecen
+          return (
+            <div className="dial-num" key={o}
+              style={{ transform: `rotateX(${angle}deg) translateZ(${RADIUS}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
+              {(value + o + 100) % 10}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
