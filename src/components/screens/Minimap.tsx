@@ -420,6 +420,17 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               return <rect key={r.id} pointerEvents="none"
                 x={r.x} y={r.y} width={r.w} height={r.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} />;
             })}
+            {/* SALIDA: sala gris SEPARADA bajo la Librería. En la capa de las salas (pase 3) para que el
+                relleno del pasillo (pase 4) pase por ENCIMA y una la línea con la sala, igual que el resto.
+                OCULTA hasta abrir el candado BLANCO; luego "?" hasta el rojo. */}
+            {salidaRevealed && (discovered.has("salida") ? (
+              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
+            ) : (
+              <g pointerEvents="none">
+                <rect className="minimap-fog-room" x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FOG_FILL} stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
+                <text x={SALIDA.x + SALIDA.w / 2} y={SALIDA.y + SALIDA.h / 2} fill={FOG_Q} fontSize={4} fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
+              </g>
+            ))}
             {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: abre la puerta en la unión */}
             {LINKS.map((lk, i) =>
               shown(lk, discovered) && !(lk.secret && !salidaRevealed) ? (
@@ -430,15 +441,6 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             {/* 4b. parche de junction (relleno): mismo cuadrado en color suelo, ENCIMA, para dejar la esquina lisa */}
             {JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida" && j.id !== "pre-salida").map((j) => (
               <rect key={"jfil" + j.id} x={j.x - 1.3} y={j.y - 1.3} width={2.6} height={2.6} fill={FLOOR} pointerEvents="none" />
-            ))}
-            {/* SALIDA: sala gris SEPARADA bajo la Librería. OCULTA hasta abrir el candado BLANCO; luego "?" hasta el rojo. */}
-            {salidaRevealed && (discovered.has("salida") ? (
-              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
-            ) : (
-              <g pointerEvents="none">
-                <rect className="minimap-fog-room" x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FOG_FILL} stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
-                <text x={SALIDA.x + SALIDA.w / 2} y={SALIDA.y + SALIDA.h / 2} fill={FOG_Q} fontSize={4} fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
-              </g>
             ))}
             {/* 5. insignia por sala: la bandera gris centrada (wrapper tocable con margen). En la sala ACTUAL
                 se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
