@@ -17,9 +17,10 @@
 .letterlock-dials-wrap{ position:relative;display:flex;justify-content:center }
 /* UNA sola caja con todos los diales dentro (el borde va aquí, no en cada slot); recorta la fila (top/bottom) */
 .letterlock-dials{ position:relative;display:flex;gap:2px;padding:0 8px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }
-/* dos líneas horizontales (1px, blanco 30%) ENCIMA de TODOS los diales, marcando la fila de la respuesta correcta */
+/* dos líneas horizontales (misma config que el borde del wrapper: 2px sólido blanco) ENCIMA de TODOS los diales,
+   de borde a borde (left/right:0) para que conecten con el marco, marcando la fila de la respuesta correcta */
 .letterlock-dials::after{ content:"";position:absolute;left:0;right:0;top:50%;height:32px;margin-top:-16px;pointer-events:none;z-index:2;
-  border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.3) }
+  border-top:2px solid #fff;border-bottom:2px solid #fff }
 .letterlock-slot{ width:52px;height:100px }   /* sin borde propio: la caja de arriba enmarca y recorta todos; más alta = más letras visibles */
 .letterlock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow) */
 .letterlock-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
