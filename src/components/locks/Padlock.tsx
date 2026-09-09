@@ -110,7 +110,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     <>
     <svg className="padlock-svg" viewBox="50 125 400 300" width="100%" height="100%">
       {/* candado: wrapper con la posición base (atributo, lo maneja React) + inner que anima Motion desde 0 */}
-      <g transform="translate(250,220)">
+      <g transform="translate(250,250)">
         <g ref={bodyRef} className="padlock-body">
           <rect ref={boxRef} x={-60} y={-45} width={120} height={90} rx={5} fill={RESTING} />
           <path ref={barRef} d="M-35 -45 v-40 c 0 -40, 70 -40, 70,0 v80" strokeWidth={15} strokeLinecap="round" fill="none" stroke={RESTING} />
