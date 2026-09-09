@@ -31,6 +31,7 @@ const ROOMS: Room[] = [
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
+  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 97]], item: "llave-maestra", offFrom: -5, offTo: 0 }, // SALIDA FINAL: candado DENTRO de la Librería (abajo); se abre con la Llave Maestra (+ llaves libres, pendiente)
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -41,7 +42,7 @@ const LINKS: Link[] = [
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], keys: 1, offFrom: 3, offTo: 3 }, // Despacho→Antesala: puerta SECRETA (1 llave); se revela al resolver el último puzzle del Despacho
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], keys: 2, offFrom: 3, offTo: 3 }, // Antesala→Cámara: 2 llaves
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 2, offFrom: 6, offTo: 0 }, // Proyecto↔Despacho: 2 llaves
-  { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 5 }, // R2→R3: +5; R3→R2: +5
+  { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 5 }, // Biblioteca↔Proyecto (conector)
   { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], keys: 2, offFrom: 4, offTo: 3 }, // Máquinas↔Proyecto: 2 llaves
   { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 6 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +6
 ];
@@ -70,7 +71,7 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }]; // cruz N: en niebla como todo lo que no es el Almacén
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 97, discovered: false }]; // cruz N + SALIDA final (justo bajo la Librería)
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
 // grafo mezcla salas y junctions sin casos especiales.
 const NODE: Record<string, { x: number; y: number; discovered: boolean }> = {
@@ -217,6 +218,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const unlock = (m: Mark) => {
     if (m.item) {
       if (m.item === "tarjeta" && tarjetas < 1) return; // necesitas la Tarjeta; NO se gasta (llave-tarjeta reutilizable)
+      if (m.item === "llave-maestra" && llaveMaestra < 1) return; // salida final: necesitas la Copia de la Llave Maestra
     } else {
       if (keys < m.keys) return;
       setKeys((k) => k - m.keys);
@@ -536,6 +538,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               <div className="confirm-buttons">
                 {locked.item === "tarjeta" ? (
                   <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
+                ) : locked.item === "llave-maestra" ? (
+                  <button type="button" disabled={llaveMaestra < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 ) : (
                   <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 )}
