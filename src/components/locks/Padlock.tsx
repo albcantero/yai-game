@@ -94,12 +94,12 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     if (killed.current) return;
     if (correct) {
       await resultCorrect();
-      await showResponse("correct");
+      await showResponse("CORRECTO");
       if (killed.current) return;
       onSolved(); // abre el candado → resolver el puzzle y cerrar el overlay (Computer desmonta esto)
     } else {
       await resultIncorrect();
-      await showResponse("incorrect");
+      await showResponse("INCORRECTO");
       await restore();
       if (killed.current) return;
       setBusy(false);

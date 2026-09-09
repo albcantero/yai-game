@@ -198,6 +198,20 @@ export default function Computer() {
             navigate={navigate}
             openLock={openLock}
           />
+          {/* CANDADO: oscurece la pantalla interior (menos el header) y muestra el candado centrado. Mismo
+              proceso que la "X" (oscurecer + pausa). Va ANTES de los diálogos de X/Información para que estos
+              (mismo z2) pinten POR ENCIMA del candado. Clic en el backdrop (fuera del candado) = cerrar. */}
+          {lock && (
+            <div className="lock-overlay" onPointerDown={(e) => { if (e.target === e.currentTarget) setLock(null); }}>
+              <div className="padlock-stage">
+                <Padlock
+                  combo={lock.combo}
+                  onSolved={() => { lock.onSolved(); setLock(null); }}
+                  onClose={() => setLock(null)}
+                />
+              </div>
+            </div>
+          )}
           {confirmClose && (
             <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
               <div className="window confirm-dialog">
@@ -240,19 +254,6 @@ export default function Computer() {
                     <button type="button" onClick={() => setInfoOpen(false)}>Cerrar</button>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
-          {/* CANDADO: oscurece la pantalla interior (menos el header) y muestra el candado centrado. Mismo
-              proceso que la "X" (oscurecer + pausa). Clic en el backdrop (fuera del candado) = cerrar. */}
-          {lock && (
-            <div className="lock-overlay" onPointerDown={(e) => { if (e.target === e.currentTarget) setLock(null); }}>
-              <div className="padlock-stage">
-                <Padlock
-                  combo={lock.combo}
-                  onSolved={() => { lock.onSolved(); setLock(null); }}
-                  onClose={() => setLock(null)}
-                />
               </div>
             </div>
           )}
