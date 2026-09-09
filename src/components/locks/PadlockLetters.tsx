@@ -99,7 +99,7 @@ export type PadlockLettersProps = {
 
 export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: PadlockLettersProps) {
   const tick = () => playSfx("/audio/tick.mp3", 1); // clic mecánico en cada paso del dial (volumen 100%)
-  const [digits, setDigits] = useState<number[]>(() => combo.map(() => 0)); // ruedas (empiezan a 0)
+  const [digits, setDigits] = useState<number[]>(() => combo.map((_, i) => i % 27)); // ruedas: A, B, C, D... (no "AAAAA")
   const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "Resolver"
   const [response, setResponse] = useState(""); // texto "CORRECTO"/"INCORRECTO"
   const [exit, setExit] = useState(false); // tras CORRECTO: aparece el botón "Salir"
