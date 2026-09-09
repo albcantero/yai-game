@@ -10,15 +10,15 @@ import RoomPanel from "./RoomPanel";
 type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; num?: number; name?: string; puzzles?: number; description?: string };
 // Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
-  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada" },
-  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito" },
-  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho" },
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano" },
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala" },
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 1 }, // sala de inicio (nº 2); la ÚNICA despejada
-  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 3 }, // sala central: 3 puzzles, 2 salidas (r6/r3)
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada", puzzles: 1 },
+  { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito", puzzles: 1 },
+  { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho", puzzles: 1 }, // "puzzle" = el cajón/código; da el GOLPE de llaves (futuro: código→+N)
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 1 },
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 1 },
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 2 }, // sala de inicio (nº 2); la ÚNICA despejada. 2 puzzles = colchón de salida
+  { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 2 }, // sala central, nudo de rutas
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara" },
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 1 }, // puzzle final: da el libro + Llave Maestra
   { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería", puzzles: 1 }, // = la TIENDA (pegada al Almacén), 3 llaves
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
@@ -30,8 +30,8 @@ const ROOMS: Room[] = [
 // Almacén→Intersección abre también R3 (la intersección es de paso: "Almacén→R3 directo").
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
-  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 3, offFrom: 1, offTo: 6 }, // puerta a la Tienda (Librería): 3 llaves. Librería→Almacén: +1; Almacén→Librería: +6
-  { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], offFrom: 1, offTo: 6 }, // R5→R4: +1, R4→R5: +6
+  { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], keys: 1, offFrom: 1, offTo: 6 }, // Librería: en DISEÑO se abre por ITEM (Tarjeta de seguridad del Almacén); placeholder 1 llave hasta la mecánica de items
+  { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
   // cruz de antes (vertical 44,44→44,15 + horizontal 24,15↔58,15); solo cambia la topología.
@@ -56,6 +56,14 @@ const ROUTES: Record<"norte" | "sur", string[]> = {
 const START_ROOM = "hub-almacen"; // sala donde EMPIEZA el grupo: el almacén (sala 1). La actual es estado (te mueves con las flechas)
 
 const byId = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
+// Numeración global de puzzles ("Puzzle N"), por el orden de progreso de la ruta. base = nº de puzzles ANTES de esa sala.
+const PUZZLE_ORDER = ["hub-almacen", "r3", "r4", "r1", "r2", "r6", "r5", "libreria", "r7", "r8"];
+const puzzleBaseOf: Record<string, number> = (() => {
+  const m: Record<string, number> = {};
+  let acc = 0;
+  for (const id of PUZZLE_ORDER) { m[id] = acc; acc += byId[id]?.puzzles ?? 0; }
+  return m;
+})();
 const cx = (r: Room) => r.x + r.w / 2;
 const cy = (r: Room) => r.y + r.h / 2;
 
@@ -476,6 +484,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           roomId={selRoom.id}
           isCurrent={selected === current}
           puzzles={selRoom.puzzles ?? 0}
+          puzzleBase={puzzleBaseOf[selRoom.id] ?? 0}
           description={selRoom.description}
           tab={tab}
           onTab={setTab}

@@ -7,9 +7,8 @@ import Win98Select from "./Win98Select";
 const TABS = ["Información", "Llaves"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab.
 const TAB_BIG: (string | null)[] = ["/icons/help_question_mark-0.png", "/icons/keys-5.png"];
-// Nombres de puzzle de RELLENO (hasta tener los reales). El desplegable de la pestaña "Llaves" muestra
-// tantas opciones como puzzles tenga la sala; con 1 sola opción el <select> sale desactivado.
-const PUZZLE_PLACEHOLDER = ["Caja de madera", "Cerradura de latón", "Libro cifrado", "Cajón con doble fondo"];
+// El desplegable de la pestaña "Llaves" muestra tantas opciones como puzzles tenga la sala; con 1 sola opción
+// el <select> sale desactivado. Placeholder "Puzzle N" con numeración GLOBAL (offset por props: puzzleBase).
 
 export type RoomPanelProps = {
   title: string; // nombre de la sala (campo "Nombre:" de la pestaña Información)
@@ -17,6 +16,7 @@ export type RoomPanelProps = {
   roomId: string; // para los ids de puzzle ("sala#índice")
   isCurrent: boolean; // el grupo está EN esta sala (si no, la pestaña "Llaves" va desactivada)
   puzzles: number; // nº de puzzles de la sala
+  puzzleBase?: number; // offset para la numeración global "Puzzle N"
   description?: string; // texto de la descripción (si no hay, se usa un lorem de relleno)
   tab: number;
   onTab: (i: number) => void;
@@ -25,10 +25,10 @@ export type RoomPanelProps = {
   onClose: () => void;
 };
 
-export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
+export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onSolve, onClose }: RoomPanelProps) {
   const bigIcon = TAB_BIG[tab];
   // una opción por puzzle de la sala (placeholder hasta tener los nombres reales)
-  const puzzleOptions = Array.from({ length: puzzles }, (_, i) => PUZZLE_PLACEHOLDER[i] ?? `Puzzle ${i + 1}`);
+  const puzzleOptions = Array.from({ length: puzzles }, (_, i) => `Puzzle ${puzzleBase + i + 1}`);
   // puzzle SELECCIONADO en el desplegable (índice). Se reinicia al primero al cambiar de sala.
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   useEffect(() => { setPuzzleIdx(0); }, [roomId]);

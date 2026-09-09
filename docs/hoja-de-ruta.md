@@ -112,6 +112,35 @@ más o menos lo que da cada puzzle (economía ajustada, saldo casi plano). Así 
 - **A verificar con el script** (`npm run economy`, pendiente): que el saldo se mantiene en 1-3, que solo el
   Despacho permite llegar a 5-6, y que nunca te quedas sin pagar la siguiente puerta necesaria.
 
+### Números cableados (sep 2026)
+
+**Puzzles por sala** (= llaves que produce), **13 en total**, placeholders "Puzzle 1..13":
+
+| Sala | Puzzles | Nº |
+|---|---|---|
+| Almacén de tienda | 2 (colchón de salida) | 1-2 |
+| Biblioteca privada | 1 | 3 |
+| Depósito | 1 | 4 |
+| Sala de Máquinas | 2 | 5-6 |
+| Proyecto de sala de lectura | 2 | 7-8 |
+| Despacho | 1 (el cajón: da el GOLPE de llaves) | 9 |
+| Sótano | 1 | 10 |
+| Librería | 1 | 11 |
+| Antesala | 1 | 12 |
+| La Cámara | 1 (final: libro + Llave Maestra) | 13 |
+
+**Puertas**: todas cuestan **1 llave** salvo el **Sótano = 5** (el muro). La Librería queda en placeholder 1 (en
+diseño se abre por ITEM Tarjeta).
+
+**Simulación** (saldo por la ruta): empiezas con 2 (Almacén); recorriendo norte + sur el saldo **nunca pasa de 3
+ni baja de 0**, y el máximo acumulable antes del Despacho es **3** (< 5, así el Sótano no se abre antes). En el
+Despacho el cajón mete el golpe que te sube a ~5-6 para pagar el Sótano; tras abrirlo vuelves a ~1-2. Final por
+items (Tarjeta, Llave Maestra).
+
+**GOTCHA de build**: con el Sótano a 5 y **sin** la mecánica "código → +N llaves" (pendiente), el build actual
+**NO es superable** (el Despacho solo da +1). Esperado en esta fase; cuadra al montar esa mecánica (o metiendo
+llaves de test).
+
 ## 5. Slots de puzzle (contrato: REQUIERE → DA)
 
 **Items especiales (solo 2):**
