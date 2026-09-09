@@ -25,7 +25,7 @@ const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" 
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .letterlock-num en letterlock.css
-const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, más curvado)
+const ITEM_ANGLE = 32; // grados por letra (más bajo que el numérico: cilindro más abierto → se ven más letras)
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
 const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro no da la vuelta ni se solapa)
 

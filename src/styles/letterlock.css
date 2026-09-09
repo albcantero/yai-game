@@ -16,8 +16,8 @@
 /* ruedas de la combinación (cilindro 3D): número centrado, vecinos girados/desvanecidos */
 .letterlock-dials-wrap{ position:relative;display:flex;justify-content:center }
 /* UNA sola caja con todos los diales dentro (el borde va aquí, no en cada slot); recorta la fila (top/bottom) */
-.letterlock-dials{ display:flex;gap:10px;padding:0 8px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }
-.letterlock-slot{ width:52px;height:60px }   /* sin borde propio: la caja de arriba enmarca y recorta todos */
+.letterlock-dials{ display:flex;gap:5px;padding:0 8px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }
+.letterlock-slot{ width:52px;height:90px }   /* sin borde propio: la caja de arriba enmarca y recorta todos; más alta = más letras visibles */
 .letterlock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow) */
 .letterlock-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
 /* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW debe coincidir con PadlockLetters.tsx */
@@ -30,7 +30,7 @@
 .letterlock-response{ opacity:0;font-size:72px;color:#fff;white-space:nowrap;text-shadow:none;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }
 /* combinación probada: fila superpuesta a las ruedas, MISMO ancho de celda (52px) y gap (10px) que .letterlock-dials */
-.letterlock-tried{ position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;pointer-events:none;color:#fff }
+.letterlock-tried{ position:absolute;inset:0;display:flex;gap:5px;align-items:center;justify-content:center;pointer-events:none;color:#fff }
 .letterlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:inherit;text-shadow:none;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* color:inherit → se tiñe con el candado (paint) */
 
