@@ -17,7 +17,7 @@
 /* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo, así el
    oscurecido entra deslizándose con el candado. Mantiene la columna del contenido. */
 .padlock-slide{ display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;will-change:transform;
-  background:rgba(0,0,0,.82);border-radius:12px;padding:22px 16px 26px }
+  background:rgba(0,0,0,.95);border-radius:12px;padding:22px 16px 26px }
 
 /* cuerpo del candado (SVG) */
 .padlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }
