@@ -114,32 +114,35 @@ más o menos lo que da cada puzzle (economía ajustada, saldo casi plano). Así 
 
 ### Números cableados (sep 2026)
 
-**Puzzles por sala** (= llaves que produce), **13 en total**, placeholders "Puzzle 1..13":
+**Puzzles por sala** (= llaves que produce), **20 en total**, placeholders "Puzzle 1..20". Inicio/ruta con pocos;
+**salas avanzadas (Sótano, Librería, Antesala, La Cámara) con 3** cada una (más puzzles = más **notas** de historia en el clímax):
 
 | Sala | Puzzles | Nº |
 |---|---|---|
-| Almacén de tienda | 2 (colchón de salida) | 1-2 |
-| Biblioteca privada | 1 | 3 |
-| Depósito | 1 | 4 |
-| Sala de Máquinas | 2 | 5-6 |
-| Proyecto de sala de lectura | 2 | 7-8 |
-| Despacho | 1 (el cajón: da el GOLPE de llaves) | 9 |
-| Sótano | 1 | 10 |
-| Librería | 1 | 11 |
-| Antesala | 1 | 12 |
-| La Cámara | 1 (final: libro + Llave Maestra) | 13 |
+| Almacén de tienda | 1 (con esa llave eliges norte/sur) | 1 |
+| Biblioteca privada | 1 | 2 |
+| Depósito | 1 | 3 |
+| Sala de Máquinas | 2 | 4-5 |
+| Proyecto de sala de lectura | 2 | 6-7 |
+| Despacho | 1 (el cajón: da el GOLPE de llaves) | 8 |
+| Sótano | 3 | 9-11 |
+| Librería | 3 | 12-14 |
+| Antesala | 3 | 15-17 |
+| La Cámara | 3 (el último: libro + Llave Maestra) | 18-20 |
 
-**Puertas**: todas cuestan **1 llave** salvo el **Sótano = 5** (el muro). La Librería queda en placeholder 1 (en
+**Puertas**: todas cuestan **1 llave** salvo el **Sótano = 5** (el muro). La Librería queda placeholder 1 (en
 diseño se abre por ITEM Tarjeta).
 
-**Simulación** (saldo por la ruta): empiezas con 2 (Almacén); recorriendo norte + sur el saldo **nunca pasa de 3
-ni baja de 0**, y el máximo acumulable antes del Despacho es **3** (< 5, así el Sótano no se abre antes). En el
-Despacho el cajón mete el golpe que te sube a ~5-6 para pagar el Sótano; tras abrirlo vuelves a ~1-2. Final por
-items (Tarjeta, Llave Maestra).
+**Elegir ruta con 1 llave**: el Almacén da 1. Vas **norte** (abrir Almacén→Intersección, que además **revela la
+Biblioteca gratis**) o **sur** (abrir Almacén→Máquinas). Ambas te dejan en una sala con puzzle que te refresca.
+
+**Muro seguro**: antes del Despacho el máximo acumulable son **~3 llaves** (< 5), así que el Sótano no se puede
+forzar; el cajón mete el golpe (~+5) para pagarlo. **Tras el Despacho ya no hay muros de llave** (los gates son
+items/info), así que las llaves de las salas avanzadas se acumulan sin gastarse: ahí valen sobre todo por las
+**notas**, no por la economía.
 
 **GOTCHA de build**: con el Sótano a 5 y **sin** la mecánica "código → +N llaves" (pendiente), el build actual
-**NO es superable** (el Despacho solo da +1). Esperado en esta fase; cuadra al montar esa mecánica (o metiendo
-llaves de test).
+**NO es superable** (el Despacho solo da +1). Esperado; cuadra al montar esa mecánica (o con llaves de test).
 
 ## 5. Slots de puzzle (contrato: REQUIERE → DA)
 

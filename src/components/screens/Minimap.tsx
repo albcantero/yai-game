@@ -13,13 +13,13 @@ const ROOMS: Room[] = [
   { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada", puzzles: 1 },
   { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito", puzzles: 1 },
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho", puzzles: 1 }, // "puzzle" = el cajón/código; da el GOLPE de llaves (futuro: código→+N)
-  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 1 },
-  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 1 },
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 2 }, // sala de inicio (nº 2); la ÚNICA despejada. 2 puzzles = colchón de salida
+  { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 3 }, // sala avanzada
+  { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 3 }, // sala avanzada
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 2 }, // sala central, nudo de rutas
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
-  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 1 }, // puzzle final: da el libro + Llave Maestra
-  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería", puzzles: 1 }, // = la TIENDA (pegada al Almacén), 3 llaves
+  { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 3 }, // sala avanzada; el último puzzle da el libro + Llave Maestra
+  { id: "libreria", x: 5.0, y: 52.5, w: 29.6, h: 41.0, discovered: false, num: 1, name: "Librería", puzzles: 3 }, // la TIENDA (pegada al Almacén); sala avanzada
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
