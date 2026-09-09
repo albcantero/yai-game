@@ -19,7 +19,7 @@ const TRIED_HOLD_MS = 1500; // lo que la COMBINACIÓN aguanta antes del fade-out
 const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" (antes que el aguante del mensaje)
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
-const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
+const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .padlock-num en padlock.css
 const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, más curvado)
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
 const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro no da la vuelta ni se solapa)
@@ -68,13 +68,13 @@ function Dial({ value, disabled, onChange, tick }: { value: number; disabled: bo
   const posJ = value - drag / ROW;   // posición continua del centro, en índice (drag abajo = índice menor = anterior)
   const c = Math.round(posJ);        // índice central actual
   return (
-    <div className="lock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
-      <div className="dial-cylinder">
+    <div className="padlock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
+      <div className="padlock-cylinder">
         {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
           const angle = -(j - posJ) * ITEM_ANGLE; // ángulo del número j en el cilindro (fracción incluida)
           const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // los que giran hacia atrás se desvanecen
           return (
-            <div className="dial-num" key={j}
+            <div className="padlock-num" key={j}
               style={{ transform: `rotateX(${angle}deg) translateZ(${RADIUS}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
               {((j % 10) + 10) % 10}
             </div>
@@ -155,8 +155,8 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     animate(barRef.current!, { y: 10 }, { duration: 1, ease: E_OUT, delay: 1.55 });
     return animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: E_OUT, delay: 1.55 }).finished; // fin t2.55
   };
-  // correcto (0.3s): barra sube (-20) y candado escala 1.2 con Back.easeOut(4); color de AMBAS piezas verde
-  // (luminosidad 100→60, hue 120) desde UNA sola animación (power1.out) → sin costura entre caja y arco
+  // correcto (0.3s): barra sube (-20) y candado escala 1 (igual que incorrecto) con Back.easeOut(4); color de
+  // AMBAS piezas verde (luminosidad 100→60, hue 120) desde UNA sola animación (power1.out) → sin costura
   const resultCorrect = () => Promise.all([
     animate(barRef.current!, { y: -20 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
     animate(bodyRef.current!, { scale: 1 }, { duration: 0.3, ease: BACK_OUT_4 }).finished, // mismo zoom que INCORRECTO (referencia)
@@ -169,7 +169,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     animate(100, 60, { duration: 0.1, ease: E_OUT, onUpdate: (L) => paint(0, L) });
     return animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
   };
-  // respuesta: entra (0.5s, +30 + opacity) → aguanta 2s → sale (0.5s)
+  // respuesta: entra (0.5s, +30 + opacity) → aguanta → sale (0.5s); la combinación sale un pelín aparte
   const showResponse = async (msg: string, color: string) => {
     if (killed.current) return;
     setResponse(msg);
@@ -248,7 +248,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
       <div className="padlock-dials-wrap">
         <div className="padlock-dials">
           {digits.map((d, i) => (
-            <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className="dial-slot">
+            <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className="padlock-slot">
               <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} tick={tick} />
             </div>
           ))}

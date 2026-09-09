@@ -7,6 +7,7 @@ import { useTerminalAudio } from "./useTerminalAudio";
 import { SCREENS, type ScreenId } from "./screens";
 import type { ScreenHandle, LockConfig } from "./screens/types";
 import Padlock from "./locks/Padlock";
+import PadlockLetters from "./locks/PadlockLetters";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -127,8 +128,15 @@ export default function Computer() {
     onPointerCancel: stopHold,
   });
 
-  const chromeClick = (e: ReactPointerEvent) => {
-    if ((e.target as HTMLElement).closest("button")) playSfx("/audio/mouse-click.mp3");
+  // Click de RATÓN en cualquier elemento interactivo de la PANTALLA (banderas, botones, tabs, candado, selects...):
+  // simula el clic del ratón del ordenador. Interactivo = <button>/[role=tab]/select o algo con cursor:pointer.
+  // Se engancha en .crt (cubre header + contenido), NO en teclado ni mentón (que tienen su propio sonido).
+  const screenClick = (e: ReactPointerEvent) => {
+    const t = e.target as Element | null;
+    if (!t || !t.closest) return;
+    if (t.closest('button, [role="tab"], select, .crt-select-trigger') || getComputedStyle(t).cursor === "pointer") {
+      playSfx("/audio/mouse-click.mp3");
+    }
   };
   const closeAttempt = () => {
     setConfirmClose(false);
@@ -179,9 +187,9 @@ export default function Computer() {
 
       <div className="monitor">
         <div className="screen-area">
-        <div className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")}>
+        <div className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")} onPointerDownCapture={screenClick}>
           {view !== "home" && (
-            <div className="win98 win-header" onPointerDownCapture={chromeClick}>
+            <div className="win98 win-header">
               <div className="title-bar">
                 <img className="title-icon" src={SCREENS[view].icon} alt="" />
                 <div className="title-bar-text">{SCREENS[view].title}</div>
@@ -208,17 +216,26 @@ export default function Computer() {
           {lock && (
             <div className="lock-overlay" onPointerDown={(e) => { if (e.target === e.currentTarget) setLock(null); }}>
               <div className="padlock-stage">
-                <Padlock
-                  combo={lock.combo}
-                  playSfx={playSfx}
-                  onSolved={() => { lock.onSolved(); setLock(null); }}
-                  onClose={() => setLock(null)}
-                />
+                {lock.letters ? (
+                  <PadlockLetters
+                    combo={lock.combo}
+                    playSfx={playSfx}
+                    onSolved={() => { lock.onSolved(); setLock(null); }}
+                    onClose={() => setLock(null)}
+                  />
+                ) : (
+                  <Padlock
+                    combo={lock.combo}
+                    playSfx={playSfx}
+                    onSolved={() => { lock.onSolved(); setLock(null); }}
+                    onClose={() => setLock(null)}
+                  />
+                )}
               </div>
             </div>
           )}
           {confirmClose && (
-            <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
+            <div className="win98 confirm-overlay">
               <div className="window confirm-dialog">
                 <div className="title-bar">
                   <img className="title-icon" src="/icons/msg_error-2.png" alt="" />
@@ -241,7 +258,7 @@ export default function Computer() {
             </div>
           )}
           {infoOpen && (
-            <div className="win98 confirm-overlay" onPointerDownCapture={chromeClick}>
+            <div className="win98 confirm-overlay">
               <div className="window confirm-dialog">
                 <div className="title-bar">
                   <img className="title-icon" src="/icons/msg_information-2.png" alt="" />

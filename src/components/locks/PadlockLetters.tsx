@@ -5,6 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { animate } from "motion";
 
+// Alfabeto español en MAYÚSCULAS (27 letras, Ñ tras la N). El dial de letras usa índices 0..26 sobre esto.
+export const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+// Convierte una palabra ("HELLO") en la combinación de índices para el candado de letras.
+export const wordToCombo = (w: string): number[] =>
+  w.toUpperCase().split("").map((c) => { const i = ALPHABET.indexOf(c); return i < 0 ? 0 : i; });
+
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 // Eases CLAVADOS del original (GSAP): Power2.easeInOut = cúbica in-out; Power1.easeOut (default de GSAP) = quad out;
 // Power0 = linear; Back.easeOut.config(4) = polinomio con overshoot 4 (no es bezier: va como función de progreso).
@@ -57,7 +63,7 @@ function Dial({ value, disabled, onChange, tick }: { value: number; disabled: bo
     setAnim(true);
     setDrag(steps * ROW); // rueda hasta encajar en el número destino (solo anima la fracción)
     window.setTimeout(() => {
-      onChange(((value - steps) % 10 + 10) % 10); // arrastrar hacia abajo (steps>0) = número anterior
+      onChange(((value - steps) % 27 + 27) % 27); // arrastrar hacia abajo (steps>0) = letra anterior (wrap 27)
       setAnim(false);
       setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
       settling.current = false;
@@ -75,7 +81,7 @@ function Dial({ value, disabled, onChange, tick }: { value: number; disabled: bo
           return (
             <div className="letterlock-num" key={j}
               style={{ transform: `rotateX(${angle}deg) translateZ(${RADIUS}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
-              {((j % 10) + 10) % 10}
+              {ALPHABET[((j % 27) + 27) % 27]}
             </div>
           );
         })}
@@ -144,6 +150,9 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
   };
 
   // ---- fases de la animación (timeline CLAVADA del original GSAP) ----
+  // startUnlockAttempt: el BOTÓN cae en t0 (0.5s); las RUEDAS caen UNA A UNA desde t0.25 (stagger 0.1s); el
+  // candado SOLO baja en t1.05 (cuando botón+ruedas ya se fueron → nunca chocan); en t1.55 encoge (1s) y la
+  // barra baja (1s). Fin t2.55. (label 'a'=0, stagger 'a+=0.25', 'build'=1.55)
   const intro = () => {
     animate(actionsRef.current!, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT });
     dials().forEach((el, i) => animate(el, { y: DIAL_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT, delay: 0.25 + i * 0.1 })); // cada rueda por separado
@@ -151,17 +160,21 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
     animate(barRef.current!, { y: 10 }, { duration: 1, ease: E_OUT, delay: 1.55 });
     return animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: E_OUT, delay: 1.55 }).finished; // fin t2.55
   };
+  // correcto (0.3s): barra sube (-20) y candado escala 1 (igual que incorrecto) con Back.easeOut(4); color de
+  // AMBAS piezas verde (luminosidad 100→60, hue 120) desde UNA sola animación (power1.out) → sin costura
   const resultCorrect = () => Promise.all([
     animate(barRef.current!, { y: -20 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
     animate(bodyRef.current!, { scale: 1 }, { duration: 0.3, ease: BACK_OUT_4 }).finished, // mismo zoom que INCORRECTO (referencia)
     animate(100, 60, { duration: 0.3, ease: E_OUT, onUpdate: (L) => paint(120, L) }).finished,
   ]);
+  // incorrecto: barra baja + candado escala 1 (0.1s lineal) + rojo (hue 0, luminosidad 100→60); luego SHAKE
   const resultIncorrect = () => {
     animate(barRef.current!, { y: 0 }, { duration: 0.1, ease: "linear" });
     animate(bodyRef.current!, { scale: 1 }, { duration: 0.1, ease: "linear" });
     animate(100, 60, { duration: 0.1, ease: E_OUT, onUpdate: (L) => paint(0, L) });
     return animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
   };
+  // respuesta: entra (0.5s, +30 + opacity) → aguanta → sale (0.5s); la combinación sale un pelín aparte
   const showResponse = async (msg: string, color: string) => {
     if (killed.current) return;
     setResponse(msg);
@@ -175,9 +188,10 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
       triedExit, // esperamos también a la combinación (acaba un poco después) antes de restaurar
     ]);
   };
+  // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)
   const restore = async () => {
     await Promise.all([
-      animate(60, 100, { duration: 0.25, ease: E_INOUT, onUpdate: (L) => paint(0, L) }).finished,
+      animate(60, 100, { duration: 0.25, ease: E_INOUT, onUpdate: (L) => paint(0, L) }).finished, // color de ambas piezas de rojo (L60) a blanco (L100), hue 0
       animate(barRef.current!, { y: 0 }, { duration: 0.25, ease: E_INOUT }).finished,
       animate(bodyRef.current!, { scale: 1, y: 0 }, { duration: 0.25, ease: E_OUT }).finished,
     ]);
@@ -251,7 +265,7 @@ export default function PadlockLetters({ combo, playSfx, onSolved, onClose }: Pa
             Se ve mientras se resuelve (aunque las ruedas caigan) y se oculta al aparecer el mensaje. */}
         {busy && (
           <div className="letterlock-tried" ref={triedRef} style={{ opacity: 0 }}>
-            {digits.map((d, i) => <span key={i} className="letterlock-tried-cell">{d}</span>)}
+            {digits.map((d, i) => <span key={i} className="letterlock-tried-cell">{ALPHABET[d]}</span>)}
           </div>
         )}
       </div>

@@ -13,6 +13,28 @@ export function useTerminalAudio(enabled: boolean) {
   const sfxBuffersRef = useRef<Record<string, AudioBuffer>>({});
   const suppressTickRef = useRef(false);
   const didInit = useRef(false);
+  const warmedRef = useRef(false); // ya hubo 1er gesto y se calentaron los buffers cargados hasta ese momento
+
+  // "Calienta" un buffer (iOS lo prepara en su 1ª reproducción): lo suena a volumen 0 un instante. Requiere el
+  // AudioContext ya reanudado (tras un gesto). Libera los nodos al acabar.
+  const warmOne = (b: AudioBuffer) => {
+    const ac = acRef.current;
+    if (!ac) return;
+    try {
+      if (ac.state === "suspended") ac.resume();
+      const g = ac.createGain();
+      g.gain.value = 0;
+      g.connect(ac.destination);
+      const s = ac.createBufferSource();
+      s.buffer = b;
+      s.connect(g);
+      s.onended = () => { try { s.disconnect(); g.disconnect(); } catch { /* ya desconectado */ } };
+      s.start(0);
+      s.stop(ac.currentTime + 0.02);
+    } catch {
+      /* sin audio */
+    }
+  };
 
   const keyTick = () => {
     if (suppressTickRef.current) return;
@@ -28,6 +50,7 @@ export function useTerminalAudio(enabled: boolean) {
       g.gain.value = 0.55;
       src.connect(g);
       g.connect(ac.destination);
+      src.onended = () => { try { src.disconnect(); g.disconnect(); } catch { /* ya desconectado */ } }; // libera nodos (evita congestión → latencia)
       src.start(0);
     } catch {
       /* sin audio */
@@ -47,6 +70,7 @@ export function useTerminalAudio(enabled: boolean) {
         g.gain.value = vol;
         s.connect(g);
         g.connect(ac.destination);
+        s.onended = () => { try { s.disconnect(); g.disconnect(); } catch { /* ya desconectado */ } }; // libera nodos (evita congestión → latencia)
         s.start(0);
         return;
       } catch {
@@ -69,7 +93,7 @@ export function useTerminalAudio(enabled: boolean) {
     try {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (enabled && AC) {
-        if (!acRef.current) acRef.current = new AC();
+        if (!acRef.current) acRef.current = new AC({ latencyHint: "interactive" }); // mínima latencia (importante en iOS)
         const ac = acRef.current;
         Promise.all(
           ["a", "b"].map((n) =>
@@ -89,13 +113,15 @@ export function useTerminalAudio(enabled: boolean) {
             humBufferRef.current = b;
           })
           .catch(() => {});
-        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3", "/audio/tick.mp3", "/audio/paper-slide.mp3"].forEach(
+        // TODOS los sfx cortos en buffer (para que estén disponibles YA, sin caer al fallback new Audio, lento en iOS)
+        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3", "/audio/terminal-power-button.mp3", "/audio/terminal-turning-on.mp3", "/audio/tick.mp3", "/audio/paper-slide.mp3"].forEach(
           (src) => {
             fetch(src)
               .then((r) => r.arrayBuffer())
               .then((a) => ac.decodeAudioData(a))
               .then((b) => {
                 sfxBuffersRef.current[src] = b;
+                if (warmedRef.current) warmOne(b); // si ya hubo 1er gesto, calienta este buffer al cargar (iOS)
               })
               .catch(() => {});
           },
@@ -113,23 +139,11 @@ export function useTerminalAudio(enabled: boolean) {
     const warm = () => {
       const ac = acRef.current;
       if (!ac) return;
-      try {
-        if (ac.state === "suspended") ac.resume();
-        const g = ac.createGain();
-        g.gain.value = 0;
-        g.connect(ac.destination);
-        const all = [...keyBuffersRef.current, ...Object.values(sfxBuffersRef.current)];
-        if (humBufferRef.current) all.push(humBufferRef.current);
-        for (const b of all) {
-          const s = ac.createBufferSource();
-          s.buffer = b;
-          s.connect(g);
-          s.start(0);
-          s.stop(ac.currentTime + 0.02);
-        }
-      } catch {
-        /* sin audio */
-      }
+      if (ac.state === "suspended") ac.resume();
+      warmedRef.current = true; // a partir de aquí, los buffers que carguen luego se calientan al cargar (iOS)
+      const all = [...keyBuffersRef.current, ...Object.values(sfxBuffersRef.current)];
+      if (humBufferRef.current) all.push(humBufferRef.current);
+      for (const b of all) warmOne(b);
       window.removeEventListener("pointerdown", warm, true);
       window.removeEventListener("keydown", warm, true);
     };

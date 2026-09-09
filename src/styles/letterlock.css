@@ -21,9 +21,8 @@
 .letterlock-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
 /* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW debe coincidir con PadlockLetters.tsx */
 .letterlock-num{ position:absolute;left:0;right:0;top:50%;height:28px;margin-top:-14px;line-height:28px;text-align:center;
-  box-sizing:border-box;border-top:1px solid rgba(255,255,255,.22);border-bottom:1px solid rgba(255,255,255,.22);
   font-size:40px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
-  font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* línea horizontal por número: ranuras del dial */
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* sin ranuras (a diferencia del dial numérico) */
 
 /* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas */
 .letterlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none;transform:translateY(32px) }   /* baja el mensaje un poco (la animación va sobre el <span>, esto solo desplaza el contenedor) */

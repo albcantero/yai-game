@@ -2,7 +2,8 @@ import type { MutableRefObject } from "react";
 
 // Config de un CANDADO que una pantalla pide abrir al armazón (combinación + qué hacer al acertar).
 export interface LockConfig {
-  combo: number[]; // combinación correcta (un dígito 0..9 por rueda)
+  combo: number[]; // combinación correcta (índices por rueda: 0..9 números, o 0..26 letras)
+  letters?: boolean; // true = candado de LETRAS (índices sobre el alfabeto); si no, candado numérico
   onSolved: () => void; // combo correcto: la pantalla resuelve su puzzle (y el armazón cierra el overlay)
 }
 

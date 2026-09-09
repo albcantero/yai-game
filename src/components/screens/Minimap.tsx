@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import RoomPanel from "./RoomPanel";
+import { wordToCombo } from "../locks/PadlockLetters";
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
@@ -184,8 +185,24 @@ const BB = ROOMS.reduce(
   { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
 );
 
-// Combinación del candado por puzzle: de momento un placeholder para todos (luego saldrá de los datos del puzzle).
+// Combinación (respuesta) del candado POR PUZZLE, indexada por su número GLOBAL ("Puzzle N"). La LONGITUD del
+// array define cuántos diales tiene el candado: respuesta 30 → [3,0] → 2 diales; [6,3,7,5] → 4; [8,7,5,9,0] → 5.
+// Los puzzles sin combinación definida usan el placeholder. Se irán rellenando al diseñar cada puzzle.
 const PLACEHOLDER_COMBO = [6, 3, 7, 5];
+const PUZZLE_COMBOS: Record<number, number[]> = {
+  // 2: [8, 7, 5, 9, 0], // Puzzle 2 (numérico): respuesta 87590 → 5 diales
+};
+// Puzzles con candado de LETRAS: respuesta como PALABRA en MAYÚSCULAS (la longitud = nº de diales).
+const PUZZLE_WORDS: Record<number, string> = {
+  1: "HELLO", // Puzzle 1 (Almacén): candado de LETRAS, respuesta HELLO
+};
+// config del candado del puzzle roomId#idx según su número global: letras (palabra) o números (combo/placeholder)
+const lockConfigFor = (roomId: string, idx: number): { combo: number[]; letters: boolean } => {
+  const n = (puzzleBaseOf[roomId] ?? 0) + idx + 1;
+  const word = PUZZLE_WORDS[n];
+  if (word) return { combo: wordToCombo(word), letters: true };
+  return { combo: PUZZLE_COMBOS[n] ?? PLACEHOLDER_COMBO, letters: false };
+};
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock }, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
@@ -558,7 +575,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
           tab={tab}
           onTab={setTab}
           solved={solved}
-          onResolve={(id) => openLock({ combo: PLACEHOLDER_COMBO, onSolved: () => solvePuzzle(id) })}
+          onResolve={(id) => { const h = id.indexOf("#"); const cfg = lockConfigFor(id.slice(0, h), Number(id.slice(h + 1))); openLock({ ...cfg, onSolved: () => solvePuzzle(id) }); }}
           onClose={() => setSelected(null)}
         />
       )}
