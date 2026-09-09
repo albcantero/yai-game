@@ -526,7 +526,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
         </div>
         {tarjetas > 0 && (
           <div className="hud-line hud-item">
-            <svg className="hud-item-ico" viewBox="0 0 24 24" fill="#37f07d" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
+            <svg className="hud-item-ico" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d={TARJETA_PATH} /></svg>
             <span className="hud-count">{tarjetas}</span>
           </div>
         )}
@@ -577,7 +577,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
               </div>
               <div className="confirm-buttons">
                 {locked.item === "tarjeta" ? (
-                  <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" style={{ fill: "#37f07d" }} viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
+                  <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
                 ) : locked.item === "llave-maestra" ? (
                   <button type="button" disabled={llaveMaestra < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" style={{ fill: "#e03131" }} viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 ) : (
