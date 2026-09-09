@@ -7,7 +7,13 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { animate } from "motion";
 
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
-const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
+// Eases CLAVADOS del original (GSAP): Power2.easeInOut = cúbica in-out; Power1.easeOut (default de GSAP) = quad out;
+// Power0 = linear; Back.easeOut.config(4) = polinomio con overshoot 4 (no es bezier: va como función de progreso).
+const E_INOUT: [number, number, number, number] = [0.645, 0.045, 0.355, 1]; // Power2.easeInOut
+const E_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]; // Power1.easeOut (default de GSAP)
+const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
+const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
+const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
 const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, más curvado)
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
@@ -96,48 +102,47 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const dials = () => dialRefs.current.filter(Boolean) as HTMLDivElement[];
 
-  // ---- fases de la animación ----
-  const intro = async () => {
-    animate(actionsRef.current!, { y: 60, opacity: 0 }, { duration: 0.5, ease: EASE_IO });
-    await animate(dials(), { y: 130, opacity: 0 }, { duration: 0.5, ease: EASE_IO }).finished;
-    await animate(bodyRef.current!, { y: 30 }, { duration: 0.5, ease: EASE_IO }).finished;
-    await Promise.all([
-      animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: EASE_IO }).finished,
-      animate(barRef.current!, { y: 10 }, { duration: 1, ease: EASE_IO }).finished,
-    ]);
+  // ---- fases de la animación (timeline CLAVADA del original GSAP) ----
+  // startUnlockAttempt: el BOTÓN cae en t0 (0.5s); las RUEDAS caen UNA A UNA desde t0.25 (stagger 0.1s); el
+  // candado SOLO baja en t1.05 (cuando botón+ruedas ya se fueron → nunca chocan); en t1.55 encoge (1s) y la
+  // barra baja (1s). Fin t2.55. (label 'a'=0, stagger 'a+=0.25', 'build'=1.55)
+  const intro = () => {
+    animate(actionsRef.current!, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT });
+    dials().forEach((el, i) => animate(el, { y: DIAL_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT, delay: 0.25 + i * 0.1 })); // cada rueda por separado
+    animate(bodyRef.current!, { y: 30 }, { duration: 0.5, ease: E_INOUT, delay: 1.05 });
+    animate(barRef.current!, { y: 10 }, { duration: 1, ease: E_OUT, delay: 1.55 });
+    return animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: E_OUT, delay: 1.55 }).finished; // fin t2.55
   };
-  const resultCorrect = async () => {
-    await Promise.all([
-      animate(barRef.current!, { y: -20, stroke: "hsl(120,50%,60%)" }, { duration: 0.3, ease: "backOut" }).finished,
-      animate(bodyRef.current!, { scale: 1.2 }, { duration: 0.3, ease: "backOut" }).finished,
-      animate(boxRef.current!, { fill: "hsl(120,50%,60%)" }, { duration: 0.3 }).finished,
-    ]);
+  // correcto (0.3s): barra sube (-20) y candado escala 1.2 con Back.easeOut(4); caja a verde (power1.out)
+  const resultCorrect = () => Promise.all([
+    animate(barRef.current!, { y: -20, stroke: "hsl(120,50%,60%)" }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
+    animate(bodyRef.current!, { scale: 1.2 }, { duration: 0.3, ease: BACK_OUT_4 }).finished,
+    animate(boxRef.current!, { fill: "hsl(120,50%,60%)" }, { duration: 0.3, ease: E_OUT }).finished,
+  ]);
+  // incorrecto: barra baja + candado escala 1 + rojo (0.1s lineal); luego SHAKE x +10/-10/+10/0 (4×0.1s)
+  const resultIncorrect = () => {
+    animate(barRef.current!, { y: 0, stroke: "hsl(0,50%,60%)" }, { duration: 0.1, ease: "linear" });
+    animate(bodyRef.current!, { scale: 1 }, { duration: 0.1, ease: "linear" });
+    animate(boxRef.current!, { fill: "hsl(0,50%,60%)" }, { duration: 0.1, ease: E_OUT });
+    return animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
   };
-  const resultIncorrect = async () => {
-    await Promise.all([
-      animate(barRef.current!, { y: 0, stroke: "hsl(0,50%,60%)" }, { duration: 0.1, ease: "linear" }).finished,
-      animate(bodyRef.current!, { scale: 1 }, { duration: 0.1, ease: "linear" }).finished,
-      animate(boxRef.current!, { fill: "hsl(0,50%,60%)" }, { duration: 0.1 }).finished,
-    ]);
-    await animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, ease: "linear" }).finished; // shake
-  };
+  // respuesta: entra (0.5s, +30 + opacity) → aguanta 2s → sale (0.5s)
   const showResponse = async (msg: string) => {
     if (killed.current) return;
     setResponse(msg);
-    await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5 }).finished;
+    await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
     await wait(2000);
-    await animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5 }).finished;
+    await animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished;
   };
+  // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)
   const restore = async () => {
     await Promise.all([
-      animate(boxRef.current!, { fill: RESTING }, { duration: 0.25, ease: EASE_IO }).finished,
-      animate(barRef.current!, { stroke: RESTING, y: 0 }, { duration: 0.25, ease: EASE_IO }).finished,
-      animate(bodyRef.current!, { scale: 1, y: 0 }, { duration: 0.25, ease: EASE_IO }).finished,
+      animate(boxRef.current!, { fill: RESTING }, { duration: 0.25, ease: E_INOUT }).finished,
+      animate(barRef.current!, { stroke: RESTING, y: 0 }, { duration: 0.25, ease: E_INOUT }).finished,
+      animate(bodyRef.current!, { scale: 1, y: 0 }, { duration: 0.25, ease: E_OUT }).finished,
     ]);
-    await Promise.all([
-      animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
-      animate(dials(), { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
-    ]);
+    animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT });
+    await Promise.all(dials().map((el, i) => animate(el, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT, delay: 0.25 + i * 0.1 }).finished));
   };
 
   const onUnlock = async () => {
