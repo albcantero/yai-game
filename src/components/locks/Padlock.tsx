@@ -172,6 +172,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   const onUnlock = async () => {
     if (busy) return;
     setBusy(true);
+    setResponse(""); // limpia el mensaje anterior (así se ve la combinación probada hasta que llega el resultado)
     const correct = isCorrect();
     await intro();
     if (killed.current) return;
@@ -213,8 +214,13 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
         <div className="padlock-response-wrap">
           <span className="padlock-response" ref={responseRef}>{response}</span>
         </div>
-        {/* combinación probada en texto plano (se ve mientras se resuelve, aunque las ruedas ya hayan caído) */}
-        {busy && <div className="padlock-tried">{digits.join("  ")}</div>}
+        {/* combinación probada: cada dígito en el pixel EXACTO donde su dial lo mostraba (misma fila/celda/gap).
+            Se ve mientras se resuelve (aunque las ruedas caigan) y se oculta al aparecer el mensaje. */}
+        {busy && !response && (
+          <div className="padlock-tried">
+            {digits.map((d, i) => <span key={i} className="padlock-tried-cell">{d}</span>)}
+          </div>
+        )}
       </div>
 
       {/* botones Win98 (98.css): bisel real, transparentes, sin icono. Bajan + fade en el intento. */}
