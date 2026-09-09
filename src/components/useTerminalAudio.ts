@@ -89,7 +89,7 @@ export function useTerminalAudio(enabled: boolean) {
             humBufferRef.current = b;
           })
           .catch(() => {});
-        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3"].forEach(
+        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3", "/audio/tick.mp3", "/audio/paper-slide.mp3"].forEach(
           (src) => {
             fetch(src)
               .then((r) => r.arrayBuffer())
