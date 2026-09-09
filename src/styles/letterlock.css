@@ -38,4 +38,4 @@
 .letterlock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
 .letterlock-actions button,.letterlock-exit button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }
 /* botón "Salir" (tras CORRECTO): abajo del todo, absoluto para no descolocar el mensaje/combinación que persisten */
-.letterlock-exit{ position:absolute;left:0;right:0;bottom:24%;display:flex;justify-content:center }
+.letterlock-exit{ position:absolute;left:0;right:0;bottom:8%;display:flex;justify-content:center }
