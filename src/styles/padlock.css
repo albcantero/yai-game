@@ -10,10 +10,14 @@
    del contenido y bajo las scanlines), MISMO patrón que .confirm-overlay pero más oscuro (~75%). El escenario va
    en COLUMNA: cuerpo del candado (SVG) arriba, ruedas de la combinación en medio, botones Win98 abajo (en flujo,
    así NUNCA se solapan). Clic fuera del escenario (backdrop) = cerrar, lo gestiona Computer. */
-.lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75) }
+/* overlay SIN oscurecido: solo centra el candado y capta el clic en el backdrop (cerrar). El fondo oscuro ahora
+   lo lleva el propio candado (.padlock-slide) y sube con él, en vez de aparecer de golpe. */
+.lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center }
 .padlock-stage{ display:flex;flex-direction:column;align-items:center;gap:16px;width:min(96%,460px) }
-/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY); mantiene la columna del contenido */
-.padlock-slide{ display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;will-change:transform }
+/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo, así el
+   oscurecido entra deslizándose con el candado. Mantiene la columna del contenido. */
+.padlock-slide{ display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;will-change:transform;
+  background:rgba(0,0,0,.82);border-radius:12px;padding:22px 16px 26px }
 
 /* cuerpo del candado (SVG) */
 .padlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }
