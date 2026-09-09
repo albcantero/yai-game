@@ -1,3 +1,11 @@
+/* fuente de los números del dial (pixel Times New Roman) */
+@font-face{
+  font-family:'Pixelated Times New Roman';
+  src:url('/fonts/pixelated-times-new-roman.otf.woff2') format('woff2'),
+      url('/fonts/pixelated-times-new-roman.otf') format('opentype');
+  font-display:swap;
+}
+
 /* CANDADO principal: overlay que OSCURECE la pantalla interior (dentro de .crt-body, debajo del header, encima
    del contenido y bajo las scanlines), MISMO patrón que .confirm-overlay pero más oscuro (~75%). El escenario va
    en COLUMNA: cuerpo del candado (SVG) arriba, ruedas de la combinación en medio, botones Win98 abajo (en flujo,
@@ -22,7 +30,7 @@
 /* cada número: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW=52 debe coincidir con Padlock.tsx */
 .dial-num{ position:absolute;left:0;right:0;top:50%;height:52px;margin-top:-26px;line-height:52px;text-align:center;
   font-size:34px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
-  font-family:'Determination Mono','Determination Sans',monospace }
+  font-family:'Pixelated Times New Roman','Determination Mono',serif }
 
 /* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas (aparece cuando estas se han deslizado) */
 .padlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none }
