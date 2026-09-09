@@ -12,6 +12,8 @@
    así NUNCA se solapan). Clic fuera del escenario (backdrop) = cerrar, lo gestiona Computer. */
 .lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75) }
 .padlock-stage{ display:flex;flex-direction:column;align-items:center;gap:16px;width:min(96%,460px) }
+/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY); mantiene la columna del contenido */
+.padlock-slide{ display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;will-change:transform }
 
 /* cuerpo del candado (SVG) */
 .padlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }

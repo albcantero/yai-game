@@ -94,9 +94,16 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (bajan + opacity)
   const responseRef = useRef<HTMLSpanElement>(null); // texto de respuesta (sube + opacity)
   const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
+  const slideRef = useRef<HTMLDivElement>(null); // wrapper que sube deslizándose al aparecer
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
 
   useEffect(() => () => { killed.current = true; }, []);
+
+  // al APARECER (pulsar Resolver): la placa entra deslizándose desde abajo (de fuera del viewport hasta su sitio),
+  // sin opacidad, con spring bounce 0. Empieza en translateY(100vh) (inline) para no parpadear el primer frame.
+  useEffect(() => {
+    if (slideRef.current) animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
+  }, []);
 
   const setDigit = (i: number, v: number) => setDigits((d) => d.map((x, j) => (j === i ? v : x)));
   const isCorrect = () => digits.every((v, i) => v === combo[i]);
@@ -176,7 +183,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   };
 
   return (
-    <>
+    <div className="padlock-slide" ref={slideRef} style={{ transform: "translateY(100vh)" }}>
       {/* cuerpo del candado (SVG): wrapper con la posición base + inner que anima Motion desde 0 */}
       <svg className="padlock-svg" viewBox="160 120 180 190" width="100%" height="100%">
         <g transform="translate(250,250)">
@@ -206,6 +213,6 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
         <button type="button" onClick={onUnlock}>Resolver</button>
         <button type="button" onClick={() => { if (!busy) onClose(); }}>Cancelar</button>
       </div>
-    </>
+    </div>
   );
 }
