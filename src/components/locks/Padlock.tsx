@@ -12,6 +12,8 @@ const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy c
 const E_INOUT: [number, number, number, number] = [0.645, 0.045, 0.355, 1]; // Power2.easeInOut
 const E_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]; // Power1.easeOut (default de GSAP)
 const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
+const OK_GREEN = "#37f07d"; // color del texto "CORRECTO" (verde de la app)
+const BAD_RED = "#e03131"; // color del texto "INCORRECTO" (rojo de la app)
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
@@ -134,9 +136,10 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     return animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
   };
   // respuesta: entra (0.5s, +30 + opacity) → aguanta 2s → sale (0.5s)
-  const showResponse = async (msg: string) => {
+  const showResponse = async (msg: string, color: string) => {
     if (killed.current) return;
     setResponse(msg);
+    if (responseRef.current) responseRef.current.style.color = color;
     await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
     await wait(2000);
     await animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished;
@@ -160,12 +163,12 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     if (killed.current) return;
     if (correct) {
       await resultCorrect();
-      await showResponse("CORRECTO");
+      await showResponse("CORRECTO", OK_GREEN);
       if (killed.current) return;
       onSolved(); // abre el candado → resolver el puzzle y cerrar el overlay (Computer desmonta esto)
     } else {
       await resultIncorrect();
-      await showResponse("INCORRECTO");
+      await showResponse("INCORRECTO", BAD_RED);
       await restore();
       if (killed.current) return;
       setBusy(false);
