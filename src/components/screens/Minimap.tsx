@@ -28,11 +28,10 @@ const ROOMS: Room[] = [
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 // reveals = nodos EXTRA que se descubren al desbloquear esta puerta (además del destino). Ej.: abrir
 // Almacén→Intersección abre también R3 (la intersección es de paso: "Almacén→R3 directo").
-type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; offFrom?: number; offTo?: number; reveals?: string[] };
+type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; secret?: boolean; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
-  { from: "libreria", to: "pre-salida", pts: [[19.8, 93.5], [19.8, 95.5]], keys: 1, offFrom: -5, offTo: 0 }, // SALIDA (1/2): candado BLANCO DENTRO de la Librería (será el de "llaves libres"; placeholder 1)
-  { from: "pre-salida", to: "salida", pts: [[19.8, 95.5], [19.8, 99]], item: "llave-maestra", offFrom: -5, offTo: 0 }, // SALIDA (2/2): candado ROJO en el camino a la Salida (pide la Llave Maestra)
+  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 99]], item: "llave-maestra", secret: true, offFrom: 2, offTo: 0 }, // SALIDA: camino + candado ROJO (Llave Maestra). SECRETO: pasillo/salida/candado ocultos hasta abrir el candado BLANCO de la Librería
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -72,7 +71,7 @@ const cy = (r: Room) => r.y + r.h / 2;
 // Junctions: puntos-POSICIÓN donde se cruzan varios pasillos. NO son salas (sin rect, sin bandera, sin
 // panel): solo un sitio donde estar. Estar en un junction = flechas hacia cada sala que conecta. Ej.: la
 // CRUZ del norte, un punto en (44,15) que une Almacén (abajo), r3 (derecha) y r4 (izquierda).
-const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "pre-salida", x: 19.8, y: 95.5, discovered: false }, { id: "salida", x: 19.8, y: 101.5, discovered: false }]; // cruz N + tramo de salida (waypoint) + SALIDA final
+const JUNCTIONS = [{ id: "cross-north", x: 44, y: 15, discovered: false }, { id: "salida", x: 19.8, y: 101.5, discovered: false }]; // cruz N + SALIDA final (secreta: se revela con el candado blanco de la Librería)
 const SALIDA = { x: 15.8, y: 99, w: 8, h: 5 }; // rect de la SALIDA: sala gris pequeña, SEPARADA (más abajo) bajo la Librería
 // Nodo unificado (sala o junction): centro + estado de niebla. marksFor / shown / el pin usan ESTO, así el
 // grafo mezcla salas y junctions sin casos especiales.
@@ -152,6 +151,7 @@ function marksFor(current: string, disc: Set<string>) {
       keys: lk.keys ?? 1, // llaves para cruzar esta puerta (popup del candado); por defecto 1
       reveals: lk.reveals ?? [], // nodos extra que abre esta puerta al desbloquearla
       item: lk.item, // si la puerta se abre por ITEM (p.ej. "tarjeta") en vez de por llaves
+      secret: lk.secret, // puerta SECRETA: su marca/pasillo solo se ven tras revelar la salida
       ax: dx / len, ay: dy / len, // dirección unitaria (para el floating de la flecha)
     };
   });
@@ -162,6 +162,7 @@ const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total 
 const START_KEYS = 99; // TEMPORAL (pruebas): 99 llaves para ver los costes en vivo. Volver a 0 para jugar
 const START_TARJETAS = 1; // TEMPORAL (pruebas): 1 Tarjeta para verla en el HUD. En juego se consigue en el Sótano (0 al empezar)
 const START_LLAVE_MAESTRA = 1; // TEMPORAL (pruebas): ver la Llave Maestra (roja) en el HUD. En juego se consigue en La Cámara
+const REVEAL_KEYS = 1; // llaves del candado BLANCO que desoculta la salida (placeholder de "llaves libres")
 
 // ---------- Cámara del mapa (pan/zoom) ----------
 // El contenido va dentro de un <g> con transform="translate(x y) scale(k)" en unidades de viewBox
@@ -193,6 +194,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
   const [keys, setKeys] = useState(START_KEYS); // llaves del grupo
   const [tarjetas] = useState(START_TARJETAS); // items "Tarjeta" (abren la Librería; no se gastan)
   const [llaveMaestra] = useState(START_LLAVE_MAESTRA); // Copia de la Llave Maestra (item del final; se pinta roja en el HUD)
+  const [salidaRevealed, setSalidaRevealed] = useState(false); // el candado BLANCO ya desocultó la salida (pasillo + salida "?" + candado rojo)
+  const [revealOpen, setRevealOpen] = useState(false); // popup del candado BLANCO (desocultar salida)
   const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
   const [solved, setSolved] = useState<Set<string>>(() => new Set()); // puzzles resueltos (id = "sala#índice"); cada uno da +1 llave
   useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
@@ -228,6 +231,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
     setDiscovered((d) => { const n = new Set(d); n.add(m.dest); m.reveals.forEach((id) => n.add(id)); return n; }); // destino + extras (p.ej. R3)
     setLocked(null);
   };
+  // candado BLANCO de la Librería: DESOCULTA la salida (aparecen pasillo + Salida "?" + candado rojo). Gasta llaves.
+  const doReveal = () => { if (keys < REVEAL_KEYS) return; setKeys((k) => k - REVEAL_KEYS); setSalidaRevealed(true); setRevealOpen(false); };
 
   const setV = (v: View) => { viewRef.current = v; setView(v); };
 
@@ -383,14 +388,14 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
           <g className="minimap-camera" transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             {/* 1. corredores por descubrir (no interceptan el toque) */}
             {LINKS.map((lk, i) =>
-              shown(lk, discovered) ? null : (
+              (lk.secret && !salidaRevealed) || shown(lk, discovered) ? null : (
                 <path key={"fog" + i} className="minimap-fog-link" d={linkD(lk)} fill="none"
                   stroke={FOG_EDGE} strokeWidth={0.8} strokeLinecap="butt" strokeLinejoin="miter" pointerEvents="none" />
               ),
             )}
             {/* 2. CONTORNO oscuro de los pasillos, DEBAJO de las salas (esquinas en pico) */}
             {LINKS.map((lk, i) =>
-              shown(lk, discovered) ? (
+              shown(lk, discovered) && !(lk.secret && !salidaRevealed) ? (
                 <path key={"out" + i} d={linkD(lk)} fill="none" stroke={EDGE} strokeWidth={4.6}
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
@@ -417,7 +422,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             })}
             {/* 4. RELLENO claro de los pasillos ENCIMA de las salas: abre la puerta en la unión */}
             {LINKS.map((lk, i) =>
-              shown(lk, discovered) ? (
+              shown(lk, discovered) && !(lk.secret && !salidaRevealed) ? (
                 <path key={"fil" + i} d={linkD(lk)} fill="none" stroke={FLOOR} strokeWidth={2.6}
                   strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit={4} pointerEvents="none" />
               ) : null,
@@ -426,15 +431,15 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             {JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida" && j.id !== "pre-salida").map((j) => (
               <rect key={"jfil" + j.id} x={j.x - 1.3} y={j.y - 1.3} width={2.6} height={2.6} fill={FLOOR} pointerEvents="none" />
             ))}
-            {/* SALIDA: sala gris pequeña SEPARADA bajo la Librería. Fog "?" hasta abrir el candado rojo del camino. */}
-            {discovered.has("salida") ? (
+            {/* SALIDA: sala gris SEPARADA bajo la Librería. OCULTA hasta abrir el candado BLANCO; luego "?" hasta el rojo. */}
+            {salidaRevealed && (discovered.has("salida") ? (
               <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
             ) : (
               <g pointerEvents="none">
                 <rect className="minimap-fog-room" x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FOG_FILL} stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
                 <text x={SALIDA.x + SALIDA.w / 2} y={SALIDA.y + SALIDA.h / 2} fill={FOG_Q} fontSize={4} fontFamily="'Courier Pixel',monospace" textAnchor="middle" dominantBaseline="central">?</text>
               </g>
-            )}
+            ))}
             {/* 5. insignia por sala: la bandera gris centrada (wrapper tocable con margen). En la sala ACTUAL
                 se inyecta además el pin rojo "estamos aquí" a la IZQUIERDA de la bandera, en el mismo wrapper.
                 movedRef = si el gesto fue un arrastre/pinza, NO se abre panel. */}
@@ -467,7 +472,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
             {/* 6. marcas de movimiento de la sala ACTUAL, en el pasillo a la salida: flecha si la salida es
                 libre, CANDADO si está bloqueada (llave o niebla). Todo BLANCO. Las flechas "flotan" hacia su
                 dirección (pixel); los candados no. Los iconos de dos trazos pintan d + d2 (evita el agujero). */}
-            {marks.map((m) => (
+            {marks.filter((m) => !(m.secret && !salidaRevealed)).map((m) => (
               <g key={"mk" + m.key}
                 onClick={() => { if (movedRef.current) return; if (m.blocked) setLocked(m); else setCurrent(m.dest); }}
                 className={m.blocked ? undefined : "minimap-arrow-float"}
@@ -483,6 +488,16 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 </g>
               </g>
             ))}
+            {/* candado BLANCO (secreto) DENTRO de la Librería: al abrirlo DESOCULTA la salida */}
+            {current === "libreria" && !salidaRevealed && (
+              <g onClick={() => { if (movedRef.current) return; setRevealOpen(true); }} style={{ cursor: "pointer" }}>
+                <rect x={14.8} y={83.5} width={10} height={10} fill="transparent" pointerEvents="all" />
+                <g transform={placeIcon(LOCK_ICON, ARROW_H, 19.8, 88.5).tf}>
+                  <path d={LOCK_ICON.d} fill={MARKER_EDGE} stroke={MARKER_EDGE} strokeWidth={MARK_BORDER} strokeLinejoin="round" />
+                  <path d={LOCK_ICON.d} fill="#fff" />
+                </g>
+              </g>
+            )}
           </g>
         </svg>
       </div>
@@ -555,6 +570,30 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                   <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
                 )}
                 <button type="button" onClick={() => setLocked(null)}>Salir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* popup del candado BLANCO (desocultar la salida) */}
+      {revealOpen && (
+        <div className="confirm-overlay win98 minimap-lock" onClick={() => setRevealOpen(false)}>
+          <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="title-bar">
+              <img className="title-icon" src="/icons/key_padlock-1.png" alt="" />
+              <div className="title-bar-text">Candado</div>
+              <div className="title-bar-controls">
+                <button type="button" aria-label="Close" onClick={() => setRevealOpen(false)}></button>
+              </div>
+            </div>
+            <div className="window-body">
+              <div className="confirm-row">
+                <img className="confirm-icon" src="/icons/key_padlock-0.png" alt="" />
+                <p>El camino está bloqueado.</p>
+              </div>
+              <div className="confirm-buttons">
+                <button type="button" disabled={keys < REVEAL_KEYS} onClick={doReveal}>Utilizar {REVEAL_KEYS}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
+                <button type="button" onClick={() => setRevealOpen(false)}>Salir</button>
               </div>
             </div>
           </div>
