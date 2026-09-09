@@ -16,7 +16,7 @@
 .padlock-stage{ width:100%;height:100% }   /* la tarjeta ocupa TODA la pantalla interna (overlay = .crt-body, el header queda fuera) */
 /* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo (la "tarjeta" que
    llena el 100% del interior), así el oscurecido entra deslizándose con el candado. Centra el contenido. */
-.padlock-slide{ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;
+.padlock-slide{ position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;
   background:rgba(0,0,0,.9);will-change:transform }
 
 /* cuerpo del candado (SVG) */
@@ -49,4 +49,6 @@
 /* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
    Mono. En columna, debajo. Motion los baja + desvanece durante el intento. */
 .padlock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
-.padlock-actions button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }
+.padlock-actions button,.padlock-exit button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }
+/* botón "Salir" (tras CORRECTO): abajo del todo, absoluto para no descolocar el mensaje/combinación que persisten */
+.padlock-exit{ position:absolute;left:0;right:0;bottom:24%;display:flex;justify-content:center }

@@ -14,6 +14,7 @@ const E_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]; // Pow
 const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
 const OK_GREEN = "hsl(120,50%,60%)"; // color del texto "CORRECTO" (mismo verde que el cuerpo del candado)
 const BAD_RED = "hsl(0,50%,60%)"; // color del texto "INCORRECTO" (mismo rojo que el cuerpo del candado)
+const HOLD_MS = 2000; // X: lo que INCORRECTO aguanta antes del fade-out; y lo que CORRECTO espera antes de mostrar "Salir"
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
@@ -94,6 +95,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   const [digits, setDigits] = useState<number[]>(() => combo.map(() => 0)); // ruedas (empiezan a 0)
   const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "Resolver"
   const [response, setResponse] = useState(""); // texto "CORRECTO"/"INCORRECTO"
+  const [exit, setExit] = useState(false); // tras CORRECTO: aparece el botón "Salir"
 
   const bodyRef = useRef<SVGGElement>(null); // cuerpo del candado (escala + baja + shake)
   const boxRef = useRef<SVGRectElement>(null); // caja (color de relleno)
@@ -101,6 +103,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (bajan + opacity)
   const responseRef = useRef<HTMLSpanElement>(null); // texto de respuesta (sube + opacity)
   const triedRef = useRef<HTMLDivElement>(null); // combinación probada (persiste y desaparece IGUAL que el mensaje)
+  const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras CORRECTO)
   const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
   const slideRef = useRef<HTMLDivElement>(null); // wrapper que sube deslizándose al aparecer
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
@@ -117,6 +120,10 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   useEffect(() => {
     if (busy && triedRef.current) animate(triedRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT });
   }, [busy]);
+  // el botón "Salir" (tras CORRECTO) aparece con FADE-IN
+  useEffect(() => {
+    if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT });
+  }, [exit]);
 
   const setDigit = (i: number, v: number) => setDigits((d) => d.map((x, j) => (j === i ? v : x)));
   const isCorrect = () => digits.every((v, i) => v === combo[i]);
@@ -162,7 +169,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     setResponse(msg);
     if (responseRef.current) responseRef.current.style.color = color;
     await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished; // entra solo el mensaje (los dígitos ya están y persisten)
-    await wait(2000);
+    await wait(HOLD_MS);
     // SALEN a la vez y con la MISMA animación (suben 30 + fade): mensaje (30→0) y combinación (0→-30)
     await Promise.all([
       animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
@@ -184,14 +191,20 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     if (busy) return;
     setBusy(true);
     setResponse(""); // limpia el mensaje anterior (así se ve la combinación probada hasta que llega el resultado)
+    setExit(false);
     const correct = isCorrect();
     await intro();
     if (killed.current) return;
     if (correct) {
       await resultCorrect();
-      await showResponse("CORRECTO", OK_GREEN);
       if (killed.current) return;
-      onSolved(); // abre el candado → resolver el puzzle y cerrar el overlay (Computer desmonta esto)
+      // CORRECTO + combinación ENTRAN y PERSISTEN (sin fade-out); tras X seg aparece "Salir"
+      setResponse("CORRECTO");
+      if (responseRef.current) responseRef.current.style.color = OK_GREEN;
+      await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
+      await wait(HOLD_MS);
+      if (killed.current) return;
+      setExit(true); // aparece el botón "Salir" (al pulsarlo: onSolved → resolver + cerrar)
     } else {
       await resultIncorrect();
       await showResponse("INCORRECTO", BAD_RED);
@@ -239,6 +252,13 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
         <button type="button" onClick={onUnlock}>Resolver</button>
         <button type="button" onClick={() => { if (!busy) onClose(); }}>Cancelar</button>
       </div>
+
+      {/* tras CORRECTO: botón "Salir" (aparece con fade-in; CORRECTO + combinación persisten arriba) */}
+      {exit && (
+        <div className="padlock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
+          <button type="button" onClick={onSolved}>Salir</button>
+        </div>
+      )}
     </div>
   );
 }
