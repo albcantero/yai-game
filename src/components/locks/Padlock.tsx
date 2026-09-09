@@ -14,7 +14,8 @@ const E_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]; // Pow
 const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
 const OK_GREEN = "hsl(120,50%,60%)"; // color del texto "CORRECTO" (mismo verde que el cuerpo del candado)
 const BAD_RED = "hsl(0,50%,60%)"; // color del texto "INCORRECTO" (mismo rojo que el cuerpo del candado)
-const HOLD_MS = 2000; // X: lo que INCORRECTO aguanta antes del fade-out; y lo que CORRECTO espera antes de mostrar "Salir"
+const HOLD_MS = 2000; // lo que el MENSAJE (CORRECTO/INCORRECTO) aguanta antes del fade-out
+const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" (antes que el aguante del mensaje)
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
@@ -177,7 +178,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     // SALEN a la vez y con la MISMA animación (suben 30 + fade): mensaje (30→0) y combinación (0→-30)
     await Promise.all([
       animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
-      triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT }).finished : Promise.resolve(), // solo fade, SIN subir
+      triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT, delay: 0.5 }).finished : Promise.resolve(), // solo fade, SIN subir; 0,5s más tarde (espera 2,5s)
     ]);
   };
   // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)
@@ -217,7 +218,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
       setResponse("CORRECTO");
       if (responseRef.current) responseRef.current.style.color = OK_GREEN;
       await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
-      await wait(HOLD_MS);
+      await wait(EXIT_DELAY_MS);
       if (killed.current) return;
       setExit(true); // aparece el botón "Salir" (al pulsarlo: onSolved → resolver + cerrar)
     } else {
