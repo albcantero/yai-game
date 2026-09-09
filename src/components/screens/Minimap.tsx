@@ -31,7 +31,7 @@ const ROOMS: Room[] = [
 type Link = { from: string; to: string; pts: [number, number][]; keys?: number; item?: string; secret?: boolean; offFrom?: number; offTo?: number; reveals?: string[] };
 const LINKS: Link[] = [
   { from: "libreria", to: "hub-almacen", pts: [[26, 56], [26, 44.5], [41.8, 44.5]], item: "tarjeta", offFrom: 1, offTo: 6 }, // Librería: se abre con la Tarjeta de seguridad del Almacén (item), no con llaves
-  { from: "libreria", to: "salida", pts: [[19.8, 93.5], [19.8, 111]], item: "llave-maestra", secret: true, offFrom: 5, offTo: 0 }, // SALIDA: camino + candado ROJO (Llave Maestra). SECRETO: pasillo/salida/candado ocultos hasta abrir el candado BLANCO de la Librería
+  { from: "libreria", to: "salida", pts: [[19.8, 92], [19.8, 111]], item: "llave-maestra", secret: true, offFrom: 5, offTo: 0 }, // SALIDA: camino + candado ROJO (Llave Maestra). SECRETO: pasillo/salida/candado ocultos hasta abrir el candado BLANCO de la Librería
   { from: "r5", to: "r4", pts: [[10.1, 35.0], [10.1, 21.5], [20.1, 17.9]], keys: 5, offFrom: 1, offTo: 6 }, // MURO del Sótano: 5 llaves (solo pagable tras el golpe del cajón del Despacho). Sótano↔Depósito
   // CRUZ del norte: un JUNCTION (posición) en (44,15) une Almacén (abajo), r3 (derecha) y r4 (izquierda).
   // Tres tramos que salen del MISMO punto; estar en el junction da tres flechas. El dibujo es idéntico a la
@@ -424,7 +424,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap(_props
                 relleno del pasillo (pase 4) pase por ENCIMA y una la línea con la sala, igual que el resto.
                 OCULTA hasta abrir el candado BLANCO; luego "?" hasta el rojo. */}
             {salidaRevealed && (discovered.has("salida") ? (
-              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FLOOR} stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
+              <rect x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill="transparent" stroke={EDGE} strokeWidth={1.2} pointerEvents="none" />
             ) : (
               <g pointerEvents="none">
                 <rect className="minimap-fog-room" x={SALIDA.x} y={SALIDA.y} width={SALIDA.w} height={SALIDA.h} fill={FOG_FILL} stroke={FOG_EDGE} strokeWidth={0.8} strokeDasharray="1.4 1.4" />
