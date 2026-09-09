@@ -1,22 +1,20 @@
 // CANDADO PRINCIPAL. Cuerpo del candado en SVG (animado con Motion: intro, resultado correcto/incorrecto con
-// shake, respuesta). Las RUEDAS de la combinación son dials tipo carrusel (HTML): arrastras arriba/abajo y ves
-// el número centrado con el anterior/siguiente cortados (máscara de cilindro). Los botones Resolver/Cancelar son
-// Win98 (98.css). Al acertar llama a onSolved (resolver puzzle + cerrar overlay). Estética provisional
-// (blanco sobre oscuro); ya lo pasaremos a nuestro retro.
+// shake, respuesta). Las RUEDAS de la combinación son dials cilindro 3D PROPIOS: se arrastran en vertical y los
+// números RUEDAN (cada número es un elemento estable keyeado por índice absoluto, entra/sale por los bordes; no
+// "muta" en el sitio). Botones Resolver/Cancelar Win98 (98.css). Al acertar: onSolved (resolver + cerrar overlay).
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { animate, stagger } from "motion";
+import { animate } from "motion";
 
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 const EASE_IO = "easeInOut"; // ≈ Power2.easeInOut del original
 const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .dial-num en padlock.css
-const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, cilindro más "cerrado"/curvado)
+const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, más curvado)
 const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
-const RENDER = 4; // slots renderizados a cada lado del centro (ventana FIJA que sigue al scroll; < 9 evita que el cilindro dé la vuelta y solape)
+const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro no da la vuelta ni se solapa)
 
-// Una RUEDA (dial) 3D: los números viven en un CILINDRO real (rotateX + translateZ bajo perspective). El del
-// centro mira al frente; los de arriba/abajo se giran y se DESVANECEN (profundidad). Se arrastra en vertical
-// para girarlo (wrap 0..9). No hay flechas: el carrusel ES la interacción.
+// Una RUEDA (dial) cilindro 3D. Se arrastra en vertical: los números ruedan (keyeados por índice absoluto j, así
+// entran/salen por los bordes en vez de mutar). Snap al soltar, con wrap 0..9. Arrastrar hacia abajo = anterior.
 function Dial({ value, disabled, onChange }: { value: number; disabled: boolean; onChange: (v: number) => void }) {
   const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
   const [anim, setAnim] = useState(false); // transición al soltar (snap)
@@ -42,7 +40,7 @@ function Dial({ value, disabled, onChange }: { value: number; disabled: boolean;
     if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
     settling.current = true;
     setAnim(true);
-    setDrag(steps * ROW); // gira hasta encajar en el número destino (solo anima la fracción)
+    setDrag(steps * ROW); // rueda hasta encajar en el número destino (solo anima la fracción)
     window.setTimeout(() => {
       onChange(((value - steps) % 10 + 10) % 10); // arrastrar hacia abajo (steps>0) = número anterior
       setAnim(false);
@@ -51,22 +49,18 @@ function Dial({ value, disabled, onChange }: { value: number; disabled: boolean;
     }, 190);
   };
 
-  // ventana FIJA de slots que SIGUE al scroll: el centro se calcula en vivo, y solo pintamos unos pocos slots
-  // alrededor. Así nunca hay dos números en el mismo punto del cilindro (adiós solapes/"runas" y el pop al soltar).
-  const s = drag / ROW;        // desplazamiento continuo en números
-  const r = Math.round(s);     // parte entera (números completos ya girados)
-  const f = s - r;             // fracción (-0.5..0.5)
-  const center = value - r;    // número que está AHORA en el centro (arrastrar hacia abajo = anterior)
+  const posJ = value - drag / ROW;   // posición continua del centro, en índice (drag abajo = índice menor = anterior)
+  const c = Math.round(posJ);        // índice central actual
   return (
     <div className="lock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
       <div className="dial-cylinder">
-        {Array.from({ length: RENDER * 2 + 1 }, (_, i) => i - RENDER).map((k) => {
-          const angle = -(k - f) * ITEM_ANGLE; // slot k del cilindro (corrige la fracción del arrastre)
+        {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
+          const angle = -(j - posJ) * ITEM_ANGLE; // ángulo del número j en el cilindro (fracción incluida)
           const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // los que giran hacia atrás se desvanecen
           return (
-            <div className="dial-num" key={k}
+            <div className="dial-num" key={j}
               style={{ transform: `rotateX(${angle}deg) translateZ(${RADIUS}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
-              {((center + k) % 10 + 10) % 10}
+              {((j % 10) + 10) % 10}
             </div>
           );
         })}
@@ -105,7 +99,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
   // ---- fases de la animación ----
   const intro = async () => {
     animate(actionsRef.current!, { y: 60, opacity: 0 }, { duration: 0.5, ease: EASE_IO });
-    await animate(dials(), { y: 130, opacity: 0 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished;
+    await animate(dials(), { y: 130, opacity: 0 }, { duration: 0.5, ease: EASE_IO }).finished;
     await animate(bodyRef.current!, { y: 30 }, { duration: 0.5, ease: EASE_IO }).finished;
     await Promise.all([
       animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: EASE_IO }).finished,
@@ -142,7 +136,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
     ]);
     await Promise.all([
       animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
-      animate(dials(), { y: 0, opacity: 1 }, { duration: 0.5, delay: stagger(0.1), ease: EASE_IO }).finished,
+      animate(dials(), { y: 0, opacity: 1 }, { duration: 0.5, ease: EASE_IO }).finished,
     ]);
   };
 
@@ -178,7 +172,7 @@ export default function Padlock({ combo, onSolved, onClose }: PadlockProps) {
         </g>
       </svg>
 
-      {/* ruedas de la combinación (carrusel) + el mensaje de respuesta superpuesto en su banda */}
+      {/* ruedas de la combinación (dials 3D propios) + el mensaje de respuesta superpuesto en su banda */}
       <div className="padlock-dials-wrap">
         <div className="padlock-dials">
           {digits.map((d, i) => (
