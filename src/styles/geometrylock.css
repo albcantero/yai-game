@@ -38,9 +38,13 @@
 .geolock-track::before,.geolock-track::after{ content:'';position:absolute;top:0;bottom:0;width:35%;z-index:2;pointer-events:none }
 .geolock-track::before{ left:0;background:linear-gradient(90deg,hsla(0,0%,0%,0.5),hsla(0,0%,0%,0)) }
 .geolock-track::after{ right:0;background:linear-gradient(90deg,hsla(0,0%,0%,0),hsla(0,0%,0%,0.5)) }
+/* RUEDA 3D horizontal: perspectiva SOLA (separada del overflow del track: overflow+perspective juntos aplanan el 3D) */
+.geolock-wheel{ position:absolute;inset:0;perspective:600px }
+.geolock-cyl{ position:absolute;inset:0;transform-style:preserve-3d }
 
-/* celda: marco tipo original; posición absoluta centrada + translateX (lo pone el JS) */
+/* celda: marco tipo original, centrada; el transform (rotateY + translateZ) la coloca en el cilindro (lo pone el JS) */
 .geolock-cell{ position:absolute;top:0;left:50%;margin-left:-35px;width:70px;height:50px;display:flex;align-items:center;justify-content:center;
+  backface-visibility:hidden;transform-origin:center;
   background:linear-gradient(45deg,hsla(0,0%,5%,1),hsla(0,0%,15%,1));box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #383838 }
 .geolock-shape{ width:32px;height:32px;display:block;fill:#fff }
 .geolock.verified .geolock-shape{ fill:#0f0 }
@@ -60,3 +64,4 @@
 .geolock-arrow:hover::before{ opacity:1;transition-duration:64ms }
 .geolock-arrow:active::before{ transform:scale(1) translateX(-1px) translateY(3px) rotate(45deg);transition-duration:64ms }
 .geolock-arrow:active::after{ box-shadow:inset 0 1px 0 0 hsla(0,0%,100%,0.15),inset 0 0 0 1px hsla(0,0%,100%,0.1),0 0 4px hsla(0,0%,0%,0.5);transform:scale(1) translateX(-1px) translateY(3px) rotate(45deg);transition-duration:64ms }
+.geolock-arrow:disabled{ opacity:.3;pointer-events:none }   /* durante el sonido: pista visual de que no responde */

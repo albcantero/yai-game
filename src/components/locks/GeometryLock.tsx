@@ -25,12 +25,16 @@ const N = SHAPES.length; // 9 (8 figuras + el hueco)
 const shapeAt = (i: number) => SHAPES[((i % N) + N) % N].el; // forma en el índice (con wrap)
 
 const CELL_W = 70; // ancho de celda (px); DEBE coincidir con .geolock-cell en geometrylock.css
-const RENDER = 3; // celdas a cada lado del centro (las de fuera las recorta la ventana)
+const RENDER = 3; // celdas a cada lado del centro (las de fuera las recorta la ventana / se ponen de canto)
+const ITEM_ANGLE = 30; // grados por celda en el cilindro HORIZONTAL (a más grados, más curvado)
+const RADIUS = Math.round((CELL_W / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
 
-// Una FILA: gira SOLO con las flechas (sin arrastre táctil). Al cambiar de figura, el strip se desliza con un
-// MUELLE (Motion, un pelín de rebote): offset = desplazamiento del strip en px durante la animación; el muelle
-// lo lleva a 0. Confirmamos el valor al instante y compensamos con el offset para que no dé un salto.
-function Row({ value, onChange, tick }: { value: number; onChange: (v: number) => void; tick: () => void }) {
+// Una FILA: RUEDA 3D horizontal que gira SOLO con las flechas (sin arrastre). Cada celda se coloca en un cilindro
+// (rotateY + translateZ); la centrada mira de frente y las de los lados giran de canto y se desvanecen. Al cambiar
+// de figura, el cilindro rota con un MUELLE (Motion, un pelín de rebote): offset = desplazamiento en px durante la
+// animación; el muelle lo lleva a 0 (confirmamos el valor al instante y compensamos con el offset para no saltar).
+// `turn()` reproduce los engranajes y bloquea todos los botones hasta que acaba; si devuelve false, se ignora.
+function Row({ value, onChange, turn, disabled }: { value: number; onChange: (v: number) => void; turn: () => boolean; disabled: boolean }) {
   const [offset, setOffset] = useState(0);
   const offsetRef = useRef(0);
   const controls = useRef<{ stop: () => void } | null>(null);
@@ -38,8 +42,8 @@ function Row({ value, onChange, tick }: { value: number; onChange: (v: number) =
   useEffect(() => () => controls.current?.stop(), []); // corta el muelle al desmontar
 
   const step = (dir: number) => {
-    tick(); // engranajes: un sonido por gesto (pulsación de flecha)
-    controls.current?.stop(); // permite pulsar rápido: interrumpe el muelle en curso
+    if (!turn()) return; // bloqueado hasta que acabe el sonido de engranajes
+    controls.current?.stop();
     onChange(((value + dir) % N + N) % N); // confirma el nuevo valor ya
     const from = offsetRef.current + dir * CELL_W; // desde la posición visual actual + un paso (así no salta)
     setOff(from);
@@ -50,29 +54,30 @@ function Row({ value, onChange, tick }: { value: number; onChange: (v: number) =
   const c = Math.round(pos);
   return (
     <div className="geolock-row">
-      <button type="button" className="geolock-arrow geolock-prev" aria-label="Anterior" onClick={() => step(-1)} />
-      <div className="geolock-track">
-        {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
-          const d = Math.abs(j - pos);
-          const op = Math.max(0.3, 1 - d * 0.7); // centro nítido, laterales atenuados
-          const sc = Math.max(0.55, 1 - d * 0.45);
-          return (
-            <div className="geolock-cell" key={j} style={{ transform: `translateX(${(j - pos) * CELL_W}px)` }}>
-              <svg className="geolock-shape" viewBox="0 0 24 24" aria-hidden="true" style={{ opacity: op, transform: `scale(${sc})` }}>
-                {shapeAt(j)}
-              </svg>
-            </div>
-          );
-        })}
+      <button type="button" className="geolock-arrow geolock-prev" aria-label="Anterior" onClick={() => step(-1)} disabled={disabled} />
+      <div className="geolock-track">              {/* ventana (overflow) */}
+        <div className="geolock-wheel">            {/* perspectiva SOLA (separada del overflow: si no, se aplana el 3D) */}
+          <div className="geolock-cyl" style={{ transform: `translateZ(${-RADIUS}px)` }}>   {/* preserve-3d, empujado atrás para que la celda central quede en el plano (sin agrandarse) */}
+            {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
+              const angle = -(j - pos) * ITEM_ANGLE; // ángulo de la celda j en el cilindro (fracción incluida)
+              const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // las que giran hacia atrás se desvanecen
+              return (
+                <div className="geolock-cell" key={j} style={{ transform: `rotateY(${angle}deg) translateZ(${RADIUS}px)`, opacity }}>
+                  <svg className="geolock-shape" viewBox="0 0 24 24" aria-hidden="true">{shapeAt(j)}</svg>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <button type="button" className="geolock-arrow geolock-next" aria-label="Siguiente" onClick={() => step(1)} />
+      <button type="button" className="geolock-arrow geolock-next" aria-label="Siguiente" onClick={() => step(1)} disabled={disabled} />
     </div>
   );
 }
 
 export type GeometryLockProps = {
   combo: number[]; // combinación correcta (un índice de forma 0..N-1 por fila); la longitud = nº de filas
-  playSfx: (src: string, vol?: number) => void;
+  playSfx: (src: string, vol?: number) => number; // devuelve la duración del sonido (para bloquear hasta que acabe)
   onSolved: () => void; // combinación correcta → resolver el puzzle + cerrar
   onClose: () => void; // cancelar (botón Cancelar): cerrar sin resolver
 };
@@ -82,15 +87,30 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   const key = values.join("-"); // clave para comparar (índices)
   const target = combo.join("-");
   const verified = key === target; // estado UNLOCKED/LOCKED derivado en vivo (sin estado ni efecto: se recalcula solo)
-  const tick = () => playSfx("/audio/gears.mp3", 0.6); // engranajes al girar el carrusel (candado mecánico)
 
   // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
 
+  // Guard del sonido: al girar una fila suena engranajes y TODOS los botones quedan disabled hasta que acaba
+  // (pista visual de que no responden). `busy` (estado) los deshabilita; `busyRef` corta reentradas síncronas.
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const busyTimer = useRef<number | null>(null);
+  useEffect(() => () => { if (busyTimer.current !== null) clearTimeout(busyTimer.current); }, []);
+  const turn = (): boolean => {
+    if (busyRef.current) return false; // sonido en curso: no gira
+    busyRef.current = true;
+    setBusy(true);
+    const dur = playSfx("/audio/gears.mp3", 0.6); // engranajes; devuelve su duración (s)
+    busyTimer.current = window.setTimeout(() => { busyRef.current = false; setBusy(false); busyTimer.current = null; }, dur * 1000);
+    return true;
+  };
+
   const setVal = (i: number, v: number) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)));
 
   const onResolve = () => {
+    if (busyRef.current) return; // esperando a que acabe el sonido
     if (key === target) panelRef.current?.close(onSolved); // correcto → resolver + cerrar
     else if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // incorrecto → shake
   };
@@ -110,16 +130,16 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
           </div>
           <div className="geolock-rows">
             {values.map((v, i) => (
-              <Row key={i} value={v} onChange={(nv) => setVal(i, nv)} tick={tick} />
+              <Row key={i} value={v} onChange={(nv) => setVal(i, nv)} turn={turn} disabled={busy} />
             ))}
           </div>
         </div>
       </div>
 
-      {/* botones Win98 (mismo marco que el resto de candados) */}
+      {/* botones Win98 (mismo marco que el resto de candados). disabled mientras suena (pista visual) */}
       <div className="lock-actions win98">
-        <button type="button" onClick={onResolve}>Resolver</button>
-        <button type="button" onClick={() => panelRef.current?.close(onClose)}>Cancelar</button>
+        <button type="button" onClick={onResolve} disabled={busy}>Resolver</button>
+        <button type="button" onClick={() => panelRef.current?.close(onClose)} disabled={busy}>Cancelar</button>
       </div>
     </LockPanel>
   );

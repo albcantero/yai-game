@@ -57,8 +57,10 @@ export function useTerminalAudio(enabled: boolean) {
     }
   };
 
-  const playSfx = (src: string, vol = 1) => {
-    if (!enabled) return;
+  // Devuelve la DURACIÓN del sonido en segundos (0 si no se pudo/está en fallback), para que el llamante pueda
+  // bloquear hasta que acabe (p. ej. el candado de figuras: ningún botón hasta que termine el sonido de engranajes).
+  const playSfx = (src: string, vol = 1): number => {
+    if (!enabled) return 0;
     const ac = acRef.current;
     const buf = sfxBuffersRef.current[src];
     if (ac && buf) {
@@ -72,7 +74,7 @@ export function useTerminalAudio(enabled: boolean) {
         g.connect(ac.destination);
         s.onended = () => { try { s.disconnect(); g.disconnect(); } catch { /* ya desconectado */ } }; // libera nodos (evita congestión → latencia)
         s.start(0);
-        return;
+        return buf.duration;
       } catch {
         /* cae al fallback */
       }
@@ -84,6 +86,7 @@ export function useTerminalAudio(enabled: boolean) {
     } catch {
       /* sin audio */
     }
+    return 0;
   };
 
   // Precarga (una vez) los samples de tecleo, el zumbido y los SFX de click en buffers.
