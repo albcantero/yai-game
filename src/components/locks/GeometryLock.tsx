@@ -1,13 +1,12 @@
-// CANDADO DE FIGURAS (geometrylock, especial #1). Carrusel HORIZONTAL por posición (arrastre + snap + wrap, misma
-// técnica que el dial vertical; SIN dependencias). Cada rueda cicla los SÍMBOLOS; el centrado es el seleccionado. La
-// pantalla muestra la combinación (mini-formas) + LOCKED/UNLOCKED. Al coincidir con `combo` (índices de forma) → resuelve.
-// Clases namespaced (geolock-*) en geometrylock.css. Sonido de "select" con nuestro playSfx.
-import { useRef, useState } from "react";
+// CANDADO DE FIGURAS (geometrylock, especial #1). Carrusel HORIZONTAL de SÍMBOLOS que gira SOLO con las flechas
+// prev/next (sin arrastre); cada paso desliza el strip con un muelle (Motion, un pelín de rebote). El centrado es
+// el seleccionado. La pantalla muestra la combinación (mini-formas) + BLOQUEADO/ABIERTO. Al coincidir con `combo`
+// (índices de forma) → resuelve. Clases namespaced (geolock-*) en geometrylock.css. Sonido de engranajes por gesto.
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
 import { E_OUT, SHAKE } from "./lockAnim";
-import { useCarousel } from "./useCarousel";
 
 // Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape).
 // Cambiar el set o el orden es trivial (solo SVG). Orden y nombres definidos por Alberto.
@@ -28,24 +27,38 @@ const shapeAt = (i: number) => SHAPES[((i % N) + N) % N].el; // forma en el índ
 const CELL_W = 70; // ancho de celda (px); DEBE coincidir con .geolock-cell en geometrylock.css
 const RENDER = 3; // celdas a cada lado del centro (las de fuera las recorta la ventana)
 
-// Una FILA carrusel horizontal: arrastras y la forma centrada queda seleccionada (wrap 0..N-1). Snap al soltar.
+// Una FILA: gira SOLO con las flechas (sin arrastre táctil). Al cambiar de figura, el strip se desliza con un
+// MUELLE (Motion, un pelín de rebote): offset = desplazamiento del strip en px durante la animación; el muelle
+// lo lleva a 0. Confirmamos el valor al instante y compensamos con el offset para que no dé un salto.
 function Row({ value, onChange, tick }: { value: number; onChange: (v: number) => void; tick: () => void }) {
-  // arrastre/snap/wrap + flechas prev/next en useCarousel (compartido con el dial del Padlock); aquí, el render horizontal
-  const { anim, pos, onDown, onMove, finish, step } = useCarousel({ axis: "x", size: CELL_W, count: N, value, onCommit: onChange, onGesture: tick });
+  const [offset, setOffset] = useState(0);
+  const offsetRef = useRef(0);
+  const controls = useRef<{ stop: () => void } | null>(null);
+  const setOff = (v: number) => { offsetRef.current = v; setOffset(v); };
+  useEffect(() => () => controls.current?.stop(), []); // corta el muelle al desmontar
+
+  const step = (dir: number) => {
+    tick(); // engranajes: un sonido por gesto (pulsación de flecha)
+    controls.current?.stop(); // permite pulsar rápido: interrumpe el muelle en curso
+    onChange(((value + dir) % N + N) % N); // confirma el nuevo valor ya
+    const from = offsetRef.current + dir * CELL_W; // desde la posición visual actual + un paso (así no salta)
+    setOff(from);
+    controls.current = animate(from, 0, { type: "spring", bounce: 0.3, visualDuration: 0.34, onUpdate: setOff });
+  };
+
+  const pos = value - offset / CELL_W; // posición continua del centro (en índice)
   const c = Math.round(pos);
-  const tr = anim ? "transform .19s ease-out" : "none";
   return (
     <div className="geolock-row">
       <button type="button" className="geolock-arrow geolock-prev" aria-label="Anterior" onClick={() => step(-1)} />
-      <div className="geolock-track" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
+      <div className="geolock-track">
         {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
           const d = Math.abs(j - pos);
           const op = Math.max(0.3, 1 - d * 0.7); // centro nítido, laterales atenuados
           const sc = Math.max(0.55, 1 - d * 0.45);
           return (
-            <div className="geolock-cell" key={j} style={{ transform: `translateX(${(j - pos) * CELL_W}px)`, transition: tr }}>
-              <svg className="geolock-shape" viewBox="0 0 24 24" aria-hidden="true"
-                style={{ opacity: op, transform: `scale(${sc})`, transition: anim ? "opacity .19s ease-out, transform .19s ease-out" : "none" }}>
+            <div className="geolock-cell" key={j} style={{ transform: `translateX(${(j - pos) * CELL_W}px)` }}>
+              <svg className="geolock-shape" viewBox="0 0 24 24" aria-hidden="true" style={{ opacity: op, transform: `scale(${sc})` }}>
                 {shapeAt(j)}
               </svg>
             </div>

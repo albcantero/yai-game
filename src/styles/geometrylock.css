@@ -34,7 +34,7 @@
 /* filas: cada una es un carrusel horizontal (arrastre) con flechas prev/next a los lados */
 .geolock-rows{ padding:1px 2px 1px 1px;width:210px }
 .geolock-row{ position:relative;width:210px;height:50px }
-.geolock-track{ position:relative;width:210px;height:50px;overflow:hidden;cursor:ew-resize;touch-action:none }
+.geolock-track{ position:relative;width:210px;height:50px;overflow:hidden }   /* gira con flechas, sin arrastre */
 .geolock-track::before,.geolock-track::after{ content:'';position:absolute;top:0;bottom:0;width:35%;z-index:2;pointer-events:none }
 .geolock-track::before{ left:0;background:linear-gradient(90deg,hsla(0,0%,0%,0.5),hsla(0,0%,0%,0)) }
 .geolock-track::after{ right:0;background:linear-gradient(90deg,hsla(0,0%,0%,0),hsla(0,0%,0%,0.5)) }
