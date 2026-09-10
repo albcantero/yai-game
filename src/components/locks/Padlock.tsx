@@ -4,10 +4,10 @@
 // RUEDAS son dials cilindro 3D PROPIOS: se arrastran en vertical y los símbolos RUEDAN (cada uno es un elemento
 // estable keyeado por índice absoluto, entra/sale por los bordes; no "muta" en el sitio). Al acertar: onSolved.
 import { useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
 import { E_OUT, SHAKE } from "./lockAnim";
+import { useCarousel } from "./useCarousel";
 
 export type LockKind = "number" | "letters";
 
@@ -46,58 +46,17 @@ const initialDigits = (kind: LockKind, combo: number[]) =>
   kind === "letters" ? combo.map((_, i) => i % ALPHABET.length) : combo.map(() => 0);
 
 // Una RUEDA (dial) cilindro 3D. Se arrastra en vertical: los símbolos ruedan (keyeados por índice absoluto j, así
-// entran/salen por los bordes en vez de mutar). Snap al soltar, con wrap 0..N-1. Arrastrar hacia abajo = anterior.
+// entran/salen por los bordes en vez de mutar). La mecánica de arrastre/snap/wrap vive en useCarousel (compartida
+// con la fila del GeometryLock); aquí solo el render 3D del cilindro.
 function Dial({ value, disabled, onChange, tick, cfg }: { value: number; disabled: boolean; onChange: (v: number) => void; tick: () => void; cfg: DialCfg }) {
   const N = cfg.symbols.length;
-  const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
-  const [anim, setAnim] = useState(false); // transición al soltar (snap)
-  const startY = useRef(0);
-  const active = useRef(false);
-  const settling = useRef(false); // en el snap post-soltar: ignora nuevos arrastres
-  const lastC = useRef(value); // último símbolo en el centro (para el "tick" al cruzar cada uno)
-  const timer = useRef<number | null>(null); // timeout del snap: se cancela al desmontar (evita setState en desmontado)
-
-  useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
-
-  const onDown = (e: ReactPointerEvent) => {
-    if (disabled || settling.current) return;
-    active.current = true;
-    startY.current = e.clientY;
-    lastC.current = value;
-    setAnim(false);
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-  };
-  const onMove = (e: ReactPointerEvent) => {
-    if (!active.current) return;
-    const nd = e.clientY - startY.current;
-    const nc = Math.round(value - nd / ROW); // símbolo que pasa por el centro ahora
-    if (nc !== lastC.current) { lastC.current = nc; tick(); } // "tick" en cada paso (cruce de símbolo)
-    setDrag(nd);
-  };
-  const finish = () => {
-    if (!active.current) return;
-    active.current = false;
-    const steps = Math.round(drag / ROW); // nº de símbolos movidos (sin límite: scroll largo válido)
-    if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
-    settling.current = true;
-    setAnim(true);
-    setDrag(steps * ROW); // rueda hasta encajar en el símbolo destino (solo anima la fracción)
-    timer.current = window.setTimeout(() => {
-      timer.current = null;
-      onChange(((value - steps) % N + N) % N); // arrastrar hacia abajo (steps>0) = símbolo anterior (wrap N)
-      setAnim(false);
-      setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
-      settling.current = false;
-    }, 190);
-  };
-
-  const posJ = value - drag / ROW;   // posición continua del centro, en índice (drag abajo = índice menor = anterior)
-  const c = Math.round(posJ);        // índice central actual
+  const { anim, pos, onDown, onMove, finish } = useCarousel({ axis: "y", size: ROW, count: N, value, onCommit: onChange, onTick: tick, disabled });
+  const c = Math.round(pos); // índice central actual
   return (
     <div className={cfg.prefix + "-dial"} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
       <div className={cfg.prefix + "-cylinder"}>
         {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
-          const angle = -(j - posJ) * cfg.itemAngle; // ángulo del símbolo j en el cilindro (fracción incluida)
+          const angle = -(j - pos) * cfg.itemAngle; // ángulo del símbolo j en el cilindro (fracción incluida)
           const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // los que giran hacia atrás se desvanecen
           return (
             <div className={cfg.prefix + "-num"} key={j}

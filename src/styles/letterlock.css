@@ -1,13 +1,7 @@
-/* CANDADO DE LETRAS: duplicado del de números con clases propias (letterlock-*), para modificarlo sin afectar al
-   otro. La fuente 'Pixelated Times New Roman' se declara (global) en padlock.css; aquí solo se referencia. El
-   overlay, el marco deslizante (.lockpanel) y los botones (.lock-actions / .lock-exit) son COMPARTIDOS (locks.css). */
-
-/* cuerpo del candado (SVG) */
-.letterlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }
-.letterlock-body{ transform-box:fill-box;transform-origin:center }   /* la escala del candado gira sobre su propio centro */
-
-/* ruedas de la combinación (cilindro 3D): número centrado, vecinos girados/desvanecidos */
-.letterlock-dials-wrap{ position:relative;display:flex;justify-content:center }
+/* CANDADO DE LETRAS (letterlock-*). El overlay, el marco (.lockpanel), los botones y las reglas COMPARTIDAS del
+   interior (svg/body/dials-wrap/dial/cylinder/response/tried-cell) viven en locks.css; la fuente en padlock.css.
+   Aquí SOLO lo que DIVERGE del de números: UNA caja única con todos los diales (borde + líneas de selección),
+   slots sin borde y más altos, y el cilindro sin ranuras. */
 /* UNA sola caja con todos los diales dentro (el borde va aquí, no en cada slot); recorta la fila (top/bottom) */
 .letterlock-dials{ position:relative;display:flex;gap:0;padding:0 8px;border:2px solid #fff;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04) }
 /* dos líneas horizontales (misma config que el borde del wrapper: 2px sólido blanco) ENCIMA de TODOS los diales,
@@ -15,18 +9,9 @@
 .letterlock-dials::after{ content:"";position:absolute;left:0;right:0;top:50%;height:32px;margin-top:-16px;pointer-events:none;z-index:2;
   border-top:2px solid #fff;border-bottom:2px solid #fff }
 .letterlock-slot{ width:52px;height:100px }   /* sin borde propio: la caja de arriba enmarca y recorta todos; más alta = más letras visibles */
-.letterlock-dial{ position:relative;width:100%;height:100%;cursor:ns-resize;touch-action:none;perspective:400px }   /* SOLO perspectiva (sin overflow) */
-.letterlock-cylinder{ position:absolute;inset:0;transform-style:preserve-3d }
 /* cada letra: absoluto y centrado; el transform (rotateX + translateZ) lo coloca en el cilindro. ROW debe coincidir con Padlock.tsx */
 .letterlock-num{ position:absolute;left:0;right:0;top:50%;height:28px;margin-top:-14px;line-height:28px;text-align:center;
   font-size:40px;color:#fff;text-shadow:none;user-select:none;backface-visibility:hidden;transform-origin:center;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* sin ranuras (a diferencia del dial numérico) */
-
-/* mensaje CORRECTO/INCORRECTO: superpuesto en la banda de las ruedas */
-.letterlock-response-wrap{ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;pointer-events:none;transform:translateY(32px) }   /* baja el mensaje un poco (la animación va sobre el <span>, esto solo desplaza el contenedor) */
-.letterlock-response{ opacity:0;font-size:72px;color:#fff;white-space:nowrap;text-shadow:none;
-  font-family:'Pixelated Times New Roman','Determination Mono',serif }
-/* combinación probada: fila superpuesta a las ruedas, MISMO ancho de celda (52px) y gap (10px) que .letterlock-dials */
+/* combinación probada: gap 0 como .letterlock-dials */
 .letterlock-tried{ position:absolute;inset:0;display:flex;gap:0;align-items:center;justify-content:center;pointer-events:none;color:#fff }
-.letterlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:inherit;text-shadow:none;
-  font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* color:inherit → se tiñe con el candado (paint) */

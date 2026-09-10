@@ -2,11 +2,12 @@
 // técnica que el dial vertical; SIN dependencias). Cada rueda cicla los SÍMBOLOS; el centrado es el seleccionado. La
 // pantalla muestra la combinación (mini-formas) + LOCKED/UNLOCKED. Al coincidir con `combo` (índices de forma) → resuelve.
 // Clases namespaced (geolock-*) en geometrylock.css. Sonido de "select" con nuestro playSfx.
-import { useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import { useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
 import { E_OUT, SHAKE } from "./lockAnim";
+import { useCarousel } from "./useCarousel";
 
 // Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape). El último
 // es un HUECO (el: null): un botón vacío que significa "espacio". Cambiar el set o el orden es trivial (solo SVG).
@@ -28,76 +29,20 @@ const RENDER = 3; // celdas a cada lado del centro (las de fuera las recorta la 
 
 // Una FILA carrusel horizontal: arrastras y la forma centrada queda seleccionada (wrap 0..N-1). Snap al soltar.
 function Row({ value, onChange, tick }: { value: number; onChange: (v: number) => void; tick: () => void }) {
-  const [drag, setDrag] = useState(0);
-  const [anim, setAnim] = useState(false);
-  const startX = useRef(0);
-  const active = useRef(false);
-  const settling = useRef(false);
-  const lastC = useRef(value);
-  const timer = useRef<number | null>(null); // timeout del snap: se cancela al desmontar (evita setState en desmontado)
-
-  useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
-
-  const onDown = (e: ReactPointerEvent) => {
-    if (settling.current) return;
-    active.current = true;
-    startX.current = e.clientX;
-    lastC.current = value;
-    setAnim(false);
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-  };
-  const onMove = (e: ReactPointerEvent) => {
-    if (!active.current) return;
-    const nd = e.clientX - startX.current;
-    const nc = Math.round(value - nd / CELL_W);
-    if (nc !== lastC.current) { lastC.current = nc; tick(); } // "click" al cruzar cada forma
-    setDrag(nd);
-  };
-  const finish = () => {
-    if (!active.current) return;
-    active.current = false;
-    const steps = Math.round(drag / CELL_W);
-    if (steps === 0) { setAnim(true); setDrag(0); return; }
-    settling.current = true;
-    setAnim(true);
-    setDrag(steps * CELL_W);
-    timer.current = window.setTimeout(() => {
-      timer.current = null;
-      onChange(((value - steps) % N + N) % N); // arrastrar a la derecha (steps>0) = forma anterior
-      setAnim(false);
-      setDrag(0);
-      settling.current = false;
-    }, 190);
-  };
-  // flechas prev/next: anima el deslizamiento una celda (igual que el drag-snap), en vez de saltar de golpe
-  const step = (dir: number) => {
-    if (settling.current) return;
-    tick();
-    settling.current = true;
-    setAnim(true);
-    setDrag(-dir * CELL_W); // desliza una celda en la dirección de la flecha
-    timer.current = window.setTimeout(() => {
-      timer.current = null;
-      onChange(((value + dir) % N + N) % N);
-      setAnim(false);
-      setDrag(0);
-      settling.current = false;
-    }, 190);
-  };
-
-  const posX = value - drag / CELL_W; // posición continua del centro (en índice)
-  const c = Math.round(posX);
+  // arrastre/snap/wrap + flechas prev/next en useCarousel (compartido con el dial del Padlock); aquí, el render horizontal
+  const { anim, pos, onDown, onMove, finish, step } = useCarousel({ axis: "x", size: CELL_W, count: N, value, onCommit: onChange, onTick: tick });
+  const c = Math.round(pos);
   const tr = anim ? "transform .19s ease-out" : "none";
   return (
     <div className="geolock-row">
       <button type="button" className="geolock-arrow geolock-prev" aria-label="Anterior" onClick={() => step(-1)} />
       <div className="geolock-track" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
         {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
-          const d = Math.abs(j - posX);
+          const d = Math.abs(j - pos);
           const op = Math.max(0.3, 1 - d * 0.7); // centro nítido, laterales atenuados
           const sc = Math.max(0.55, 1 - d * 0.45);
           return (
-            <div className="geolock-cell" key={j} style={{ transform: `translateX(${(j - posX) * CELL_W}px)`, transition: tr }}>
+            <div className="geolock-cell" key={j} style={{ transform: `translateX(${(j - pos) * CELL_W}px)`, transition: tr }}>
               <svg className="geolock-shape" viewBox="0 0 24 24" aria-hidden="true"
                 style={{ opacity: op, transform: `scale(${sc})`, transition: anim ? "opacity .19s ease-out, transform .19s ease-out" : "none" }}>
                 {shapeAt(j)}

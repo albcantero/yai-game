@@ -174,6 +174,21 @@ export default function Computer() {
 
   const Active = SCREENS[view].Component; // componente de la pantalla activa (registro; "home" incluido)
 
+  // Piezas del teclado en pantalla compartidas por los modos letras/números (antes duplicadas): el botón
+  // Borrar y la fila inferior (toggle 123/ABC + Espacio + Enter). `toNum` = a qué modo salta el botón izquierdo.
+  const backspaceKey = (
+    <button type="button" className="kmod" aria-label="Borrar" {...holdProps("Backspace")} onContextMenu={(e) => e.preventDefault()}>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2H6v-2H4v-2H2v-2h2V9h2V7h2V5h12v2h2v10h-2v2Zm-8-8h2v2h-2v2h2v-2h2v2h2v-2h-2v-2h2V9h-2v2h-2V9h-2v2Z"/></svg>
+    </button>
+  );
+  const bottomRow = (label: string, toNum: boolean) => (
+    <div className="krow">
+      <button type="button" className="knum" onPointerDown={() => { keyTick(); buzz(); setNumMode(toNum); }}>{label}</button>
+      <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
+      <button type="button" className="kreturn" onPointerDown={() => dispatchKey("Enter")}>Enter</button>
+    </div>
+  );
+
   return (
     <>
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
@@ -354,21 +369,9 @@ export default function Computer() {
               {shiftMode !== "off" ? k.toUpperCase() : k}
             </button>
           ))}
-          <button
-            type="button"
-            className="kmod"
-            aria-label="Borrar"
-            {...holdProps("Backspace")}
-            onContextMenu={(e) => e.preventDefault()}
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2H6v-2H4v-2H2v-2h2V9h2V7h2V5h12v2h2v10h-2v2Zm-8-8h2v2h-2v2h2v-2h2v2h2v-2h-2v-2h2V9h-2v2h-2V9h-2v2Z"/></svg>
-          </button>
+          {backspaceKey}
         </div>
-        <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { keyTick(); buzz(); setNumMode(true); }}>123</button>
-          <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
-          <button type="button" className="kreturn" onPointerDown={() => dispatchKey("Enter")}>Enter</button>
-        </div>
+        {bottomRow("123", true)}
         </>
         ) : (
         <>
@@ -386,15 +389,9 @@ export default function Computer() {
           {["+", ":", ";", "*", "#", "@", "(", ")", "/"].map((k) => (
             <button type="button" key={k} {...holdProps(k)}>{k}</button>
           ))}
-          <button type="button" className="kmod" aria-label="Borrar" {...holdProps("Backspace")} onContextMenu={(e) => e.preventDefault()}>
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 19H8v-2H6v-2H4v-2H2v-2h2V9h2V7h2V5h12v2h2v10h-2v2Zm-8-8h2v2h-2v2h2v-2h2v2h2v-2h-2v-2h2V9h-2v2h-2V9h-2v2Z"/></svg>
-          </button>
+          {backspaceKey}
         </div>
-        <div className="krow">
-          <button type="button" className="knum" onPointerDown={() => { keyTick(); buzz(); setNumMode(false); }}>ABC</button>
-          <button type="button" className="kspace" {...holdProps(" ")}>Espacio</button>
-          <button type="button" className="kreturn" onPointerDown={() => dispatchKey("Enter")}>Enter</button>
-        </div>
+        {bottomRow("ABC", false)}
         </>
         )}
       </div>
