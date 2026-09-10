@@ -47,7 +47,7 @@
   backface-visibility:hidden;transform-origin:center;
   background:linear-gradient(45deg,hsla(0,0%,5%,1),hsla(0,0%,15%,1));box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #383838 }
 .geolock-shape{ width:32px;height:32px;display:block;fill:#fff }
-.geolock.verified .geolock-shape{ fill:#0f0 }
+.geolock.verified .geolock-center .geolock-shape{ fill:#0f0 }   /* resuelto: SOLO la figura central de cada rueda (columna del centro), no las vecinas */
 
 /* flechas prev/next: rombo (igual que el original de Flickity) */
 .geolock-arrow{ position:absolute;top:0;width:60px;height:50px;border:none;border-radius:0;background:none;cursor:pointer;transition:opacity .3s ease }   /* opacidad con fundido (disabled durante el sonido) */

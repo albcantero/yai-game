@@ -62,7 +62,7 @@ function Row({ value, onChange, turn, release, disabled }: { value: number; onCh
               const angle = -(j - pos) * ITEM_ANGLE; // ángulo de la celda j en el cilindro (fracción incluida)
               const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // las que giran hacia atrás se desvanecen
               return (
-                <div className="geolock-cell" key={j} style={{ transform: `rotateY(${angle}deg) translateZ(${RADIUS}px)`, opacity }}>
+                <div className={"geolock-cell" + (j === c ? " geolock-center" : "")} key={j} style={{ transform: `rotateY(${angle}deg) translateZ(${RADIUS}px)`, opacity }}>
                   <svg className="geolock-shape" viewBox="0 0 24 24" aria-hidden="true">{shapeAt(j)}</svg>
                 </div>
               );
@@ -90,11 +90,14 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   });
   const key = values.join("-"); // clave para comparar (índices)
   const target = combo.join("-");
-  const verified = key === target; // estado UNLOCKED/LOCKED derivado en vivo (sin estado ni efecto: se recalcula solo)
+  const isCorrect = key === target; // ¿coincide ya la combinación? (para decidir en Resolver; NO pinta verde en vivo)
+  const [solved, setSolved] = useState(false); // verde "ABIERTO": SOLO tras pulsar Resolver con la combinación correcta
 
   // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
+  const resolveTimer = useRef<number | null>(null); // hold para ver el verde antes de deslizar hacia fuera
+  useEffect(() => () => { if (resolveTimer.current !== null) clearTimeout(resolveTimer.current); }, []);
 
   // Guard: al girar una fila suenan los engranajes y TODOS los botones quedan disabled (pista visual). Se liberan
   // al terminar la ANIMACIÓN del muelle (la fila llama a release en su onComplete), no al acabar el sonido.
@@ -112,15 +115,24 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
 
   const setVal = (i: number, v: number) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)));
 
+  // Resolver: SOLO aquí se pinta verde (no en vivo). Correcto → verde (ABIERTO + combinación + figuras centrales),
+  // congela, deja ver el verde un momento y desliza el candado hacia fuera. Incorrecto → shake.
   const onResolve = () => {
-    if (busyRef.current) return; // esperando a que acabe el sonido
-    if (key === target) panelRef.current?.close(onSolved); // correcto → resolver + cerrar
-    else if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // incorrecto → shake
+    if (busyRef.current || solved) return; // sonido en curso o ya resuelto
+    if (isCorrect) {
+      setSolved(true); // verde: ABIERTO + combinación (fila) + figuras centrales
+      setBusy(true); // deshabilita las flechas de avanzar el dial (pista visual) mientras se resuelve
+      busyRef.current = true;
+      if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // se agita IGUAL que el incorrecto, pero en verde
+      resolveTimer.current = window.setTimeout(() => panelRef.current?.close(onSolved), 700); // deja ver el verde y desliza
+    } else if (geoRef.current) {
+      animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // incorrecto → shake
+    }
   };
 
   return (
     <LockPanel ref={panelRef} playSfx={playSfx}>
-      <div className={"geolock" + (verified ? " verified" : "")} ref={geoRef}>
+      <div className={"geolock" + (solved ? " verified" : "")} ref={geoRef}>
         <div className="geolock-lock">
           <div className="geolock-screen">
             <div className="geolock-code">
@@ -128,7 +140,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
                 <svg className="geolock-mini" viewBox="0 0 24 24" key={i} aria-hidden="true">{shapeAt(v)}</svg>
               ))}
             </div>
-            <div className="geolock-status">{verified ? "ABIERTO" : "BLOQUEADO"}</div>
+            <div className="geolock-status">{solved ? "ABIERTO" : "BLOQUEADO"}</div>
             <div className="geolock-scanlines" />
           </div>
           <div className="geolock-rows">
