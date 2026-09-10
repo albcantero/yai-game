@@ -116,7 +116,12 @@ export function useTerminalAudio(enabled: boolean) {
         // latencyHint:0 = pedir el búfer de salida MÍNIMO. CLAVE en Android: con "interactive" ese dispositivo daba
         // baseLatency 0.12s (120ms de retraso → el tic del dial se apelotonaba); con 0 baja a ~0.0027s (~3ms). iOS ya
         // iba bajo. Este es el AC ÚNICO de toda la app (teclas, zumbido, ticks, SFX), así que la latencia baja rige para todo.
-        if (!acRef.current) acRef.current = new AC({ latencyHint: 0 });
+        // Fallback en cascada a "interactive" (lo de antes, que funcionaba) y luego al default, por si algún navegador
+        // rechaza el hint 0 al construir. (Ojo: el try/catch cubre errores de construcción, no micro-cortes por búfer.)
+        if (!acRef.current) {
+          try { acRef.current = new AC({ latencyHint: 0 }); }
+          catch { try { acRef.current = new AC({ latencyHint: "interactive" }); } catch { acRef.current = new AC(); } }
+        }
         const ac = acRef.current;
         Promise.all(
           ["a", "b"].map((n) =>
