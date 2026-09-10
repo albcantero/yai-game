@@ -10,7 +10,10 @@
 .rotary-lock{ background:#aaa;position:absolute;bottom:0;height:180px;width:180px;border-radius:50% }
 
 /* arco (shackle), detrás del cuerpo (z-index:-1); sube al abrirse */
-.rotary-shackle{ position:absolute;bottom:108px;right:22.5px;width:135px;height:168.75px;will-change:transform;z-index:-1 }
+/* --shackle-scale: tamaño de la CURVA (el arco que simula el candado) respecto al original. 1 = original; 0.8 = 80%.
+   Se escala desde su BASE (bottom center = donde se une al cuerpo) para que siga saliendo del mismo punto. */
+.rotary-shackle{ position:absolute;bottom:108px;right:22.5px;width:135px;height:168.75px;will-change:transform;z-index:-1;
+  --shackle-scale:.8;transform-origin:bottom center;transform:scale(var(--shackle-scale)) }
 .rotary-shackle div{ position:absolute;will-change:transform }
 /* el arco es un BORDE (no un relleno con círculo blanco encima): su centro es REALMENTE transparente y se ve el
    panel a través, igual que el blanco = fondo del original. Así no hay círculo oscuro que "queda fatal". */
@@ -58,4 +61,5 @@
 
 /* ---- Apertura SIMPLIFICADA: el cierre SOLO se ELEVA y se queda arriba (sin pivotar/girar ni volver a bajar) ---- */
 .rotary-shackle.unlocked{ animation:rotaryMoveUp .45s cubic-bezier(.2,.8,.3,1) forwards }
-@keyframes rotaryMoveUp{ from{ transform:translateY(0) } to{ transform:translateY(-63px) } }
+/* la escala se mantiene en los dos fotogramas (si no, al animar 'transform' se perdería y saltaría a x1) */
+@keyframes rotaryMoveUp{ from{ transform:scale(var(--shackle-scale)) translateY(0) } to{ transform:scale(var(--shackle-scale)) translateY(-63px) } }
