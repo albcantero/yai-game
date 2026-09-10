@@ -23,7 +23,7 @@
 .geolock-code{ position:absolute;left:0;top:0;height:40px;display:flex;align-items:center;gap:5px;padding:0 0.6em;z-index:2 }
 .geolock-mini{ width:18px;height:18px;display:block;fill:#fff }
 .geolock.verified .geolock-mini{ fill:#0f0 }
-.geolock-status{ position:absolute;right:0;top:0;height:40px;line-height:40px;padding:0 0.75em;font-size:0.85em;
+.geolock-status{ position:absolute;right:0;top:0;height:40px;line-height:40px;padding:0 0.75em;font-size:1.15em;
   font-family:'Determination Mono','Courier Pixel',monospace;color:#f00;text-shadow:0 0 15px #f00;
   animation:geolock-pulse 1000ms infinite alternate }
 .geolock.verified .geolock-status{ color:#0f0;text-shadow:0 0 15px #0f0;animation:geolock-pulse 300ms infinite alternate }
