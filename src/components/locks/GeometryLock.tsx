@@ -127,9 +127,14 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       setSolved(true); // verde: ABIERTO + combinación (fila) + figuras centrales
       setBusy(true); // las flechas de avanzar el dial quedan (y PERMANECEN) disabled
       busyRef.current = true;
-      if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // se agita IGUAL que el incorrecto, pero en verde
-      // Resolver/Cancelar CAEN (misma animación que pad/letterlock) y al terminar aparece "Salir" (cierra + resuelve)
-      if (actionsRef.current) animate(actionsRef.current, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT }).finished.then(() => setExit(true));
+      // en DOS tiempos: 1º se agita TODO (en verde, igual que el incorrecto); 2º al acabar, caen Resolver/Cancelar
+      // (misma animación que pad/letterlock) y luego aparece "Salir" (que cierra + resuelve).
+      const dropButtons = () => {
+        if (!actionsRef.current) return;
+        animate(actionsRef.current, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT }).finished.then(() => setExit(true));
+      };
+      if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(dropButtons);
+      else dropButtons();
     } else if (geoRef.current) {
       shakingRef.current = true;
       setShaking(true); // incorrecto: agita + deshabilita Resolver/Cancelar; vuelven al acabar
