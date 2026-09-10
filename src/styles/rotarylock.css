@@ -47,8 +47,8 @@
 
 /* combinación (visible; verde al acertar en orden), como el original */
 .rotary-combo{ font-size:22.5px;text-align:center;display:flex;gap:6px }
-.rotary-num{ background:#ccc;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:7.5px;vertical-align:middle }
-.rotary-num.found{ background:#262;color:#fff }
+.rotary-num{ background:transparent;border:2px solid #fff;color:#fff;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:7.5px;vertical-align:middle }
+.rotary-num.found{ border-color:#3c3;color:#3c3 }   /* verde al acertar (borde + texto), sigue transparente */
 
 /* ---- Apertura SIMPLIFICADA: el cierre SOLO se ELEVA y se queda arriba (sin pivotar/girar ni volver a bajar) ---- */
 .rotary-shackle.unlocked{ animation:rotaryMoveUp .45s cubic-bezier(.2,.8,.3,1) forwards }
