@@ -14,6 +14,7 @@ export function useTerminalAudio(enabled: boolean) {
   const suppressTickRef = useRef(false);
   const didInit = useRef(false);
   const warmedRef = useRef(false); // ya hubo 1er gesto y se calentaron los buffers cargados hasta ese momento
+  const loggedLatencyRef = useRef(false); // ya logueamos la latencia real del AudioContext (una vez, al primer sonido)
   const warnedFallbackRef = useRef<Set<string>>(new Set()); // srcs de los que YA avisamos de fallback (evita spam en el log)
   const fallbackElsRef = useRef<Record<string, HTMLAudioElement>>({}); // <audio> reutilizado por src en el fallback (no crear uno por tick)
 
@@ -76,6 +77,11 @@ export function useTerminalAudio(enabled: boolean) {
         g.connect(ac.destination);
         s.onended = () => { try { s.disconnect(); g.disconnect(); } catch { /* ya desconectado */ } }; // libera nodos (evita congestión → latencia)
         s.start(0);
+        if (!loggedLatencyRef.current) { // latencia REAL de salida (una vez): en Android suele ser el techo del "retraso"
+          loggedLatencyRef.current = true;
+          const lat = ac as unknown as { baseLatency?: number; outputLatency?: number };
+          rlog("audio", "latencia AudioContext", { state: ac.state, sampleRate: ac.sampleRate, baseLatency: lat.baseLatency, outputLatency: lat.outputLatency });
+        }
         return buf.duration;
       } catch {
         /* cae al fallback */
