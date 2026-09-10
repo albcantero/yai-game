@@ -52,7 +52,8 @@
   transition:opacity .2s ease,box-shadow .2s ease,border-color .2s ease,color .2s ease;   /* cambios de foco/resuelto suaves */
   font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:40px }   /* huecos inactivos atenuados: número + borde al 65% */
 .rotary-num.active{ opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.4) }   /* hueco activo: 100% + ring de foco en blanco al 40% (misma opacidad que el caret disabled) */
-.rotary.solved .rotary-num{ opacity:1;border-color:#fff;color:#fff;box-shadow:none }   /* al resolver: los TRES en blanco, a full y sin ring en ninguno */
+.rotary.checking .rotary-num{ opacity:1;box-shadow:none }   /* al pulsar Resolver (comprobando, antes de saber si acierta): los TRES en blanco a full, sin ring */
+.rotary.solved .rotary-num{ opacity:1;border-color:#3c3;color:#3c3;box-shadow:none }   /* CORRECTO: verde, a full, sin ring (como estaba antes) */
 
 /* carets pixelados para avanzar/retroceder de hueco (< [] [] [] [] >) */
 .rotary-caret{ background:transparent;border:none;padding:0;width:50px;height:50px;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:opacity .2s ease }   /* enable/disable suave */

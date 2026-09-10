@@ -31,6 +31,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   const [active, setActive] = useState(0); // índice del hueco con foco (ring)
   const [stored, setStored] = useState<number[]>(() => nums.map(() => 0)); // valor fijado de cada hueco NO activo
   const [open, setOpen] = useState(false); // correcto: el arco se eleva (CSS) + OTP verde; disabled permanente
+  const [checking, setChecking] = useState(false); // pulsado Resolver: los OTP en blanco sin ring, antes de saber si acierta
   const [shaking, setShaking] = useState(false); // incorrecto: agita + deshabilita botones hasta que acaba la música
   const [exit, setExit] = useState(false); // tras acertar: los botones caen y aparece "Salir"
 
@@ -127,6 +128,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   // Resolver: comprueba la combinación. Correcto/incorrecto REPLICA a geometryLock (mismos valores y efecto).
   const onResolve = () => {
     if (openRef.current || shakingRef.current) return;
+    setChecking(true); // al pulsar Resolver: los tres OTP en blanco sin ring (quita el foco), antes de comprobar
     const vals = [...storedRef.current];
     vals[activeIdxRef.current] = numberAtArrow(rotRef.current); // incluye el hueco activo (aún sin "fijar")
     const ok = nums.length > 0 && vals.every((v, i) => v === nums[i]);
@@ -147,14 +149,15 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
       shakingRef.current = true;
       setShaking(true); // incorrecto: agita + Resolver/Cancelar disabled; vuelven al ACABAR el agitado (1:1 geometry)
       playSfx("/audio/lock-fail-1.mp3", 0.6); // sonido de FALLO (común a los 4 candados), durante el shake
-      if (boxRef.current) animate(boxRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(() => { shakingRef.current = false; setShaking(false); });
-      else { shakingRef.current = false; setShaking(false); }
+      const doneShake = () => { shakingRef.current = false; setShaking(false); setChecking(false); }; // al acabar: vuelve el ring para seguir editando
+      if (boxRef.current) animate(boxRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(doneShake);
+      else doneShake();
     }
   };
 
   return (
     <LockPanel ref={panelRef} playSfx={playSfx}>
-      <div className={"rotary" + (open ? " solved" : "")} ref={boxRef}>
+      <div className={"rotary" + (open ? " solved" : "") + (checking ? " checking" : "")} ref={boxRef}>
         <div className="rotary-container">
           <div className="rotary-lock">
             <div className={"rotary-shackle" + (open ? " unlocked" : "")}>
