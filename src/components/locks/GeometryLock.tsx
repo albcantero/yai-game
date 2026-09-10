@@ -83,7 +83,11 @@ export type GeometryLockProps = {
 };
 
 export default function GeometryLock({ combo, playSfx, onSolved, onClose }: GeometryLockProps) {
-  const [values, setValues] = useState<number[]>(() => combo.map(() => 0));
+  const [values, setValues] = useState<number[]>(() => {
+    const v = combo.map(() => Math.floor(Math.random() * N)); // arranque ALEATORIO (no siempre en la primera figura)
+    if (v.join("-") === combo.join("-")) v[0] = (v[0] + 1) % N; // nunca arrancar ya resuelto por casualidad
+    return v;
+  });
   const key = values.join("-"); // clave para comparar (índices)
   const target = combo.join("-");
   const verified = key === target; // estado UNLOCKED/LOCKED derivado en vivo (sin estado ni efecto: se recalcula solo)
