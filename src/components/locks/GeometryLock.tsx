@@ -129,6 +129,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       setSolved(true); // verde: ABIERTO + combinación (fila) + figuras centrales
       setBusy(true); // las flechas de avanzar el dial quedan (y PERMANECEN) disabled
       busyRef.current = true;
+      playSfx("/audio/lock-online-1.mp3", 0.6); // sonido de ACIERTO (común a los 4 candados)
       // en DOS tiempos: 1º se agita TODO (en verde, igual que el incorrecto); 2º al acabar, caen Resolver/Cancelar
       // (misma animación que pad/letterlock) y luego aparece "Salir" (que cierra + resuelve).
       const dropButtons = () => {
@@ -142,6 +143,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
     } else if (geoRef.current) {
       shakingRef.current = true;
       setShaking(true); // incorrecto: agita + deshabilita Resolver/Cancelar; vuelven al acabar
+      playSfx("/audio/lock-fail-1.mp3", 0.6); // sonido de FALLO (común a los 4 candados), durante el shake
       animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(() => { shakingRef.current = false; setShaking(false); });
     }
   };

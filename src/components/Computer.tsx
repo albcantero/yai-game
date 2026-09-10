@@ -8,6 +8,7 @@ import { SCREENS, type ScreenId } from "./screens";
 import type { ScreenHandle, LockConfig, ShiftMode } from "./screens/types";
 import Padlock from "./locks/Padlock";
 import GeometryLock from "./locks/GeometryLock";
+import RotaryLock from "./locks/RotaryLock";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -236,6 +237,8 @@ export default function Computer() {
             <div className="lock-overlay">
               {lock.kind === "geometry" ? (
                 <GeometryLock combo={lock.combo} playSfx={playSfx} onSolved={lock.onSolved} onClose={() => setLock(null)} />
+              ) : lock.kind === "rotary" ? (
+                <RotaryLock combo={lock.combo} playSfx={playSfx} onSolved={lock.onSolved} onClose={() => setLock(null)} />
               ) : (
                 // números y letras = el MISMO componente Padlock; `kind` elige símbolos, curvatura y clases CSS
                 <Padlock kind={lock.kind === "letters" ? "letters" : "number"} combo={lock.combo} playSfx={playSfx} onSolved={lock.onSolved} onClose={() => setLock(null)} />

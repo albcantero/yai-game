@@ -5,8 +5,8 @@ export type ShiftMode = "off" | "shift" | "caps";
 
 // Config de un CANDADO que una pantalla pide abrir al armazón (combinación + qué hacer al acertar).
 export interface LockConfig {
-  combo: number[]; // combinación correcta (índices por rueda: números 0..9, letras 0..26, o formas 0..7)
-  kind?: "number" | "letters" | "geometry"; // tipo de candado (default "number")
+  combo: number[]; // combinación correcta (números 0..9, letras 0..26, formas 0..7, o dial rotatorio 0..39)
+  kind?: "number" | "letters" | "geometry" | "rotary"; // tipo de candado (default "number")
   onSolved: () => void; // combo correcto: la pantalla resuelve su puzzle (y el armazón cierra el overlay)
 }
 

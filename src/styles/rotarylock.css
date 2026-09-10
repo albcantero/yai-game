@@ -1,0 +1,37 @@
+/* CANDADO ROTATORIO (dial de combinación). Adaptado del original (SCSS + GSAP) a CSS plano; clases rotary-*.
+   El overlay, el marco (.lockpanel) y los botones (.lock-actions/.lock-exit) son COMPARTIDOS (locks.css). El
+   dial gira por JS (transform inline). Provisional (estética del original); luego a nuestro retro. */
+.rotary{ position:relative;display:flex;flex-direction:column;align-items:center;gap:26px;user-select:none }
+
+/* cuerpo (círculo gris, abajo) + hueco del arco (arriba) */
+.rotary-lock{ position:relative;width:200px;height:230px }
+.rotary-body{ position:absolute;bottom:0;left:0;width:200px;height:200px;border-radius:50%;background:#aaa;z-index:2 }
+
+/* arco (shackle): U invertida DETRÁS del cuerpo; sube al abrirse (v1 simple; luego la apertura elaborada) */
+.rotary-shackle{ position:absolute;bottom:150px;left:50%;width:120px;height:95px;box-sizing:border-box;z-index:1;
+  border:24px solid #999;border-bottom:none;border-radius:60px 60px 0 0;transform:translateX(-50%);
+  transition:transform .5s cubic-bezier(.2,.8,.3,1) }
+.rotary-shackle.open{ transform:translateX(-50%) translateY(-48px) }
+
+/* flecha roja fija arriba, apuntando al dial */
+.rotary-arrow{ position:absolute;top:34px;left:50%;margin-left:-9px;z-index:4;width:0;height:0;
+  border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #a00 }
+
+/* dial oscuro, centrado sobre el cuerpo; gira (transform inline por JS) */
+.rotary-dial{ position:absolute;bottom:20px;left:50%;margin-left:-80px;width:160px;height:160px;border-radius:50%;
+  background:#333;z-index:3;cursor:grab;touch-action:none;will-change:transform }
+.rotary-dial:active{ cursor:grabbing }
+.rotary-knob{ position:absolute;top:50%;left:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+  background:#222;box-shadow:0 0 0 3px #171717, inset 0 2px 5px rgba(255,255,255,.12) }
+
+/* marcas alrededor del borde; solo las mayores (cada 5) llevan número. El nº queda vertical cuando pasa por arriba
+   (su rotación total = rot del dial + i*9 ≈ 0 bajo la flecha). transform-origin = centro del dial (radio 80 - top 6). */
+.rotary-tick{ position:absolute;top:6px;left:50%;margin-left:-1.5px;width:3px;height:9px;background:#fff;transform-origin:50% 74px }
+.rotary-tick.major{ height:15px }
+.rotary-tick span{ position:absolute;top:18px;left:50%;transform:translateX(-50%);font:600 13px/1 Helvetica,Arial,sans-serif;color:#fff }
+
+/* combinación (visible; verde al acertar en orden) */
+.rotary-combo{ display:flex;gap:10px }
+.rotary-num{ display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:6px;
+  background:#ccc;color:#222;font:600 18px/1 Helvetica,Arial,sans-serif }
+.rotary-num.found{ background:#2a7d2a;color:#fff }

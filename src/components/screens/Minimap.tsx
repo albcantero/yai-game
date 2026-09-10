@@ -204,11 +204,16 @@ const PUZZLE_WORDS: Record<number, string> = {
 const PUZZLE_GEOMETRY: Record<number, number[]> = {
   1: [0, 0, 0, 0], // Puzzle 1 (Almacén): TEMPORAL para debug → TODO estrellas. Real: [0,4,2,5] = estrella, cuadrado, chispa, número
 };
-// config del candado del puzzle roomId#idx según su número global (letras / figuras / números)
-const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" } => {
+// Puzzles con candado ROTATORIO (dial de combinación tipo taquilla): secuencia de números 0..39 a alinear EN ORDEN.
+const PUZZLE_ROTARY: Record<number, number[]> = {
+  3: [20, 5, 30], // Puzzle 3 (Biblioteca privada, 2º): dial rotatorio → alinear 20, 5, 30 en orden
+};
+// config del candado del puzzle roomId#idx según su número global (letras / figuras / rotatorio / números)
+const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" | "rotary" } => {
   const n = (puzzleBaseOf[roomId] ?? 0) + idx + 1;
   if (PUZZLE_WORDS[n]) return { combo: wordToCombo(PUZZLE_WORDS[n]), kind: "letters" };
   if (PUZZLE_GEOMETRY[n]) return { combo: PUZZLE_GEOMETRY[n], kind: "geometry" };
+  if (PUZZLE_ROTARY[n]) return { combo: PUZZLE_ROTARY[n], kind: "rotary" };
   return { combo: PUZZLE_COMBOS[n] ?? PLACEHOLDER_COMBO, kind: "number" };
 };
 
