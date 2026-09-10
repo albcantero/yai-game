@@ -1,37 +1,61 @@
-/* CANDADO ROTATORIO (dial de combinación). Adaptado del original (SCSS + GSAP) a CSS plano; clases rotary-*.
-   El overlay, el marco (.lockpanel) y los botones (.lock-actions/.lock-exit) son COMPARTIDOS (locks.css). El
-   dial gira por JS (transform inline). Provisional (estética del original); luego a nuestro retro. */
-.rotary{ position:relative;display:flex;flex-direction:column;align-items:center;gap:26px;user-select:none }
+/* CANDADO ROTATORIO (dial de combinación) — estructura y medidas 1:1 del original (jackrugile), con su animación
+   de apertura/cierre. SCSS convertido a CSS plano ($diam=180 → dial 144, shackleW 135, shackleT 33.75, tick 3×9).
+   ÚNICO cambio estético: los "huecos" (el arco interior .inner y la hendidura del cierre) usan un oscuro que casa
+   con el panel (#0a0a0a) en lugar del blanco de la página del original. Sin jQuery/GSAP/Howl: giro + sonidos propios.
+   Clases de animación (unlocked/pivot1/pivot2/moveLeft/moveRight) 1:1 con el original. */
+.rotary{ position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;user-select:none;font-family:'Open Sans',sans-serif }
+.rotary-container{ position:relative;height:270px;width:180px;margin-bottom:18px }
 
-/* cuerpo (círculo gris, abajo) + hueco del arco (arriba) */
-.rotary-lock{ position:relative;width:200px;height:230px }
-.rotary-body{ position:absolute;bottom:0;left:0;width:200px;height:200px;border-radius:50%;background:#aaa;z-index:2 }
+/* cuerpo del candado (círculo gris) */
+.rotary-lock{ background:#aaa;position:absolute;bottom:0;height:180px;width:180px;border-radius:50% }
 
-/* arco (shackle): U invertida DETRÁS del cuerpo; sube al abrirse (v1 simple; luego la apertura elaborada) */
-.rotary-shackle{ position:absolute;bottom:150px;left:50%;width:120px;height:95px;box-sizing:border-box;z-index:1;
-  border:24px solid #999;border-bottom:none;border-radius:60px 60px 0 0;transform:translateX(-50%);
-  transition:transform .5s cubic-bezier(.2,.8,.3,1) }
-.rotary-shackle.open{ transform:translateX(-50%) translateY(-48px) }
+/* arco (shackle), detrás del cuerpo (z-index:-1); sube al abrirse */
+.rotary-shackle{ position:absolute;bottom:108px;right:22.5px;width:135px;height:168.75px;will-change:transform;z-index:-1 }
+.rotary-shackle div{ background:#999;position:absolute;will-change:transform }
+.rotary-top{ border-radius:135px 135px 0 0;height:67.5px;width:135px;transform-origin:100% 0 }
+.rotary-inner{ background:#0a0a0a;border-radius:50%;top:33.75px;left:33.75px;height:67.5px;width:67.5px }
+.rotary-left,.rotary-right{ top:66.5px;width:33.75px }
+.rotary-left{ border-radius:0 0 6.75px 6.75px;height:94.5px;overflow:hidden;position:relative }
+.rotary-dent-l,.rotary-dent-r{ position:absolute;bottom:16.875px;z-index:2;background:transparent }
+.rotary-dent-l{ border-top:15px solid transparent;border-bottom:5px solid transparent;border-left:15px solid #0a0a0a;left:-30px }
+.rotary-dent-r{ border-top:15px solid transparent;border-bottom:5px solid transparent;border-right:15px solid #0a0a0a;right:0 }
+.rotary-right{ right:0;height:135px }
 
-/* flecha roja fija arriba, apuntando al dial */
-.rotary-arrow{ position:absolute;top:34px;left:50%;margin-left:-9px;z-index:4;width:0;height:0;
-  border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #a00 }
+/* flecha roja (puntero fijo, arriba del dial) */
+.rotary-arrow{ margin:11.25px auto 3px;border:7.5px solid transparent;border-color:#a00 transparent transparent transparent;transform:translateY(7.5px);height:0;width:0 }
 
-/* dial oscuro, centrado sobre el cuerpo; gira (transform inline por JS) */
-.rotary-dial{ position:absolute;bottom:20px;left:50%;margin-left:-80px;width:160px;height:160px;border-radius:50%;
-  background:#333;z-index:3;cursor:grab;touch-action:none;will-change:transform }
+/* dial oscuro con anillo del pomo; gira (transform inline por JS) */
+.rotary-dial{ margin:auto;border-radius:50%;position:absolute;left:0;right:0;bottom:7.2px;height:144px;width:144px;z-index:1;
+  background:#333 radial-gradient(transparent, transparent 30px, #171717 30px, #171717 32.25px, transparent 32.25px, transparent);
+  font-family:Helvetica,Arial,sans-serif;cursor:grab;touch-action:none;will-change:transform }
 .rotary-dial:active{ cursor:grabbing }
-.rotary-knob{ position:absolute;top:50%;left:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
-  background:#222;box-shadow:0 0 0 3px #171717, inset 0 2px 5px rgba(255,255,255,.12) }
 
-/* marcas alrededor del borde; solo las mayores (cada 5) llevan número. El nº queda vertical cuando pasa por arriba
-   (su rotación total = rot del dial + i*9 ≈ 0 bajo la flecha). transform-origin = centro del dial (radio 80 - top 6). */
-.rotary-tick{ position:absolute;top:6px;left:50%;margin-left:-1.5px;width:3px;height:9px;background:#fff;transform-origin:50% 74px }
-.rotary-tick.major{ height:15px }
-.rotary-tick span{ position:absolute;top:18px;left:50%;transform:translateX(-50%);font:600 13px/1 Helvetica,Arial,sans-serif;color:#fff }
+/* marcas del dial: 40; el nº solo en las mayores (cada 5). transform (translateY + rotate) inline por marca (1:1
+   con el mixin setTick del SCSS); transform-origin y altura según sea mayor o menor. */
+.rotary-tick{ position:absolute;background:#fff;color:#fff;font-size:15px;top:72px;left:70.5px;width:3px;height:9px;transform-origin:50% -63px }
+.rotary-tick.major{ height:18px;transform-origin:50% -54px }
+.rotary-tick span{ display:block;margin:-18px -18px 0 -18px;text-align:center;transform:rotate(180deg) }
 
-/* combinación (visible; verde al acertar en orden) */
-.rotary-combo{ display:flex;gap:10px }
-.rotary-num{ display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:6px;
-  background:#ccc;color:#222;font:600 18px/1 Helvetica,Arial,sans-serif }
-.rotary-num.found{ background:#2a7d2a;color:#fff }
+/* combinación (visible; verde al acertar en orden), como el original */
+.rotary-combo{ font-size:22.5px;text-align:center;display:flex;gap:6px }
+.rotary-num{ background:#ccc;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:7.5px;vertical-align:middle }
+.rotary-num.found{ background:#262;color:#fff }
+
+/* ---- Animación de apertura/cierre (1:1 del original: $secs=.5s, $delay=.4s) ---- */
+.rotary-shackle.unlocked{ animation:rotaryMoveUp .2s linear forwards, rotaryMoveUp .2s 2s linear reverse forwards }
+.rotary-left.moveRight{ animation:rotaryMoveRight .5s .4s linear forwards, rotaryMoveRight .5s 1.2s linear reverse forwards }
+.rotary-dent-l.moveLeft,.rotary-dent-r.moveLeft{ animation:rotaryMoveLeft .5s .4s linear forwards, rotaryMoveLeft .5s 1.2s linear reverse forwards }
+.rotary-top.pivot1{ animation:rotaryPivot1 .5s .4s linear forwards, rotaryPivot1 .5s 1.2s linear reverse forwards }
+.rotary-inner.pivot2{ animation:rotaryPivot2a .25s .4s cubic-bezier(.6,.3,.45,1) forwards, rotaryPivot2b .25s .65s cubic-bezier(.2,0,.63,.5) forwards, rotaryPivot2b .25s 1.3s cubic-bezier(.2,0,.63,.5) reverse forwards, rotaryPivot2a .25s 1.45s cubic-bezier(.6,.3,.45,1) reverse forwards }
+
+@keyframes rotaryMoveUp{ from{ transform:translateY(0) } to{ transform:translateY(-63px) } }
+@keyframes rotaryMoveLeft{ from{ transform:translateX(0) } to{ transform:translateX(30px) } }
+@keyframes rotaryMoveRight{ from{ transform:translateX(0) } to{ transform:translateX(202.5px) } }
+@keyframes rotaryPivot1{
+  from{ transform:scale(1,1);right:0 }
+  50%{ transform:scale(.25,1) rotateY(0);right:0 }
+  50.01%{ transform:scale(.25,1) rotateY(180deg);right:33.75px }
+  to{ transform:scale(1,1) rotateY(180deg);right:33.75px }
+}
+@keyframes rotaryPivot2a{ from{ transform:scale(1,1) } to{ transform:scale(0,1) } }
+@keyframes rotaryPivot2b{ from{ transform:scale(0,1) } to{ transform:scale(1,1) } }
