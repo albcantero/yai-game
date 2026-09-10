@@ -235,10 +235,10 @@ export default function Computer() {
           {lock && (
             <div className="lock-overlay">
               {lock.kind === "geometry" ? (
-                <GeometryLock combo={lock.combo} playSfx={playSfx} onSolved={() => { lock.onSolved(); setLock(null); }} onClose={() => setLock(null)} />
+                <GeometryLock combo={lock.combo} playSfx={playSfx} onSolved={lock.onSolved} onClose={() => setLock(null)} />
               ) : (
                 // números y letras = el MISMO componente Padlock; `kind` elige símbolos, curvatura y clases CSS
-                <Padlock kind={lock.kind === "letters" ? "letters" : "number"} combo={lock.combo} playSfx={playSfx} onSolved={() => { lock.onSolved(); setLock(null); }} onClose={() => setLock(null)} />
+                <Padlock kind={lock.kind === "letters" ? "letters" : "number"} combo={lock.combo} playSfx={playSfx} onSolved={lock.onSolved} onClose={() => setLock(null)} />
               )}
             </div>
           )}

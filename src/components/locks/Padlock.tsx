@@ -241,7 +241,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
       {/* tras CORRECTO: botón "Salir" (aparece con fade-in; CORRECTO + combinación persisten arriba) */}
       {exit && (
         <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={() => panelRef.current?.close(onSolved)}>Salir</button>
+          <button type="button" onClick={() => { onSolved(); panelRef.current?.close(onClose); }}>Salir</button>
         </div>
       )}
     </LockPanel>

@@ -176,7 +176,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       {/* tras acertar: los botones caen y aparece "Salir" (fade-in), que cierra + resuelve el puzzle */}
       {exit && (
         <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={() => panelRef.current?.close(onSolved)}>Salir</button>
+          <button type="button" onClick={() => { onSolved(); panelRef.current?.close(onClose); }}>Salir</button>
         </div>
       )}
     </LockPanel>
