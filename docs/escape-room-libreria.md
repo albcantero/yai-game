@@ -1,4 +1,6 @@
-# Escape Room — Librería Manto Rochoa (mercado negro de libros)
+# Escape Room — Santas Ochova (mercado negro de libros)
+
+> **Nota (sep 2026)**: documento parcialmente LEGACY. Las fuentes de verdad actuales son `lore-santas-ochova.md` (trama/canon) y `hoja-de-ruta.md` (diseño/estructura/economía): donde este doc las contradiga, mandan ellas. Se conserva como referencia (§8 "3 ramas" y §13 "3 webs" ya superados; ver las notas "[Actualizado sep 2026]").
 
 Documento de trabajo para diseñar el escape room narrativo + terminal web colaborativo.
 
@@ -6,13 +8,13 @@ Documento de trabajo para diseñar el escape room narrativo + terminal web colab
 
 ## 1. Concepto general
 
-- **Nombre ficticio de la librería**: **Librería Manto Rochoa** (alteración mínima del nombre real, reconocible al instante).
+- **Nombre ficticio de la librería**: **Santas Ochova** (completo: "Santas Ochova S.A., La Mejor Librería"; origen y canon del nombre en `lore-santas-ochova.md` §1).
 - **Formato**: escape room colaborativo en papel + web-app (móvil, individual por jugadora), con varios programas en un mismo shell (`Computer.tsx`): tienda online, notas, fax, terminal y libro de juego (ver §3).
 - **Jugadoras**: 6 fijas (roles ocultos) + 2 opcionales (Ángela, Macarena)
 - **Duración objetivo**: 2-3 horas
 - **Proporción físico/digital**: 50-50, honestamente
 - **Tono**: (pendiente — ¿ligero/cómico o intriga seria tipo thriller?)
-- **Lore base**: todas trabajan en la Librería Manto Rochoa, que en secreto busca, compra y vende libros prohibidos. Los datos de ese mercado negro están ocultos en la base de datos interna de la librería (el "terminal").
+- **Lore base**: todas trabajan en la librería Santas Ochova, que en secreto busca, compra y vende libros prohibidos. Los datos de ese mercado negro están ocultos en la base de datos interna de la librería (el "terminal").
 - **Precedente**: evolución del murder mystery ambientado en Bridgerton (sobres de personaje + timeline + debate grupal).
 
 ---
@@ -181,7 +183,7 @@ Lista de comandos a definir:
 
 ---
 
-## 11. Easter eggs en la web ficticia de Librería Manto Rochoa
+## 11. Easter eggs en la web ficticia de Santas Ochova
 
 - [ ] Código fuente (comentarios HTML, consola del navegador)
 - [ ] Enlace oculto en el footer o en una imagen
@@ -244,7 +246,7 @@ Requiere `ffmpeg` instalado (`brew install ffmpeg` en macOS). Aplicar al `.mp3` 
 ## 13. Arquitectura técnica
 
 - **Las 3 webs**: proyectos separados (o rutas separadas dentro de un mismo proyecto Astro), todas desplegadas en **Vercel** (gratis, estático).
-  - Web ficticia Librería Manto Rochoa: contenido mayormente estático, easter eggs a mano.
+  - Web ficticia de Santas Ochova: contenido mayormente estático, easter eggs a mano.
   - Terminal/System: lógica de comandos, diálogos de opción múltiple, accesos por rol.
   - Lobby de audios: reproductor + validación de contraseñas por fase.
 - **Estado compartido (multiplayer)**: Supabase (Postgres + Realtime), reutilizado por Terminal y Lobby.
@@ -271,7 +273,7 @@ Requiere `ffmpeg` instalado (`brew install ffmpeg` en macOS). Aplicar al `.mp3` 
 - [ ] Escribir los guiones de los Audios 2–5 para ElevenLabs
 - [ ] Definir puzzle/contraseña de cada fase de audio
 - [ ] Diseñar el contenido de cada sobre físico por fase
-- [ ] Diseñar la web ficticia de Librería Manto Rochoa y sus easter eggs
+- [ ] Diseñar la web ficticia de Santas Ochova y sus easter eggs
 - [ ] Prototipar las tablas `estado_global`, `jugadoras` y `audios` en Supabase
 - [ ] Probar el post-procesado FFmpeg sobre el Audio 1 y decidir variante final
 - [ ] Diseñar la revelación final de Mr. Higgins como enemigo oculto

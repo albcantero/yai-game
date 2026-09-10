@@ -1,8 +1,10 @@
 # Roadmap — Santas Ochova (escape room)
 
-Estado y tareas de desarrollo. Marca `[x]` lo hecho. Docs de referencia: `lore-santas-ochova.md` (trama) y `escape-room-libreria.md` (mecánica/arquitectura).
+Estado y tareas de desarrollo. Marca `[x]` lo hecho. Docs de referencia: `lore-santas-ochova.md` (trama/canon), `hoja-de-ruta.md` (diseño/estructura/economía) y `puzzles.md` (contenido de puzzles); `escape-room-libreria.md` queda como referencia legacy.
 
 Objetivo: escape room de **6 jugadoras**, ~2-3 h, físico + digital, **sin máster** (100% autónomo), para el cumple de Yaiza.
+
+**Estado (sep 2026)**: hechos los **4 tipos de candado** (números / letras / figuras / rotatorio) y el **minimap v1** (Libro de juego: salas, puertas por llave, panel de sala con pestañas + pager). En marcha: **modelo de datos de contenido** (`content.ts`) + capa-2 (info/items) para cablear los 21 puzzles y el programa Notas.
 
 ## Fase 1 — App: Terminal (casi hecha)
 - [x] Terminal base (CRT, teclado propio, comandos, boot)
@@ -10,7 +12,7 @@ Objetivo: escape room de **6 jugadoras**, ~2-3 h, físico + digital, **sin mást
 - [x] Chat "Mis mensajes": roster (Sala común + DMs) + hilo + envío + realtime
 - [ ] Presencia (quién está conectada)
 - [ ] Marca de "no leído" en el roster
-- [ ] Limpiar antes de la fiesta: `SHOW_BUILD`, `?debug=1`, tabla `debug_logs`
+- [ ] Limpiar antes de la fiesta: `SHOW_BUILD`, `?debug=1`, tabla `debug_logs`, los `rlog` de audio
 
 ## Fase 1.5 — Esqueleto de diseño (ANTES del lobby)
 - [ ] Los 6 roles con sus habilidades asimétricas (admin gubernamental, hack revolucionaria, ventaja de info de B)
