@@ -46,7 +46,7 @@ export default function Computer() {
   // persistente + buffers + hum). suppressTickRef silencia el tic de tecla cuando el sonido lo dispara otra cosa.
   const { feImageRef, warpReady } = useWarpFilter();
   const { keyTick, playSfx, suppressTickRef } = useTerminalAudio(AUDIO_ENABLED);
-  const buzz = () => { if (navigator.vibrate) navigator.vibrate(BUZZ_MS); }; // háptica única de TODO botón real (teclado + monitor)
+  const buzz = () => {}; // VIBRACIÓN DESACTIVADA (se sospecha que navigator.vibrate jankea el hilo y arrastra el audio en Android). No-op: cero llamadas a la Vibration API
 
   const setShiftState = (m: ShiftMode) => {
     shiftModeRef.current = m;
