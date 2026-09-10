@@ -38,7 +38,7 @@
    con el mixin setTick del SCSS); transform-origin y altura según sea mayor o menor. */
 .rotary-tick{ position:absolute;background:#fff;color:#fff;font-size:15px;top:72px;left:70.5px;width:3px;height:9px;transform-origin:50% -63px }
 .rotary-tick.major{ height:18px;transform-origin:50% -54px }
-.rotary-tick span{ display:block;margin:-20px -18px 0 -18px;text-align:center;transform:rotate(180deg);font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:26px }
+.rotary-tick span{ display:block;margin:-26px -18px 0 -18px;text-align:center;transform:rotate(180deg);font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:26px }
 
 /* combinación (visible; verde al acertar en orden), como el original */
 .rotary-combo{ font-size:22.5px;text-align:center;display:flex;gap:6px }
