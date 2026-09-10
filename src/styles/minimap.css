@@ -39,10 +39,12 @@
 .minimap-info .minimap-panel-body menu[role="tablist"] > li > a{ font-size:var(--ui-text) }
 /* 4 columnas × 2 filas: [tabs (auto)] arriba / [contenido (1fr)] abajo. row-gap 0 = los tabs se pegan al
    panel (se fusionan, como Win98). El aside va en la fila del CONTENIDO, así se alinea con el cuerpo, no con los tabs. */
-.minimap-panel-body{ flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:auto 1fr;column-gap:6px;row-gap:0;margin:6px }
+/* minmax(0,1fr) (no 1fr = minmax(auto,1fr)): las 4 columnas son ESTÁTICAS a 1/4 y NO crecen con el contenido;
+   si un elemento es más grande, encoge/ajusta él (con min-width:0 en los hijos), no el ancho de la columna. */
+.minimap-panel-body{ flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto 1fr;column-gap:6px;row-gap:0;margin:6px }
 .minimap-panel-body > menu[role="tablist"]{ grid-column:1 / span 3;grid-row:1;min-width:0 }   /* pestañas: fila 1, 3/4 */
 .minimap-panel-body > [role="tabpanel"]{ grid-column:1 / span 3;grid-row:2 }                   /* contenido: fila 2, 3/4 */
-.minimap-panel-aside{ grid-column:4;grid-row:2;display:flex;flex-direction:column;align-items:center;padding:4px } /* 1/4 derecha, fila del CONTENIDO: botones arriba + icono abajo */
+.minimap-panel-aside{ grid-column:4;grid-row:2;min-width:0;display:flex;flex-direction:column;align-items:center;padding:4px } /* 1/4 derecha, fila del CONTENIDO: botones arriba + icono abajo. min-width:0 → su contenido encoge dentro de la columna, no la ensancha */
 .minimap-panel-aside img{ margin-top:auto;width:64px;max-width:100%;height:auto;image-rendering:pixelated;display:block } /* icono empujado abajo */
 .minimap-panel-aside .aside-actions{ display:flex;flex-direction:column;gap:6px;width:100% }   /* botones en columna, alineados arriba */
 .minimap-panel-aside .aside-actions button{ min-width:0 }
