@@ -84,6 +84,7 @@
 /* variante SIN flecha (campo "Nombre:" de Información): oculta el SVG y recupera el padding derecho normal */
 .minimap-panel .crt-select-trigger[data-no-arrow]{ background-image:none;padding-right:4px }
 .minimap-panel .crt-select-value{ flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+.minimap-panel .puzzle-solved .crt-select-value{ text-decoration:line-through }   /* puzzle RESUELTO: nombre tachado */
 .minimap-panel .crt-select-list{
   font-size:var(--ui-text);   /* Determination Sans (heredada) a 15px, como el trigger */
   position:absolute;left:0;right:0;top:100%;z-index:20;margin:0;padding:0;list-style:none;

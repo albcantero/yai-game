@@ -26,7 +26,6 @@ export type RoomPanelProps = {
 };
 
 export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onResolve, onClose }: RoomPanelProps) {
-  const bigIcon = TAB_BIG[tab];
   // una opción por puzzle de la sala (placeholder hasta tener los nombres reales)
   const puzzleOptions = Array.from({ length: puzzles }, (_, i) => `Puzzle ${puzzleBase + i + 1}`);
   // puzzle SELECCIONADO en el desplegable (índice). Se reinicia al primero al cambiar de sala.
@@ -35,6 +34,8 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
   const idx = puzzleIdx < puzzleOptions.length ? puzzleIdx : 0; // índice válido (por si el reinicio va un frame por detrás)
   const puzzleId = roomId + "#" + idx;
   const puzzleSolved = solved.has(puzzleId);
+  // icono del hueco derecho: en "Llaves", si el puzzle seleccionado está RESUELTO → check; si no, la llave (TAB_BIG[1])
+  const bigIcon = tab === 1 && puzzleSolved ? "/icons/check-0.png" : TAB_BIG[tab];
   // "Resolver": abre el candado del puzzle seleccionado. Si se acierta la combinación, se resuelve (+1 llave)
   // y el botón queda desactivado. Oscurece + pausa la pantalla mientras el candado está abierto.
   const resolveSelected = () => { if (!puzzleSolved && puzzleOptions.length > 0) onResolve(puzzleId); };
@@ -77,7 +78,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
                   <>
                     {/* mismo layout que Información, pero el campo del puzzle es un DESPLEGABLE propio (Win98Select):
                         aspecto Win98, pero con la lista dentro del CRT (la nativa se escapa del warp/scanlines). */}
-                    <div className="field-row room-sala">
+                    <div className={"field-row room-sala" + (puzzleSolved ? " puzzle-solved" : "")}>
                       <span>Puzzle:</span>
                       <Win98Select ariaLabel="Puzzle" options={puzzleOptions}
                         value={puzzleOptions[idx] ?? ""} onChange={(_, i) => setPuzzleIdx(i)} />
@@ -93,7 +94,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
               <div className="aside-actions">
                 {/* "Resolver"/"Leer" desactivados si el grupo NO está en la sala (antes se desactivaba la pestaña entera) */}
                 <button type="button" onClick={resolveSelected} disabled={!isCurrent || puzzleSolved || puzzleOptions.length === 0}>Resolver</button>
-                <button type="button" disabled={!isCurrent}>Leer</button>
+                <button type="button" disabled={!isCurrent || puzzleSolved}>Leer</button>
               </div>
             )}
             {/* en "Información", si estás lejos: aviso rojo en el mismo hueco que los botones de "Llaves" */}
