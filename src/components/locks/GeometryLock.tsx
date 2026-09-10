@@ -34,7 +34,7 @@ const RADIUS = Math.round((CELL_W / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 1
 // de figura, el cilindro rota con un MUELLE (Motion, un pelín de rebote): offset = desplazamiento en px durante la
 // animación; el muelle lo lleva a 0 (confirmamos el valor al instante y compensamos con el offset para no saltar).
 // `turn()` reproduce los engranajes y bloquea todos los botones hasta que acaba; si devuelve false, se ignora.
-function Row({ value, onChange, turn, disabled }: { value: number; onChange: (v: number) => void; turn: () => boolean; disabled: boolean }) {
+function Row({ value, onChange, turn, release, disabled }: { value: number; onChange: (v: number) => void; turn: () => boolean; release: () => void; disabled: boolean }) {
   const [offset, setOffset] = useState(0);
   const offsetRef = useRef(0);
   const controls = useRef<{ stop: () => void } | null>(null);
@@ -47,7 +47,7 @@ function Row({ value, onChange, turn, disabled }: { value: number; onChange: (v:
     onChange(((value + dir) % N + N) % N); // confirma el nuevo valor ya
     const from = offsetRef.current + dir * CELL_W; // desde la posición visual actual + un paso (así no salta)
     setOff(from);
-    controls.current = animate(from, 0, { type: "spring", bounce: 0.3, visualDuration: 0.34, onUpdate: setOff });
+    controls.current = animate(from, 0, { type: "spring", bounce: 0.3, visualDuration: 0.34, onUpdate: setOff, onComplete: release }); // al terminar el muelle: libera los botones
   };
 
   const pos = value - offset / CELL_W; // posición continua del centro (en índice)
@@ -92,20 +92,19 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
 
-  // Guard del sonido: al girar una fila suena engranajes y TODOS los botones quedan disabled hasta que acaba
-  // (pista visual de que no responden). `busy` (estado) los deshabilita; `busyRef` corta reentradas síncronas.
+  // Guard: al girar una fila suenan los engranajes y TODOS los botones quedan disabled (pista visual). Se liberan
+  // al terminar la ANIMACIÓN del muelle (la fila llama a release en su onComplete), no al acabar el sonido.
+  // `busy` (estado) deshabilita los botones; `busyRef` corta reentradas síncronas.
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
-  const busyTimer = useRef<number | null>(null);
-  useEffect(() => () => { if (busyTimer.current !== null) clearTimeout(busyTimer.current); }, []);
   const turn = (): boolean => {
-    if (busyRef.current) return false; // sonido en curso: no gira
+    if (busyRef.current) return false; // gesto en curso: no gira
     busyRef.current = true;
     setBusy(true);
-    const dur = playSfx("/audio/gears.mp3", 0.6); // engranajes; devuelve su duración (s)
-    busyTimer.current = window.setTimeout(() => { busyRef.current = false; setBusy(false); busyTimer.current = null; }, dur * 1000);
+    playSfx("/audio/gears.mp3", 0.6); // engranajes (el guard se libera al acabar el muelle, ver release)
     return true;
   };
+  const release = () => { busyRef.current = false; setBusy(false); }; // fin de la animación del muelle: botones de vuelta
 
   const setVal = (i: number, v: number) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)));
 
@@ -130,7 +129,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
           </div>
           <div className="geolock-rows">
             {values.map((v, i) => (
-              <Row key={i} value={v} onChange={(nv) => setVal(i, nv)} turn={turn} disabled={busy} />
+              <Row key={i} value={v} onChange={(nv) => setVal(i, nv)} turn={turn} release={release} disabled={busy} />
             ))}
           </div>
         </div>
