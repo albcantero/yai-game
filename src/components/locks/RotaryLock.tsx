@@ -1,11 +1,14 @@
 // CANDADO ROTATORIO (dial de combinación). Cuerpo/dial/arco 1:1 del original (markup en el JSX, medidas en
 // rotarylock.css), incluida la animación de apertura del arco. La INTERACCIÓN es propia (sin jQuery/GSAP/Howl):
 // la combinación se muestra como un OTP-input (un hueco por número); el dial fija el número del hueco ACTIVO (el que
-// lleva el "ring" de foco), los carets < > mueven el foco entre huecos, y "Resolver" comprueba la combinación
-// (como en pad/letter/geometry). Sonidos con playSfx. Marco = LockPanel.
+// lleva el "ring" de foco), los carets < > mueven el foco entre huecos, y "Resolver" comprueba la combinación.
+// Resolver correcto/incorrecto REPLICA a geometryLock (mismos valores): incorrecto = agita + fallo y reactiva los
+// botones al acabar la música; correcto = agita + acierto, pausa 0,5s, caen Resolver/Cancelar y aparece "Salir".
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
+import { E_OUT, E_INOUT, BTN_OUT, SHAKE } from "./lockAnim";
 
 const TICKS = 40;
 const TICK_ANGLE = 360 / TICKS; // 9° por marca
@@ -16,7 +19,7 @@ const CARET = "M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z";
 
 export type RotaryLockProps = {
   combo: number[]; // secuencia de números (0..39) que abre el candado, EN ORDEN
-  playSfx: (src: string, vol?: number) => void;
+  playSfx: (src: string, vol?: number) => number; // devuelve la duración del sonido (para reactivar al acabar la música)
   onSolved: () => void; // combinación correcta → resolver el puzzle + cerrar
   onClose: () => void; // cancelar (botón Cancelar): cerrar sin resolver
 };
@@ -26,11 +29,15 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   const [rot, setRot] = useState(0); // rotación del dial (deg); el hueco activo muestra numberAtArrow(rot)
   const [active, setActive] = useState(0); // índice del hueco con foco (ring)
   const [stored, setStored] = useState<number[]>(() => nums.map(() => 0)); // valor fijado de cada hueco NO activo
-  const [open, setOpen] = useState(false); // combinación correcta → el arco se eleva (animación 1:1)
-  const [exit, setExit] = useState(false); // tras abrir: aparece "Salir"
+  const [open, setOpen] = useState(false); // correcto: el arco se eleva (CSS) + OTP verde; disabled permanente
+  const [shaking, setShaking] = useState(false); // incorrecto: agita + deshabilita botones hasta que acaba la música
+  const [exit, setExit] = useState(false); // tras acertar: los botones caen y aparece "Salir"
 
   const dialRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<LockPanelHandle>(null);
+  const boxRef = useRef<HTMLDivElement>(null); // el candado en sí (.rotary) para el shake
+  const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
+  const actionsRef = useRef<HTMLDivElement>(null); // Resolver/Cancelar (caen al acertar, 1:1 con geometry/pad/letter)
+  const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras acertar)
   const rotRef = useRef(0); // rotación en vivo (fuente de verdad durante el arrastre)
   const lastAngleRef = useRef(0);
   const draggingRef = useRef(false);
@@ -38,9 +45,15 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   const activeIdxRef = useRef(0); // índice del hueco activo (para leerlo fuera del render)
   const storedRef = useRef<number[]>(stored);
   const openRef = useRef(false);
-  const timerRef = useRef<number | null>(null);
+  const shakingRef = useRef(false);
+  const dropTimer = useRef<number | null>(null); // pausa (0,5s) tras el agitado antes de que caigan los botones
+  const reenableTimer = useRef<number | null>(null); // reactivar botones al acabar la música (caso incorrecto)
 
-  useEffect(() => () => { if (timerRef.current !== null) clearTimeout(timerRef.current); }, []);
+  useEffect(() => () => {
+    if (dropTimer.current !== null) clearTimeout(dropTimer.current);
+    if (reenableTimer.current !== null) clearTimeout(reenableTimer.current);
+  }, []);
+  useEffect(() => { if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT }); }, [exit]); // "Salir" con fade-in
 
   const setRotation = (v: number) => { rotRef.current = v; setRot(v); };
   const angleOf = (e: ReactPointerEvent) => {
@@ -52,7 +65,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   const norm180 = (a: number) => ((a + 180) % 360 + 360) % 360 - 180;
 
   const onDown = (e: ReactPointerEvent) => {
-    if (openRef.current) return; // abierto: no se gira
+    if (openRef.current || shakingRef.current) return; // abierto o agitándose: no se gira
     draggingRef.current = true;
     lastAngleRef.current = angleOf(e);
     lastTickRef.current = Math.round(rotRef.current / TICK_ANGLE);
@@ -76,7 +89,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
 
   // mueve el foco entre huecos: fija el número actual en el hueco que dejamos y lleva el dial al valor del nuevo
   const move = (dir: -1 | 1) => {
-    if (openRef.current) return;
+    if (openRef.current || shakingRef.current) return;
     const cur = activeIdxRef.current;
     const ni = Math.max(0, Math.min(nums.length - 1, cur + dir));
     if (ni === cur) return;
@@ -89,24 +102,37 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     setRotation(-next[ni] * TICK_ANGLE); // el dial salta al valor guardado del nuevo hueco (0 si nunca se tocó)
   };
 
-  const check = () => {
-    if (openRef.current) return;
+  // Resolver: comprueba la combinación. Correcto/incorrecto REPLICA a geometryLock (mismos valores y efecto).
+  const onResolve = () => {
+    if (openRef.current || shakingRef.current) return;
     const vals = [...storedRef.current];
     vals[activeIdxRef.current] = numberAtArrow(rotRef.current); // incluye el hueco activo (aún sin "fijar")
     const ok = nums.length > 0 && vals.every((v, i) => v === nums[i]);
     if (ok) {
       openRef.current = true;
-      setOpen(true); // el arco se eleva y se queda arriba
-      playSfx("/audio/lock-online-1.mp3", 0.6); // ¡abierto!
-      timerRef.current = window.setTimeout(() => setExit(true), 1000); // tras elevarse el arco, aparece "Salir"
+      setOpen(true); // el arco se eleva (CSS) + OTP en verde; carets/dial disabled permanente
+      playSfx("/audio/lock-online-1.mp3", 0.6); // sonido de ACIERTO (común a los 4 candados)
+      // en DOS tiempos (igual que geometry): 1º agita TODO mientras sube el arco; 2º al acabar, PERMANECEN 0,5s
+      // disabled y LUEGO caen Resolver/Cancelar (misma animación que pad/letter) y aparece "Salir".
+      const dropButtons = () => {
+        if (!actionsRef.current) return;
+        animate(actionsRef.current, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT }).finished.then(() => setExit(true));
+      };
+      const afterShake = () => { dropTimer.current = window.setTimeout(dropButtons, 500); };
+      if (boxRef.current) animate(boxRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(afterShake);
+      else afterShake();
     } else {
-      playSfx("/audio/lock-fail-1.mp3", 0.6); // combinación incorrecta
+      shakingRef.current = true;
+      setShaking(true); // incorrecto: agita + Resolver/Cancelar disabled; vuelven al ACABAR la música
+      const dur = playSfx("/audio/lock-fail-1.mp3", 0.6) || 0.5; // sonido de FALLO (común); dur = segundos del clip
+      if (boxRef.current) animate(boxRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT });
+      reenableTimer.current = window.setTimeout(() => { shakingRef.current = false; setShaking(false); }, dur * 1000);
     }
   };
 
   return (
     <LockPanel ref={panelRef} playSfx={playSfx}>
-      <div className={"rotary" + (open ? " solved" : "")}>
+      <div className={"rotary" + (open ? " solved" : "")} ref={boxRef}>
         <div className="rotary-container">
           <div className="rotary-lock">
             <div className={"rotary-shackle" + (open ? " unlocked" : "")}>
@@ -137,7 +163,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
         </div>
         {/* combinación como OTP-input: hueco activo con ring; carets < > para moverse entre huecos */}
         <div className="rotary-combo">
-          <button type="button" className="rotary-caret prev" onClick={() => move(-1)} disabled={open || active === 0} aria-label="Hueco anterior">
+          <button type="button" className="rotary-caret prev" onClick={() => move(-1)} disabled={open || shaking || active === 0} aria-label="Hueco anterior">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={CARET} /></svg>
           </button>
           {nums.map((_, i) => (
@@ -145,18 +171,21 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
               {i === active ? numberAtArrow(rot) : stored[i]}
             </span>
           ))}
-          <button type="button" className="rotary-caret next" onClick={() => move(1)} disabled={open || active === nums.length - 1} aria-label="Hueco siguiente">
+          <button type="button" className="rotary-caret next" onClick={() => move(1)} disabled={open || shaking || active === nums.length - 1} aria-label="Hueco siguiente">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={CARET} /></svg>
           </button>
         </div>
       </div>
 
-      <div className="lock-actions win98">
-        <button type="button" onClick={check} disabled={open}>Resolver</button>
-        <button type="button" onClick={() => panelRef.current?.close(onClose)} disabled={open}>Cancelar</button>
+      {/* botones Win98 (mismo marco que el resto de candados). disabled al resolver o mientras agita */}
+      <div className="lock-actions win98" ref={actionsRef}>
+        <button type="button" onClick={onResolve} disabled={open || shaking}>Resolver</button>
+        <button type="button" onClick={() => panelRef.current?.close(onClose)} disabled={open || shaking}>Cancelar</button>
       </div>
+
+      {/* tras acertar: los botones caen y aparece "Salir" (fade-in), que cierra + resuelve el puzzle */}
       {exit && (
-        <div className="lock-exit win98">
+        <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
           <button type="button" onClick={() => { onSolved(); panelRef.current?.close(onClose); }}>Salir</button>
         </div>
       )}

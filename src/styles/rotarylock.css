@@ -44,9 +44,9 @@
    padlock), y el hueco ACTIVO añade un "ring" con box-shadow (verde del terminal) para indicar dónde estás metiendo
    el número. Carets pixelados a los lados para moverse entre huecos. Verde en todos al resolver. */
 .rotary-combo{ display:flex;align-items:center;gap:6px }
-.rotary-num{ box-sizing:border-box;width:44px;height:52px;border:2px solid #fff;border-radius:6px;background:rgba(255,255,255,.04);
+.rotary-num{ box-sizing:border-box;width:50px;height:60px;border:2px solid #fff;border-radius:6px;background:rgba(255,255,255,.04);
   display:inline-flex;align-items:center;justify-content:center;color:#fff;text-shadow:none;line-height:1;
-  font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:28px }
+  font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:40px }
 .rotary-num.active{ box-shadow:0 0 0 3px rgba(184,255,214,.5) }   /* ring de foco del hueco activo (como el focus del OTP de shadcn) */
 .rotary.solved .rotary-num{ border-color:#3c3;color:#3c3;box-shadow:none }   /* verde al resolver */
 
