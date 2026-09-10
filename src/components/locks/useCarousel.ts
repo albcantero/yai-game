@@ -21,39 +21,59 @@ export function useCarousel({ axis, size, count, value, onCommit, onTick, disabl
   const settling = useRef(false); // en el snap post-soltar: ignora nuevos gestos
   const lastC = useRef(value); // último símbolo en el centro (para el tick al cruzar)
   const timer = useRef<number | null>(null); // timeout del snap: se cancela al desmontar (evita setState en desmontado)
+  const dragRef = useRef(0); // desplazamiento actual (px); fuente de verdad para finish (el estado 'drag' va 1 frame por detrás)
+  const pendingRef = useRef<number | null>(null); // última coord del puntero pendiente de procesar en el rAF
+  const rafRef = useRef<number | null>(null); // rAF en cola: coalesce los moves a 1 re-render por frame (sin backlog en arrastre rápido)
 
-  useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
+  useEffect(() => () => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+  }, []);
 
   const coord = (e: ReactPointerEvent) => (axis === "y" ? e.clientY : e.clientX);
 
   const onDown = (e: ReactPointerEvent) => {
     if (disabled || settling.current) return;
     active.current = true;
+    pendingRef.current = null;
+    dragRef.current = 0;
     start.current = coord(e);
     lastC.current = value;
     setAnim(false);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
+  // procesa el ÚLTIMO puntero pendiente, 1 vez por frame (rAF): tic al cruzar símbolo + actualiza el desplazamiento
+  const process = () => {
+    rafRef.current = null;
+    const c = pendingRef.current;
+    if (c === null || !active.current) return;
+    const nd = c - start.current;
+    const nc = Math.round(value - nd / size); // símbolo que pasa por el centro ahora
+    if (nc !== lastC.current) { lastC.current = nc; onTick?.(); } // tic por cada símbolo cruzado
+    dragRef.current = nd;
+    setDrag(nd);
+  };
   const onMove = (e: ReactPointerEvent) => {
     if (!active.current) return;
-    const nd = coord(e) - start.current;
-    const nc = Math.round(value - nd / size); // símbolo que pasa por el centro ahora
-    if (nc !== lastC.current) { lastC.current = nc; onTick?.(); } // tick por cada símbolo cruzado
-    setDrag(nd);
+    pendingRef.current = coord(e); // el handler solo GUARDA; el trabajo (tic + re-render) va al rAF (1 por frame)
+    if (rafRef.current === null) rafRef.current = requestAnimationFrame(process);
   };
   const finish = () => {
     if (!active.current) return;
     active.current = false;
-    const steps = Math.round(drag / size); // nº de símbolos movidos (sin límite: scroll largo válido)
-    if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
+    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    if (pendingRef.current !== null) dragRef.current = pendingRef.current - start.current; // no perder el último frame pendiente
+    pendingRef.current = null;
+    const steps = Math.round(dragRef.current / size); // nº de símbolos movidos (sin límite: scroll largo válido)
+    if (steps === 0) { setAnim(true); dragRef.current = 0; setDrag(0); return; } // no llega: vuelve al centro
     settling.current = true;
     setAnim(true);
-    setDrag(steps * size); // rueda hasta encajar en el símbolo destino (solo anima la fracción)
+    dragRef.current = steps * size; setDrag(steps * size); // rueda hasta encajar en el símbolo destino (solo anima la fracción)
     timer.current = window.setTimeout(() => {
       timer.current = null;
       onCommit(((value - steps) % count + count) % count); // arrastrar en positivo (steps>0) = símbolo anterior
       setAnim(false);
-      setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
+      dragRef.current = 0; setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
       settling.current = false;
     }, 190);
   };
