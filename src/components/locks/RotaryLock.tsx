@@ -48,43 +48,58 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   const openRef = useRef(false);
   const shakingRef = useRef(false);
   const dropTimer = useRef<number | null>(null); // pausa (0,5s) tras el agitado antes de que caigan los botones
+  const centerRef = useRef({ x: 0, y: 0 }); // centro del dial, cacheado en pointerdown (evita getBoundingClientRect por move)
+  const pendingRef = useRef<{ x: number; y: number } | null>(null); // último puntero pendiente de procesar en el rAF
+  const rafRef = useRef<number | null>(null); // rAF en cola: coalesce los moves a 1 por frame (sin backlog en giro rápido)
 
-  useEffect(() => () => { if (dropTimer.current !== null) clearTimeout(dropTimer.current); }, []);
+  useEffect(() => () => {
+    if (dropTimer.current !== null) clearTimeout(dropTimer.current);
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+  }, []);
   useEffect(() => { if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT }); }, [exit]); // "Salir" con fade-in
 
   // aplica la rotación DIRECTO al DOM (sin setState → sin re-render): fluido y sin arrastrar el hilo (audio al instante)
   const applyRot = (v: number) => { rotRef.current = v; if (dialRef.current) dialRef.current.style.transform = `rotate(${v}deg)`; };
-  const angleOf = (e: ReactPointerEvent) => {
-    const el = dialRef.current;
-    if (!el) return 0;
-    const r = el.getBoundingClientRect();
-    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
-  };
+  // ángulo del puntero respecto al centro CACHEADO del dial (sin getBoundingClientRect en cada move → sin layout thrashing)
+  const angleAt = (x: number, y: number) => Math.atan2(y - centerRef.current.y, x - centerRef.current.x) * 180 / Math.PI;
   const norm180 = (a: number) => ((a + 180) % 360 + 360) % 360 - 180;
 
-  const onDown = (e: ReactPointerEvent) => {
-    if (openRef.current || shakingRef.current) return; // abierto o agitándose: no se gira
-    draggingRef.current = true;
-    lastAngleRef.current = angleOf(e);
-    lastTickRef.current = Math.round(rotRef.current / TICK_ANGLE);
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-  };
-  const onMove = (e: ReactPointerEvent) => {
-    if (!draggingRef.current) return;
-    const cur = angleOf(e);
+  // procesa el ÚLTIMO puntero pendiente, 1 vez por frame (rAF): gira, y al cruzar marca suena el tic + refresca número
+  const processMove = () => {
+    rafRef.current = null;
+    const p = pendingRef.current;
+    if (!p || !draggingRef.current) return;
+    const cur = angleAt(p.x, p.y);
     const next = rotRef.current + norm180(cur - lastAngleRef.current);
     lastAngleRef.current = cur;
-    applyRot(next); // giro directo al DOM (sin re-render en cada move)
+    applyRot(next); // giro directo al DOM (sin re-render)
     const t = Math.round(next / TICK_ANGLE);
-    if (t !== lastTickRef.current) { // al CRUZAR una marca: tic + refrescar el número (único re-render, y solo cuando cambia)
+    if (t !== lastTickRef.current) { // al CRUZAR una marca: tic + número (único re-render, solo cuando cambia)
       lastTickRef.current = t;
       playSfx("/audio/tick.mp3", 1); // mismo tic que los otros candados
       setDispNum(numberAtArrow(next));
     }
   };
+
+  const onDown = (e: ReactPointerEvent) => {
+    if (openRef.current || shakingRef.current) return; // abierto o agitándose: no se gira
+    const el = dialRef.current;
+    if (el) { const r = el.getBoundingClientRect(); centerRef.current = { x: r.left + r.width / 2, y: r.top + r.height / 2 }; } // centro UNA vez
+    draggingRef.current = true;
+    lastAngleRef.current = angleAt(e.clientX, e.clientY);
+    lastTickRef.current = Math.round(rotRef.current / TICK_ANGLE);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+  };
+  const onMove = (e: ReactPointerEvent) => {
+    if (!draggingRef.current) return;
+    pendingRef.current = { x: e.clientX, y: e.clientY }; // el handler solo GUARDA; el trabajo va al rAF (1 por frame, sin backlog)
+    if (rafRef.current === null) rafRef.current = requestAnimationFrame(processMove);
+  };
   const onUp = (e: ReactPointerEvent) => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
+    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    pendingRef.current = null;
     try { (e.currentTarget as Element).releasePointerCapture(e.pointerId); } catch { /* no capturado */ }
     const snapped = Math.round(rotRef.current / TICK_ANGLE) * TICK_ANGLE; // encaja en la marca
     applyRot(snapped);
