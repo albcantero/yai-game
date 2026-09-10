@@ -47,12 +47,8 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   const openRef = useRef(false);
   const shakingRef = useRef(false);
   const dropTimer = useRef<number | null>(null); // pausa (0,5s) tras el agitado antes de que caigan los botones
-  const reenableTimer = useRef<number | null>(null); // reactivar botones al acabar la música (caso incorrecto)
 
-  useEffect(() => () => {
-    if (dropTimer.current !== null) clearTimeout(dropTimer.current);
-    if (reenableTimer.current !== null) clearTimeout(reenableTimer.current);
-  }, []);
+  useEffect(() => () => { if (dropTimer.current !== null) clearTimeout(dropTimer.current); }, []);
   useEffect(() => { if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT }); }, [exit]); // "Salir" con fade-in
 
   const setRotation = (v: number) => { rotRef.current = v; setRot(v); };
@@ -123,10 +119,10 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
       else afterShake();
     } else {
       shakingRef.current = true;
-      setShaking(true); // incorrecto: agita + Resolver/Cancelar disabled; vuelven al ACABAR la música
-      const dur = playSfx("/audio/lock-fail-1.mp3", 0.6) || 0.5; // sonido de FALLO (común); dur = segundos del clip
-      if (boxRef.current) animate(boxRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT });
-      reenableTimer.current = window.setTimeout(() => { shakingRef.current = false; setShaking(false); }, dur * 1000);
+      setShaking(true); // incorrecto: agita + Resolver/Cancelar disabled; vuelven al ACABAR el agitado (1:1 geometry)
+      playSfx("/audio/lock-fail-1.mp3", 0.6); // sonido de FALLO (común a los 4 candados), durante el shake
+      if (boxRef.current) animate(boxRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(() => { shakingRef.current = false; setShaking(false); });
+      else { shakingRef.current = false; setShaking(false); }
     }
   };
 

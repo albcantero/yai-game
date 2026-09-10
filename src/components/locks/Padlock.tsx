@@ -93,6 +93,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
   const triedRef = useRef<HTMLDivElement>(null); // combinación probada (persiste y desaparece IGUAL que el mensaje)
   const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras CORRECTO)
   const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
+  const dialsBoxRef = useRef<HTMLDivElement>(null); // caja de TODAS las ruedas: en letras lleva el borde + líneas → cae/vuelve como UNA sola pieza
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido (LockPanel): entra/sale deslizando; expone close(cb)
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
 
@@ -126,7 +127,13 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
   // barra baja (1s). Fin t2.55. (label 'a'=0, stagger 'a+=0.25', 'build'=1.55)
   const intro = () => {
     animate(actionsRef.current!, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT });
-    dials().forEach((el, i) => animate(el, { y: DIAL_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT, delay: 0.25 + i * 0.1 })); // cada rueda por separado
+    if (kind === "letters") {
+      // letras: UNA sola caja (borde + líneas + ruedas) → cae ENTERA y junta; en pantalla solo persiste la respuesta/combinación
+      animate(dialsBoxRef.current!, { y: DIAL_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT, delay: 0.25 });
+    } else {
+      // números: cada rueda tiene su propia caja/borde → caen UNA A UNA (stagger 0.1s), como el original
+      dials().forEach((el, i) => animate(el, { y: DIAL_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT, delay: 0.25 + i * 0.1 }));
+    }
     animate(bodyRef.current!, { y: 30 }, { duration: 0.5, ease: E_INOUT, delay: 1.05 });
     animate(barRef.current!, { y: 10 }, { duration: 1, ease: E_OUT, delay: 1.55 });
     return animate(bodyRef.current!, { scale: 0.9 }, { duration: 1, ease: E_OUT, delay: 1.55 }).finished; // fin t2.55
@@ -169,7 +176,11 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
       animate(bodyRef.current!, { scale: 1, y: 0 }, { duration: 0.25, ease: E_OUT }).finished,
     ]);
     animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT });
-    await Promise.all(dials().map((el, i) => animate(el, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT, delay: 0.25 + i * 0.1 }).finished));
+    if (kind === "letters") {
+      await animate(dialsBoxRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT, delay: 0.25 }).finished; // la caja entera (borde + líneas + ruedas) vuelve junta
+    } else {
+      await Promise.all(dials().map((el, i) => animate(el, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT, delay: 0.25 + i * 0.1 }).finished));
+    }
   };
 
   const onUnlock = async () => {
@@ -215,7 +226,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
 
       {/* ruedas de la combinación (dials 3D propios) + el mensaje de respuesta superpuesto en su banda */}
       <div className={`${p}-dials-wrap`}>
-        <div className={`${p}-dials`}>
+        <div className={`${p}-dials`} ref={dialsBoxRef}>
           {digits.map((d, i) => (
             <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className={`${p}-slot`}>
               <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} tick={tick} cfg={cfg} />
