@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import RoomPanel from "./RoomPanel";
-import { wordToCombo } from "../locks/PadlockLetters";
+import { wordToCombo } from "../locks/Padlock";
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
@@ -115,6 +115,7 @@ const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf
 const ARROW: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
 const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
 const TARJETA_PATH = "M22 20H2V4h20v16ZM4 18h16v-6H4v6Zm8-2H6v-2h6v2ZM4 8h16V6H4v2Z"; // Tarjeta de seguridad (HUD + candado de la Librería)
+const KEY_PATH = "M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z"; // llave (HUD + botones "Utilizar")
 const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto (junctions)
 const MARK_ROOM_OFFSET = -1; // salas: offset desde la PUERTA (negativo = hacia dentro): marca cerca de la sala, antes de cualquier codo del pasillo
 const MARK_BORDER = 2.9; // grosor del borde negro de las marcas: como es "por fuera" (blanco lleno encima), va al doble del trazo del pin (1.4 a caballo) para que la banda negra se vea igual de gruesa
@@ -198,7 +199,7 @@ const PUZZLE_WORDS: Record<number, string> = {
 };
 // Puzzles con candado de FIGURAS: combinación de índices de forma (0..5). La longitud = nº de ruedas.
 const PUZZLE_GEOMETRY: Record<number, number[]> = {
-  1: [0, 4, 2, 5], // Puzzle 1 (Almacén): candado de FIGURAS → triángulo, luna, cuadrado, estrella
+  1: [0, 4, 2, 5], // Puzzle 1 (Almacén): candado de FIGURAS → ancla, corona, estrella, sol (índices sobre SHAPES)
 };
 // config del candado del puzzle roomId#idx según su número global (letras / figuras / números)
 const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" } => {
@@ -207,6 +208,34 @@ const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "n
   if (PUZZLE_GEOMETRY[n]) return { combo: PUZZLE_GEOMETRY[n], kind: "geometry" };
   return { combo: PUZZLE_COMBOS[n] ?? PLACEHOLDER_COMBO, kind: "number" };
 };
+
+// Popup Win98 de un candado del MAPA ("camino bloqueado"): shell idéntico para los dos casos (puerta normal y
+// candado blanco de la salida). Solo cambian los botones de acción, que se pasan como children (antes del "Salir").
+function LockPopup({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  return (
+    <div className="confirm-overlay win98 minimap-lock" onClick={onClose}>
+      <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="title-bar">
+          <img className="title-icon" src="/icons/key_padlock-1.png" alt="" />
+          <div className="title-bar-text">Candado</div>
+          <div className="title-bar-controls">
+            <button type="button" aria-label="Close" onClick={onClose}></button>
+          </div>
+        </div>
+        <div className="window-body">
+          <div className="confirm-row">
+            <img className="confirm-icon" src="/icons/key_padlock-0.png" alt="" />
+            <p>El camino está bloqueado.</p>
+          </div>
+          <div className="confirm-buttons">
+            {children}
+            <button type="button" onClick={onClose}>Salir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock }, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
@@ -237,6 +266,8 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
 
   const selRoom = selected ? byId[selected] : null;
   const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
+  // junctions descubiertos que llevan "parche" de esquina (tapa el pico donde se juntan pasillos); la salida no
+  const junctionPatches = JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida");
   // resolver un puzzle: +1 llave (una sola vez por puzzle). id = "sala#índice".
   const solvePuzzle = (id: string) => {
     if (solved.has(id)) return;
@@ -438,7 +469,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
             )}
             {/* 2b. parche de junction (contorno): tapa el hueco del pico donde se juntan varios pasillos
                 (el linejoin no une entre <path> distintos). Un cuadrado del ancho del contorno. */}
-            {JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida" && j.id !== "pre-salida").map((j) => (
+            {junctionPatches.map((j) => (
               <rect key={"jout" + j.id} x={j.x - 2.3} y={j.y - 2.3} width={4.6} height={4.6} fill={EDGE} pointerEvents="none" />
             ))}
             {/* 3. salas: NO tocables (el toque vive en la bandera). por descubrir = oscura con "?"; descubierta = suelo claro */}
@@ -475,7 +506,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
               ) : null,
             )}
             {/* 4b. parche de junction (relleno): mismo cuadrado en color suelo, ENCIMA, para dejar la esquina lisa */}
-            {JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida" && j.id !== "pre-salida").map((j) => (
+            {junctionPatches.map((j) => (
               <rect key={"jfil" + j.id} x={j.x - 1.3} y={j.y - 1.3} width={2.6} height={2.6} fill={FLOOR} pointerEvents="none" />
             ))}
             {/* 5. insignia por sala: la bandera gris centrada (wrapper tocable con margen). En la sala ACTUAL
@@ -543,7 +574,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
         <div className="hud-line">
           <div className="hud-row">
             <button type="button" tabIndex={-1} className="hud-btn" aria-label="Llaves">
-              <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
+              <svg viewBox="0 0 24 24" fill="#222" aria-hidden="true"><path d={KEY_PATH} /></svg>
             </button>
             <span className="hud-count">{keys}</span>
           </div>
@@ -556,7 +587,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
         )}
         {llaveMaestra > 0 && (
           <div className="hud-line hud-item">
-            <svg className="hud-item-ico" viewBox="0 0 24 24" fill="#e03131" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg>
+            <svg className="hud-item-ico" viewBox="0 0 24 24" fill="#e03131" aria-hidden="true"><path d={KEY_PATH} /></svg>
             <span className="hud-count">{llaveMaestra}</span>
           </div>
         )}
@@ -583,59 +614,23 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
           onClose={() => setSelected(null)}
         />
       )}
-      {/* popup del CANDADO: camino bloqueado + coste en llaves. Desbloquear DISABLED si no llegan las llaves. */}
+      {/* popup del CANDADO: camino bloqueado + coste en llaves/item. Desbloquear DISABLED si no llega el coste. */}
       {locked && (
-        <div className="confirm-overlay win98 minimap-lock" onClick={() => setLocked(null)}>
-          <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="title-bar">
-              <img className="title-icon" src="/icons/key_padlock-1.png" alt="" />
-              <div className="title-bar-text">Candado</div>
-              <div className="title-bar-controls">
-                <button type="button" aria-label="Close" onClick={() => setLocked(null)}></button>
-              </div>
-            </div>
-            <div className="window-body">
-              <div className="confirm-row">
-                <img className="confirm-icon" src="/icons/key_padlock-0.png" alt="" />
-                <p>El camino está bloqueado.</p>
-              </div>
-              <div className="confirm-buttons">
-                {locked.item === "tarjeta" ? (
-                  <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
-                ) : locked.item === "llave-maestra" ? (
-                  <button type="button" disabled={llaveMaestra < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" style={{ fill: "#e03131" }} viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
-                ) : (
-                  <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
-                )}
-                <button type="button" onClick={() => setLocked(null)}>Salir</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LockPopup onClose={() => setLocked(null)}>
+          {locked.item === "tarjeta" ? (
+            <button type="button" disabled={tarjetas < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={TARJETA_PATH} /></svg></button>
+          ) : locked.item === "llave-maestra" ? (
+            <button type="button" disabled={llaveMaestra < 1} onClick={() => unlock(locked)}>Utilizar 1<svg className="key-ico" style={{ fill: "#e03131" }} viewBox="0 0 24 24" aria-hidden="true"><path d={KEY_PATH} /></svg></button>
+          ) : (
+            <button type="button" disabled={keys < locked.keys} onClick={() => unlock(locked)}>Utilizar {locked.keys}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={KEY_PATH} /></svg></button>
+          )}
+        </LockPopup>
       )}
-      {/* popup del candado BLANCO (desocultar la salida) */}
+      {/* popup del candado BLANCO (desocultar la salida): mismo shell, un solo botón de coste */}
       {revealOpen && (
-        <div className="confirm-overlay win98 minimap-lock" onClick={() => setRevealOpen(false)}>
-          <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="title-bar">
-              <img className="title-icon" src="/icons/key_padlock-1.png" alt="" />
-              <div className="title-bar-text">Candado</div>
-              <div className="title-bar-controls">
-                <button type="button" aria-label="Close" onClick={() => setRevealOpen(false)}></button>
-              </div>
-            </div>
-            <div className="window-body">
-              <div className="confirm-row">
-                <img className="confirm-icon" src="/icons/key_padlock-0.png" alt="" />
-                <p>El camino está bloqueado.</p>
-              </div>
-              <div className="confirm-buttons">
-                <button type="button" disabled={keys < REVEAL_KEYS} onClick={doReveal}>Utilizar {REVEAL_KEYS}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z" /></svg></button>
-                <button type="button" onClick={() => setRevealOpen(false)}>Salir</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LockPopup onClose={() => setRevealOpen(false)}>
+          <button type="button" disabled={keys < REVEAL_KEYS} onClick={doReveal}>Utilizar {REVEAL_KEYS}<svg className="key-ico" viewBox="0 0 24 24" aria-hidden="true"><path d={KEY_PATH} /></svg></button>
+        </LockPopup>
       )}
     </div>
   );

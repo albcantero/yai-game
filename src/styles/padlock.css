@@ -6,18 +6,9 @@
   font-display:swap;
 }
 
-/* CANDADO principal: overlay que OSCURECE la pantalla interior (dentro de .crt-body, debajo del header, encima
-   del contenido y bajo las scanlines), MISMO patrón que .confirm-overlay pero más oscuro (~75%). El escenario va
-   en COLUMNA: cuerpo del candado (SVG) arriba, ruedas de la combinación en medio, botones Win98 abajo (en flujo,
-   así NUNCA se solapan). Clic fuera del escenario (backdrop) = cerrar, lo gestiona Computer. */
-/* overlay SIN oscurecido: solo centra el candado y capta el clic en el backdrop (cerrar). El fondo oscuro ahora
-   lo lleva el propio candado (.padlock-slide) y sube con él, en vez de aparecer de golpe. */
-.lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center }
-.padlock-stage{ width:100%;height:100% }   /* la tarjeta ocupa TODA la pantalla interna (overlay = .crt-body, el header queda fuera) */
-/* wrapper que SUBE deslizándose al aparecer (Motion anima su translateY): lleva SU PROPIO fondo (la "tarjeta" que
-   llena el 100% del interior), así el oscurecido entra deslizándose con el candado. Centra el contenido. */
-.padlock-slide{ position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;
-  background:rgba(0,0,0,.9);will-change:transform }
+/* CANDADO principal (números). El overlay (.lock-overlay), el marco deslizante (.lockpanel) y los botones
+   (.lock-actions / .lock-exit) son COMPARTIDOS y viven en locks.css; aquí solo el interior: cuerpo del candado
+   (SVG) arriba, ruedas de la combinación en medio, mensaje CORRECTO/INCORRECTO superpuesto. */
 
 /* cuerpo del candado (SVG) */
 .padlock-svg{ width:44%;max-width:210px;height:auto;display:block;overflow:visible }
@@ -45,10 +36,3 @@
 .padlock-tried{ position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;pointer-events:none;color:#fff }
 .padlock-tried-cell{ width:52px;text-align:center;line-height:1;font-size:40px;color:inherit;text-shadow:none;
   font-family:'Pixelated Times New Roman','Determination Mono',serif }   /* color:inherit → se tiñe con el candado (paint) */
-
-/* botones Win98 (98.css) del candado: bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination
-   Mono. En columna, debajo. Motion los baja + desvanece durante el intento. */
-.padlock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
-.padlock-actions button,.padlock-exit button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }
-/* botón "Salir" (tras CORRECTO): abajo del todo, absoluto para no descolocar el mensaje/combinación que persisten */
-.padlock-exit{ position:absolute;left:0;right:0;bottom:8%;display:flex;justify-content:center }

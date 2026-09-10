@@ -7,7 +7,6 @@ import { useTerminalAudio } from "./useTerminalAudio";
 import { SCREENS, type ScreenId } from "./screens";
 import type { ScreenHandle, LockConfig } from "./screens/types";
 import Padlock from "./locks/Padlock";
-import PadlockLetters from "./locks/PadlockLetters";
 import GeometryLock from "./locks/GeometryLock";
 
 // Warp CRT (abombado 3D via filtro SVG).
@@ -215,32 +214,12 @@ export default function Computer() {
               proceso que la "X" (oscurecer + pausa). Va ANTES de los diálogos de X/Información para que estos
               (mismo z2) pinten POR ENCIMA del candado. Clic en el backdrop (fuera del candado) = cerrar. */}
           {lock && (
-            <div className="lock-overlay" onPointerDown={(e) => { if (e.target === e.currentTarget) setLock(null); }}>
+            <div className="lock-overlay">
               {lock.kind === "geometry" ? (
-                <GeometryLock
-                  combo={lock.combo}
-                  playSfx={playSfx}
-                  onSolved={() => { lock.onSolved(); setLock(null); }}
-                  onClose={() => setLock(null)}
-                />
+                <GeometryLock combo={lock.combo} playSfx={playSfx} onSolved={() => { lock.onSolved(); setLock(null); }} onClose={() => setLock(null)} />
               ) : (
-                <div className="padlock-stage">
-                  {lock.kind === "letters" ? (
-                    <PadlockLetters
-                      combo={lock.combo}
-                      playSfx={playSfx}
-                      onSolved={() => { lock.onSolved(); setLock(null); }}
-                      onClose={() => setLock(null)}
-                    />
-                  ) : (
-                    <Padlock
-                      combo={lock.combo}
-                      playSfx={playSfx}
-                      onSolved={() => { lock.onSolved(); setLock(null); }}
-                      onClose={() => setLock(null)}
-                    />
-                  )}
-                </div>
+                // números y letras = el MISMO componente Padlock; `kind` elige símbolos, curvatura y clases CSS
+                <Padlock kind={lock.kind === "letters" ? "letters" : "number"} combo={lock.combo} playSfx={playSfx} onSolved={() => { lock.onSolved(); setLock(null); }} onClose={() => setLock(null)} />
               )}
             </div>
           )}

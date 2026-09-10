@@ -1,10 +1,20 @@
-// CANDADO PRINCIPAL. Cuerpo del candado en SVG (animado con Motion: intro, resultado correcto/incorrecto con
-// shake, respuesta). Las RUEDAS de la combinación son dials cilindro 3D PROPIOS: se arrastran en vertical y los
-// números RUEDAN (cada número es un elemento estable keyeado por índice absoluto, entra/sale por los bordes; no
-// "muta" en el sitio). Botones Resolver/Cancelar Win98 (98.css). Al acertar: onSolved (resolver + cerrar overlay).
+// CANDADO de RUEDAS (números o letras): UN solo componente para ambos. `kind` elige el juego de símbolos, la
+// curvatura del cilindro (ITEM_ANGLE) y el prefijo de clases CSS (padlock-* para números, letterlock-* para letras).
+// El cuerpo del candado (SVG) se anima con Motion (intro, resultado correcto/incorrecto con shake, respuesta). Las
+// RUEDAS son dials cilindro 3D PROPIOS: se arrastran en vertical y los símbolos RUEDAN (cada uno es un elemento
+// estable keyeado por índice absoluto, entra/sale por los bordes; no "muta" en el sitio). Al acertar: onSolved.
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { animate } from "motion";
+import LockPanel, { type LockPanelHandle } from "./LockPanel";
+
+export type LockKind = "number" | "letters";
+
+// Alfabeto español en MAYÚSCULAS (27 letras, Ñ tras la N). El candado de letras usa índices 0..26 sobre esto.
+export const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+// Convierte una palabra ("HELLO") en la combinación de índices para el candado de letras.
+export const wordToCombo = (w: string): number[] =>
+  w.toUpperCase().split("").map((c) => { const i = ALPHABET.indexOf(c); return i < 0 ? 0 : i; });
 
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 // Eases CLAVADOS del original (GSAP): Power2.easeInOut = cúbica in-out; Power1.easeOut (default de GSAP) = quad out;
@@ -19,20 +29,34 @@ const TRIED_HOLD_MS = 1500; // lo que la COMBINACIÓN aguanta antes del fade-out
 const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" (antes que el aguante del mensaje)
 const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
-const ROW = 28; // alto/separación de cada número de la rueda (px); DEBE coincidir con .padlock-num en padlock.css
-const ITEM_ANGLE = 40; // grados que gira el cilindro por número (a más grados, más curvado)
-const RADIUS = Math.round((ROW / 2) / Math.tan((ITEM_ANGLE / 2) * Math.PI / 180)); // radio del cilindro (px)
+const ROW = 28; // alto/separación de cada símbolo de la rueda (px); DEBE coincidir con .{prefix}-num en su CSS
 const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro no da la vuelta ni se solapa)
 
-// Una RUEDA (dial) cilindro 3D. Se arrastra en vertical: los números ruedan (keyeados por índice absoluto j, así
-// entran/salen por los bordes en vez de mutar). Snap al soltar, con wrap 0..9. Arrastrar hacia abajo = anterior.
-function Dial({ value, disabled, onChange, tick }: { value: number; disabled: boolean; onChange: (v: number) => void; tick: () => void }) {
+// Config por TIPO de candado: qué símbolos ruedan, cuánto se curva el cilindro (a más ángulo, más cerrado) y qué
+// prefijo de clases usa (padlock-*/letterlock-*, cada uno con su hoja CSS). radius sale de ITEM_ANGLE + ROW.
+type DialCfg = { symbols: string[]; itemAngle: number; radius: number; prefix: string };
+const radiusFor = (angle: number) => Math.round((ROW / 2) / Math.tan((angle / 2) * Math.PI / 180)); // radio del cilindro (px)
+const CFG: Record<LockKind, DialCfg> = {
+  number: { symbols: "0123456789".split(""), itemAngle: 40, radius: radiusFor(40), prefix: "padlock" },   // 40°: cilindro más cerrado
+  letters: { symbols: ALPHABET, itemAngle: 32, radius: radiusFor(32), prefix: "letterlock" },             // 32°: más abierto → se ven más letras
+};
+// valor inicial de cada rueda: números arrancan a 0 (p.ej. 0000); letras a A, B, C, D... (índices crecientes, no "AAAAA")
+const initialDigits = (kind: LockKind, combo: number[]) =>
+  kind === "letters" ? combo.map((_, i) => i % ALPHABET.length) : combo.map(() => 0);
+
+// Una RUEDA (dial) cilindro 3D. Se arrastra en vertical: los símbolos ruedan (keyeados por índice absoluto j, así
+// entran/salen por los bordes en vez de mutar). Snap al soltar, con wrap 0..N-1. Arrastrar hacia abajo = anterior.
+function Dial({ value, disabled, onChange, tick, cfg }: { value: number; disabled: boolean; onChange: (v: number) => void; tick: () => void; cfg: DialCfg }) {
+  const N = cfg.symbols.length;
   const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
   const [anim, setAnim] = useState(false); // transición al soltar (snap)
   const startY = useRef(0);
   const active = useRef(false);
   const settling = useRef(false); // en el snap post-soltar: ignora nuevos arrastres
-  const lastC = useRef(value); // último número en el centro (para el "tick" al cruzar cada número)
+  const lastC = useRef(value); // último símbolo en el centro (para el "tick" al cruzar cada uno)
+  const timer = useRef<number | null>(null); // timeout del snap: se cancela al desmontar (evita setState en desmontado)
+
+  useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
 
   const onDown = (e: ReactPointerEvent) => {
     if (disabled || settling.current) return;
@@ -45,20 +69,21 @@ function Dial({ value, disabled, onChange, tick }: { value: number; disabled: bo
   const onMove = (e: ReactPointerEvent) => {
     if (!active.current) return;
     const nd = e.clientY - startY.current;
-    const nc = Math.round(value - nd / ROW); // número que pasa por el centro ahora
-    if (nc !== lastC.current) { lastC.current = nc; tick(); } // "tick" en cada paso (cruce de número)
+    const nc = Math.round(value - nd / ROW); // símbolo que pasa por el centro ahora
+    if (nc !== lastC.current) { lastC.current = nc; tick(); } // "tick" en cada paso (cruce de símbolo)
     setDrag(nd);
   };
   const finish = () => {
     if (!active.current) return;
     active.current = false;
-    const steps = Math.round(drag / ROW); // nº de números movidos (sin límite: scroll largo válido)
+    const steps = Math.round(drag / ROW); // nº de símbolos movidos (sin límite: scroll largo válido)
     if (steps === 0) { setAnim(true); setDrag(0); return; } // no llega: vuelve al centro
     settling.current = true;
     setAnim(true);
-    setDrag(steps * ROW); // rueda hasta encajar en el número destino (solo anima la fracción)
-    window.setTimeout(() => {
-      onChange(((value - steps) % 10 + 10) % 10); // arrastrar hacia abajo (steps>0) = número anterior
+    setDrag(steps * ROW); // rueda hasta encajar en el símbolo destino (solo anima la fracción)
+    timer.current = window.setTimeout(() => {
+      timer.current = null;
+      onChange(((value - steps) % N + N) % N); // arrastrar hacia abajo (steps>0) = símbolo anterior (wrap N)
       setAnim(false);
       setDrag(0); // el re-render ya centra el nuevo valor: sin salto visual
       settling.current = false;
@@ -68,15 +93,15 @@ function Dial({ value, disabled, onChange, tick }: { value: number; disabled: bo
   const posJ = value - drag / ROW;   // posición continua del centro, en índice (drag abajo = índice menor = anterior)
   const c = Math.round(posJ);        // índice central actual
   return (
-    <div className="padlock-dial" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
-      <div className="padlock-cylinder">
+    <div className={cfg.prefix + "-dial"} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>
+      <div className={cfg.prefix + "-cylinder"}>
         {Array.from({ length: RENDER * 2 + 1 }, (_, i) => c - RENDER + i).map((j) => {
-          const angle = -(j - posJ) * ITEM_ANGLE; // ángulo del número j en el cilindro (fracción incluida)
+          const angle = -(j - posJ) * cfg.itemAngle; // ángulo del símbolo j en el cilindro (fracción incluida)
           const opacity = Math.max(0, Math.cos((angle * Math.PI) / 180)); // los que giran hacia atrás se desvanecen
           return (
-            <div className="padlock-num" key={j}
-              style={{ transform: `rotateX(${angle}deg) translateZ(${RADIUS}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
-              {((j % 10) + 10) % 10}
+            <div className={cfg.prefix + "-num"} key={j}
+              style={{ transform: `rotateX(${angle}deg) translateZ(${cfg.radius}px)`, opacity, transition: anim ? "transform .19s ease-out, opacity .19s ease-out" : "none" }}>
+              {cfg.symbols[((j % N) + N) % N]}
             </div>
           );
         })}
@@ -86,15 +111,18 @@ function Dial({ value, disabled, onChange, tick }: { value: number; disabled: bo
 }
 
 export type PadlockProps = {
-  combo: number[]; // combinación correcta (un dígito 0..9 por rueda)
+  combo: number[]; // combinación correcta (un índice por rueda: número 0..9 o letra 0..26)
+  kind?: LockKind; // tipo de candado: "number" (default) o "letters"
   playSfx: (src: string, vol?: number) => void; // SFX del armazón (para el "tick" de cada paso del dial)
   onSolved: () => void; // combo correcto: el candado se abre → resolver el puzzle + cerrar el overlay
-  onClose: () => void; // cancelar (backdrop / botón Cancelar): cerrar sin resolver
+  onClose: () => void; // cancelar (botón Cancelar): cerrar sin resolver
 };
 
-export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockProps) {
+export default function Padlock({ combo, kind = "number", playSfx, onSolved, onClose }: PadlockProps) {
+  const cfg = CFG[kind];
+  const p = cfg.prefix; // prefijo de clases CSS del tipo activo (padlock-* / letterlock-*)
   const tick = () => playSfx("/audio/tick.mp3", 1); // clic mecánico en cada paso del dial (volumen 100%)
-  const [digits, setDigits] = useState<number[]>(() => combo.map(() => 0)); // ruedas (empiezan a 0)
+  const [digits, setDigits] = useState<number[]>(() => initialDigits(kind, combo)); // ruedas (0000 / ABCDE...)
   const [busy, setBusy] = useState(false); // hay animación en curso: bloquea ruedas y "Resolver"
   const [response, setResponse] = useState(""); // texto "CORRECTO"/"INCORRECTO"
   const [exit, setExit] = useState(false); // tras CORRECTO: aparece el botón "Salir"
@@ -107,20 +135,10 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   const triedRef = useRef<HTMLDivElement>(null); // combinación probada (persiste y desaparece IGUAL que el mensaje)
   const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras CORRECTO)
   const dialRefs = useRef<(HTMLDivElement | null)[]>([]); // cada rueda (baja + opacity, en stagger)
-  const slideRef = useRef<HTMLDivElement>(null); // wrapper que sube deslizándose al aparecer
-  const closing = useRef(false); // ya se está deslizando hacia fuera (evita cerrar dos veces)
+  const panelRef = useRef<LockPanelHandle>(null); // marco compartido (LockPanel): entra/sale deslizando; expone close(cb)
   const killed = useRef(false); // el componente se desmontó: cortar los awaits pendientes
 
   useEffect(() => () => { killed.current = true; }, []);
-
-  // al APARECER (pulsar Resolver): la placa entra deslizándose desde abajo (de fuera del viewport hasta su sitio),
-  // sin opacidad, con spring bounce 0. Empieza en translateY(100vh) (inline) para no parpadear el primer frame.
-  useEffect(() => {
-    if (slideRef.current) {
-      playSfx("/audio/paper-slide.mp3", 1); // sonido del deslizamiento del candado al aparecer
-      animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
-    }
-  }, []);
 
   // la combinación probada aparece con FADE-IN (0→1) al empezar el intento (no de golpe)
   useEffect(() => {
@@ -141,7 +159,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     const c = `hsl(${hue},50%,${L}%)`;
     if (boxRef.current) boxRef.current.style.fill = c;
     if (barRef.current) barRef.current.style.stroke = c;
-    if (triedRef.current) triedRef.current.style.color = c; // los números de la combinación se colorean con el candado
+    if (triedRef.current) triedRef.current.style.color = c; // los símbolos de la combinación se colorean con el candado
   };
 
   // ---- fases de la animación (timeline CLAVADA del original GSAP) ----
@@ -174,7 +192,7 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     if (killed.current) return;
     setResponse(msg);
     if (responseRef.current) responseRef.current.style.color = color;
-    await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished; // entra solo el mensaje (los dígitos ya están y persisten)
+    await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished; // entra solo el mensaje (los símbolos ya están y persisten)
     // la COMBINACIÓN se va a los 1,5s (solo fade, sin subir); el MENSAJE también a 1,5s (sube 30 + fade)
     const triedExit = triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT, delay: TRIED_HOLD_MS / 1000 }).finished : Promise.resolve();
     await wait(HOLD_MS);
@@ -192,17 +210,6 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
     ]);
     animate(actionsRef.current!, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT });
     await Promise.all(dials().map((el, i) => animate(el, { y: 0, opacity: 1 }, { duration: 0.5, ease: E_OUT, delay: 0.25 + i * 0.1 }).finished));
-  };
-
-  // salir: animación INVERSA a la de aparecer (la placa se desliza de 0 hacia abajo, fuera del viewport) y al
-  // terminar ejecuta el cierre (onSolved / onClose). Mismo sonido y mismo spring que al aparecer.
-  const slideOut = (cb: () => void) => {
-    if (closing.current) return;
-    closing.current = true;
-    playSfx("/audio/paper-slide.mp3", 1);
-    const el = slideRef.current;
-    if (el) animate(el, { y: [0, window.innerHeight] }, { type: "spring", bounce: 0, visualDuration: 0.55 }).finished.then(cb);
-    else cb();
   };
 
   const onUnlock = async () => {
@@ -233,11 +240,11 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
   };
 
   return (
-    <div className="padlock-slide" ref={slideRef} style={{ transform: "translateY(100vh)" }}>
+    <LockPanel ref={panelRef} playSfx={playSfx}>
       {/* cuerpo del candado (SVG): wrapper con la posición base + inner que anima Motion desde 0 */}
-      <svg className="padlock-svg" viewBox="160 120 180 190" width="100%" height="100%">
+      <svg className={`${p}-svg`} viewBox="160 120 180 190" width="100%" height="100%">
         <g transform="translate(250,250)">
-          <g ref={bodyRef} className="padlock-body">
+          <g ref={bodyRef} className={`${p}-body`}>
             <rect ref={boxRef} x={-60} y={-45} width={120} height={90} rx={5} fill={RESTING} />
             <path ref={barRef} d="M-35 -45 v-40 c 0 -40, 70 -40, 70,0 v80" strokeWidth={15} strokeLinecap="round" fill="none" stroke={RESTING} />
           </g>
@@ -245,38 +252,38 @@ export default function Padlock({ combo, playSfx, onSolved, onClose }: PadlockPr
       </svg>
 
       {/* ruedas de la combinación (dials 3D propios) + el mensaje de respuesta superpuesto en su banda */}
-      <div className="padlock-dials-wrap">
-        <div className="padlock-dials">
+      <div className={`${p}-dials-wrap`}>
+        <div className={`${p}-dials`}>
           {digits.map((d, i) => (
-            <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className="padlock-slot">
-              <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} tick={tick} />
+            <div key={i} ref={(el) => { dialRefs.current[i] = el; }} className={`${p}-slot`}>
+              <Dial value={d} disabled={busy} onChange={(v) => setDigit(i, v)} tick={tick} cfg={cfg} />
             </div>
           ))}
         </div>
-        <div className="padlock-response-wrap">
-          <span className="padlock-response" ref={responseRef}>{response}</span>
+        <div className={`${p}-response-wrap`}>
+          <span className={`${p}-response`} ref={responseRef}>{response}</span>
         </div>
-        {/* combinación probada: cada dígito en el pixel EXACTO donde su dial lo mostraba (misma fila/celda/gap).
+        {/* combinación probada: cada símbolo en el pixel EXACTO donde su dial lo mostraba (misma fila/celda/gap).
             Se ve mientras se resuelve (aunque las ruedas caigan) y se oculta al aparecer el mensaje. */}
         {busy && (
-          <div className="padlock-tried" ref={triedRef} style={{ opacity: 0 }}>
-            {digits.map((d, i) => <span key={i} className="padlock-tried-cell">{d}</span>)}
+          <div className={`${p}-tried`} ref={triedRef} style={{ opacity: 0 }}>
+            {digits.map((d, i) => <span key={i} className={`${p}-tried-cell`}>{cfg.symbols[d]}</span>)}
           </div>
         )}
       </div>
 
       {/* botones Win98 (98.css): bisel real, transparentes, sin icono. Bajan + fade en el intento. */}
-      <div className="padlock-actions win98" ref={actionsRef}>
+      <div className="lock-actions win98" ref={actionsRef}>
         <button type="button" onClick={onUnlock}>Resolver</button>
-        <button type="button" onClick={() => { if (!busy) slideOut(onClose); }}>Cancelar</button>
+        <button type="button" onClick={() => { if (!busy) panelRef.current?.close(onClose); }}>Cancelar</button>
       </div>
 
       {/* tras CORRECTO: botón "Salir" (aparece con fade-in; CORRECTO + combinación persisten arriba) */}
       {exit && (
-        <div className="padlock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={() => slideOut(onSolved)}>Salir</button>
+        <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
+          <button type="button" onClick={() => panelRef.current?.close(onSolved)}>Salir</button>
         </div>
       )}
-    </div>
+    </LockPanel>
   );
 }

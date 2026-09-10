@@ -1,21 +1,25 @@
 // CANDADO DE FIGURAS (geometrylock, especial #1). Carrusel HORIZONTAL por posición (arrastre + snap + wrap, misma
-// técnica que el dial vertical; SIN dependencias). Cada rueda cicla 6 FORMAS; la centrada es la seleccionada. La
+// técnica que el dial vertical; SIN dependencias). Cada rueda cicla los SÍMBOLOS; el centrado es el seleccionado. La
 // pantalla muestra la combinación (mini-formas) + LOCKED/UNLOCKED. Al coincidir con `combo` (índices de forma) → resuelve.
 // Clases namespaced (geolock-*) en geometrylock.css. Sonido de "select" con nuestro playSfx.
 import { useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { animate } from "motion";
+import LockPanel, { type LockPanelHandle } from "./LockPanel";
 
-// Las 6 formas (índices 0..5). Cambiar aquí el set o el orden es trivial (solo SVG). fill vía CSS.
-export const SHAPES: { name: string; el: React.ReactNode }[] = [
-  { name: "triángulo", el: <polygon points="12,3 21,20 3,20" /> },
-  { name: "círculo", el: <circle cx="12" cy="12" r="9" /> },
-  { name: "cuadrado", el: <rect x="4" y="4" width="16" height="16" rx="1" /> },
-  { name: "rombo", el: <polygon points="12,2 21,12 12,22 3,12" /> },
-  { name: "luna", el: <path d="M16 3 A9 9 0 1 0 16 21 A7 7 0 1 1 16 3 Z" /> },
-  { name: "estrella", el: <polygon points="12,2 14.6,8.8 22,9.2 16.3,13.8 18.2,21 12,16.9 5.8,21 7.7,13.8 2,9.2 9.4,8.8" /> },
+// Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape). El último
+// es un HUECO (el: null): un botón vacío que significa "espacio". Cambiar el set o el orden es trivial (solo SVG).
+export const SHAPES: { name: string; el: ReactNode }[] = [
+  { name: "ancla", el: <path d="M13 3h2v4h8v4h-2v2h-2v3h2v6h-5v-2h-2v-2h-4v2H8v2H3v-6h2v-3H3v-2H1V7h8V3h2V1h2v2Z" /> },
+  { name: "luna", el: <path d="M14 4h-2v2h-2v6h2v2h6v-2h2v-2h2v8h-2v2h-2v2H8v-2H6v-2H4v-2H2V6h2V4h2V2h8v2Z" /> },
+  { name: "estrella", el: <path d="M13 9h2v2h7v2h-7v2h-2v7h-2v-7H9v-2H2v-2h7V9h2V2h2v7Zm-4 8H7v-2h2v2Zm8 0h-2v-2h2v2Zm-6-4h2v-2h-2v2ZM9 9H7V7h2v2Zm8 0h-2V7h2v2Z" /> },
+  { name: "triángulo", el: <path d="M13 4h2v4h2v4h2v4h2v6H3v-6h2v-4h2V8h2V4h2V2h2v2Z" /> },
+  { name: "corona", el: <path d="M18 4h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V6h2V4h2V2h12v2ZM8 7v2h2v8h2V9h2v6h2V9h2V7H8Zm8 8v2h2v-2h-2ZM6 9v2h2V9H6Z" /> },
+  { name: "sol", el: <path d="M13 22h-2v-3h2v3Zm-6-3H5v-2h2v2Zm12 0h-2v-2h2v2ZM15 9h2v6h-2v2H9v-2H7V9h2V7h6v2ZM5 13H2v-2h3v2Zm17 0h-3v-2h3v2ZM7 7H5V5h2v2Zm12 0h-2V5h2v2Zm-6-2h-2V2h2v3Z" /> },
+  { name: "cuadrado", el: <path d="M22 22H2V2h20v20Z" /> },
+  { name: "espacio", el: null }, // hueco: no dibuja nada; significa "espacio" en la combinación
 ];
-const N = SHAPES.length; // 6
+const N = SHAPES.length; // 8 (7 figuras + el hueco)
 const shapeAt = (i: number) => SHAPES[((i % N) + N) % N].el; // forma en el índice (con wrap)
 
 const CELL_W = 70; // ancho de celda (px); DEBE coincidir con .geolock-cell en geometrylock.css
@@ -29,6 +33,9 @@ function Row({ value, onChange, tick }: { value: number; onChange: (v: number) =
   const active = useRef(false);
   const settling = useRef(false);
   const lastC = useRef(value);
+  const timer = useRef<number | null>(null); // timeout del snap: se cancela al desmontar (evita setState en desmontado)
+
+  useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
 
   const onDown = (e: ReactPointerEvent) => {
     if (settling.current) return;
@@ -53,7 +60,8 @@ function Row({ value, onChange, tick }: { value: number; onChange: (v: number) =
     settling.current = true;
     setAnim(true);
     setDrag(steps * CELL_W);
-    window.setTimeout(() => {
+    timer.current = window.setTimeout(() => {
+      timer.current = null;
       onChange(((value - steps) % N + N) % N); // arrastrar a la derecha (steps>0) = forma anterior
       setAnim(false);
       setDrag(0);
@@ -89,55 +97,33 @@ function Row({ value, onChange, tick }: { value: number; onChange: (v: number) =
 }
 
 export type GeometryLockProps = {
-  combo: number[]; // combinación correcta (un índice de forma 0..5 por fila); la longitud = nº de filas
+  combo: number[]; // combinación correcta (un índice de forma 0..N-1 por fila); la longitud = nº de filas
   playSfx: (src: string, vol?: number) => void;
   onSolved: () => void; // combinación correcta → resolver el puzzle + cerrar
-  onClose: () => void; // (sin uso todavía; se añadirá al estilarlo)
+  onClose: () => void; // cancelar (botón Cancelar): cerrar sin resolver
 };
 
 export default function GeometryLock({ combo, playSfx, onSolved, onClose }: GeometryLockProps) {
   const [values, setValues] = useState<number[]>(() => combo.map(() => 0));
-  const [verified, setVerified] = useState(false);
   const key = values.join("-"); // clave para comparar (índices)
   const target = combo.join("-");
+  const verified = key === target; // estado UNLOCKED/LOCKED derivado en vivo (sin estado ni efecto: se recalcula solo)
   const tick = () => playSfx("/audio/mouse-click.mp3", 0.5);
 
-  // MARCO compartido con el resto de candados (mismo patrón): panel que sube + paper-slide + botones + slide-out.
-  const slideRef = useRef<HTMLDivElement>(null);
+  // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
-  const closing = useRef(false);
+  const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
   const EASE_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
   const setVal = (i: number, v: number) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)));
 
-  useEffect(() => { setVerified(key === target); }, [key, target]); // el estado UNLOCKED/LOCKED es en vivo
-
-  // al aparecer: la placa entra deslizándose desde abajo (+ paper-slide), como el resto de candados
-  useEffect(() => {
-    if (slideRef.current) {
-      playSfx("/audio/paper-slide.mp3", 1);
-      animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // salir: animación inversa (baja) + paper-slide, y al terminar ejecuta el cierre
-  const slideOut = (cb: () => void) => {
-    if (closing.current) return;
-    closing.current = true;
-    playSfx("/audio/paper-slide.mp3", 1);
-    const el = slideRef.current;
-    if (el) animate(el, { y: [0, window.innerHeight] }, { type: "spring", bounce: 0, visualDuration: 0.55 }).finished.then(cb);
-    else cb();
-  };
   const onResolve = () => {
-    if (closing.current) return;
-    if (key === target) slideOut(onSolved); // correcto → resolver + cerrar
+    if (key === target) panelRef.current?.close(onSolved); // correcto → resolver + cerrar
     else if (geoRef.current) animate(geoRef.current, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, ease: EASE_OUT }); // incorrecto → shake
   };
 
   return (
-    <div className="geolock-slide" ref={slideRef} style={{ transform: "translateY(100vh)" }}>
+    <LockPanel ref={panelRef} playSfx={playSfx}>
       <div className={"geolock" + (verified ? " verified" : "")} ref={geoRef}>
         <div className="geolock-lock">
           <div className="geolock-screen">
@@ -158,10 +144,10 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       </div>
 
       {/* botones Win98 (mismo marco que el resto de candados) */}
-      <div className="geolock-actions win98">
+      <div className="lock-actions win98">
         <button type="button" onClick={onResolve}>Resolver</button>
-        <button type="button" onClick={() => slideOut(onClose)}>Cancelar</button>
+        <button type="button" onClick={() => panelRef.current?.close(onClose)}>Cancelar</button>
       </div>
-    </div>
+    </LockPanel>
   );
 }

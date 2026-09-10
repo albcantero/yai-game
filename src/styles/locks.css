@@ -1,0 +1,17 @@
+/* Estilos COMPARTIDOS por todos los candados: el overlay que los centra, el MARCO (panel) y los botones. El
+   interior de cada candado (dials, ruedas, formas, mensajes) vive en su hoja (padlock/letterlock/geometrylock.css). */
+
+/* overlay dentro de .crt-body (bajo el header, encima del contenido): centra el candado y capta el clic en el
+   backdrop (cerrar, lo gestiona Computer). El fondo oscuro lo lleva el propio panel (.lockpanel) y sube con él. */
+.lock-overlay{ position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center }
+
+/* marco: panel que llena la pantalla interna, centra el contenido y sube/baja deslizándose (Motion anima su y) */
+.lockpanel{ position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;
+  background:rgba(0,0,0,.9);will-change:transform }
+
+/* botones Win98 (98.css): bisel real, FONDO TRANSPARENTE, sin icono, texto blanco en Determination Mono */
+.lock-actions{ display:flex;flex-direction:column;align-items:center;gap:8px }
+.lock-actions button,.lock-exit button{ background:transparent;color:#fff;font-family:'Determination Mono','Determination Sans',monospace;font-size:17px;min-width:160px;padding:8px 16px }
+
+/* botón "Salir" (aparece tras resolver): abajo del todo, absoluto para no descolocar el contenido */
+.lock-exit{ position:absolute;left:0;right:0;bottom:8%;display:flex;justify-content:center }
