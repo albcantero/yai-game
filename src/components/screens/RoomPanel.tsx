@@ -50,15 +50,11 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
         </div>
         <div className="window-body minimap-panel-body">
             <menu role="tablist">
-              {TABS.map((t, i) => {
-                const tabDisabled = i === 1 && !isCurrent; // "Llaves" solo si el grupo está en la sala
-                return (
-                  <li key={t} role="tab" aria-selected={tab === i} aria-disabled={tabDisabled || undefined}
-                    data-disabled={tabDisabled || undefined} onClick={() => { if (!tabDisabled) onTab(i); }}>
-                    <a href="#" onClick={(e) => e.preventDefault()}>{t}</a>
-                  </li>
-                );
-              })}
+              {TABS.map((t, i) => (
+                <li key={t} role="tab" aria-selected={tab === i} onClick={() => onTab(i)}>
+                  <a href="#" onClick={(e) => e.preventDefault()}>{t}</a>
+                </li>
+              ))}
             </menu>
             <div className="window" role="tabpanel">
               <div className="window-body">
@@ -95,9 +91,14 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
           <div className="minimap-panel-aside">
             {tab === 1 && (
               <div className="aside-actions">
-                <button type="button" onClick={resolveSelected} disabled={puzzleSolved || puzzleOptions.length === 0}>Resolver</button>
-                <button type="button">Leer</button>
+                {/* "Resolver"/"Leer" desactivados si el grupo NO está en la sala (antes se desactivaba la pestaña entera) */}
+                <button type="button" onClick={resolveSelected} disabled={!isCurrent || puzzleSolved || puzzleOptions.length === 0}>Resolver</button>
+                <button type="button" disabled={!isCurrent}>Leer</button>
               </div>
+            )}
+            {/* en "Información", si estás lejos: aviso rojo en el mismo hueco que los botones de "Llaves" */}
+            {tab === 0 && !isCurrent && (
+              <p className="aside-note">¡Estás muy lejos para resolver un puzzle!</p>
             )}
             {bigIcon && <img src={bigIcon} alt="" />}
           </div>
