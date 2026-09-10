@@ -54,8 +54,8 @@
 .rotary.solved .rotary-num{ border-color:#3c3;color:#3c3;box-shadow:none }   /* verde al resolver */
 
 /* carets pixelados para avanzar/retroceder de hueco (< [] [] [] [] >) */
-.rotary-caret{ background:transparent;border:none;padding:0;width:30px;height:30px;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center }
-.rotary-caret svg{ width:22px;height:22px;display:block }
+.rotary-caret{ background:transparent;border:none;padding:0;width:42px;height:42px;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center }
+.rotary-caret svg{ width:32px;height:32px;display:block }
 .rotary-caret.prev svg{ transform:scaleX(-1) }   /* el mismo caret, espejado, apunta a la izquierda */
 .rotary-caret:disabled{ opacity:.4;cursor:default }
 

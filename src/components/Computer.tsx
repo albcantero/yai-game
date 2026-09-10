@@ -137,6 +137,7 @@ export default function Computer() {
   const screenClick = (e: ReactPointerEvent) => {
     const t = e.target as Element | null;
     if (!t || !t.closest) return;
+    if (t.closest("[data-no-click-sfx]")) return; // elementos con su propio SFX (p. ej. los carets del rotatorio): no el click genérico
     if (t.closest('button, [role="tab"], select, .crt-select-trigger') || getComputedStyle(t).cursor === "pointer") {
       playSfx("/audio/mouse-click.mp3", 0.5); // al 50%: a volumen completo sonaba demasiado fuerte
     }

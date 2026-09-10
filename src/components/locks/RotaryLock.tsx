@@ -112,6 +112,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     const cur = activeIdxRef.current;
     const ni = Math.max(0, Math.min(nums.length - 1, cur + dir));
     if (ni === cur) return;
+    playSfx("/audio/lock-button-1.mp3", 0.6); // sonido mecánico del caret (no el click genérico del ratón)
     const next = [...storedRef.current];
     next[cur] = numberAtArrow(rotRef.current); // fija lo marcado en el hueco que abandonamos
     storedRef.current = next;
@@ -183,7 +184,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
         </div>
         {/* combinación como OTP-input: hueco activo con ring; carets < > para moverse entre huecos */}
         <div className="rotary-combo">
-          <button type="button" className="rotary-caret prev" onClick={() => move(-1)} disabled={open || shaking || active === 0} aria-label="Hueco anterior">
+          <button type="button" className="rotary-caret prev" data-no-click-sfx onClick={() => move(-1)} disabled={open || shaking || active === 0} aria-label="Hueco anterior">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={CARET} /></svg>
           </button>
           {nums.map((_, i) => (
@@ -191,7 +192,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
               {i === active ? dispNum : stored[i]}
             </span>
           ))}
-          <button type="button" className="rotary-caret next" onClick={() => move(1)} disabled={open || shaking || active === nums.length - 1} aria-label="Hueco siguiente">
+          <button type="button" className="rotary-caret next" data-no-click-sfx onClick={() => move(1)} disabled={open || shaking || active === nums.length - 1} aria-label="Hueco siguiente">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={CARET} /></svg>
           </button>
         </div>
