@@ -50,7 +50,7 @@
 .rotary-num{ box-sizing:border-box;width:50px;height:60px;border:2px solid #fff;border-radius:6px;background:rgba(255,255,255,.04);
   display:inline-flex;align-items:center;justify-content:center;color:#fff;text-shadow:none;line-height:1;opacity:.65;
   font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:40px }   /* huecos inactivos atenuados: número + borde al 65% */
-.rotary-num.active{ opacity:1;box-shadow:0 0 0 3px rgba(255,0,0,.5) }   /* hueco activo: 100% + ring de foco en rojo al 50% */
+.rotary-num.active{ opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.4) }   /* hueco activo: 100% + ring de foco en blanco al 40% (misma opacidad que el caret disabled) */
 .rotary.solved .rotary-num{ opacity:1;border-color:#3c3;color:#3c3;box-shadow:none }   /* al resolver: verde y a full */
 
 /* carets pixelados para avanzar/retroceder de hueco (< [] [] [] [] >) */
