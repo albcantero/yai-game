@@ -206,7 +206,7 @@ const PUZZLE_GEOMETRY: Record<number, number[]> = {
 };
 // Puzzles con candado ROTATORIO (dial de combinación tipo taquilla): secuencia de números 0..39 a alinear EN ORDEN.
 const PUZZLE_ROTARY: Record<number, number[]> = {
-  3: [20, 5, 30], // Puzzle 3 (Biblioteca privada, 2º): dial rotatorio → alinear 20, 5, 30 en orden
+  3: [0, 5, 0], // Puzzle 3 (Biblioteca privada, 2º): TEMPORAL para debug → 0, 5, 0. Real: [20, 5, 30]
 };
 // config del candado del puzzle roomId#idx según su número global (letras / figuras / rotatorio / números)
 const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" | "rotary" } => {
