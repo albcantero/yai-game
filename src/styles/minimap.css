@@ -94,6 +94,10 @@
 .minimap-panel .crt-select-list li.is-selected,
 .minimap-panel .crt-select-list li:hover{ background:navy;color:#fff }   /* resaltado Win98 */
 .minimap-panel .room-info{ flex:1;min-height:0 }   /* panel de descripción: ocupa el resto */
+/* pager de puzzles (bajo la Descripción): "Atrás" a la izquierda, "Siguiente" a la derecha (margin-left:auto lo empuja
+   al borde aunque "Atrás" no exista, así el único botón de cada extremo cae en su lado) */
+.minimap-panel .room-pager{ flex:none;display:flex;margin-top:8px }
+.minimap-panel .room-pager .next{ margin-left:auto }
 /* pestaña DESACTIVADA (p. ej. "Llaves" cuando no estamos en la sala): texto gris con relieve, no clicable */
 .minimap-panel menu[role="tablist"] > li[data-disabled]{ cursor:default }
 .minimap-panel menu[role="tablist"] > li[data-disabled] > a{ color:grey;text-shadow:1px 1px 0 #fff;cursor:default }

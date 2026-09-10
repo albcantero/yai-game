@@ -85,6 +85,13 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
                     </div>
                     <p className="room-field-label">Descripción:</p>
                     <div className="sunken-panel room-info" />
+                    {/* pager entre puzzles: "Atrás" pegado a la izquierda (si no es el primero), "Siguiente" a la derecha (si no es el último) */}
+                    {puzzleOptions.length > 1 && (
+                      <div className="room-pager">
+                        {idx > 0 && <button type="button" onClick={() => setPuzzleIdx(idx - 1)}>Atrás</button>}
+                        {idx < puzzleOptions.length - 1 && <button type="button" className="next" onClick={() => setPuzzleIdx(idx + 1)}>Siguiente</button>}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
