@@ -101,6 +101,8 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
   const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (caen al acertar, 1:1 con pad/letterlock)
   const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras acertar)
+  const dropTimer = useRef<number | null>(null); // pausa (0,5s) tras el agitado antes de que caigan los botones
+  useEffect(() => () => { if (dropTimer.current !== null) clearTimeout(dropTimer.current); }, []);
   useEffect(() => { if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT }); }, [exit]); // "Salir" con fade-in
 
   // Guard: al girar una fila suenan los engranajes y TODOS los botones quedan disabled (pista visual). Se liberan
@@ -133,8 +135,10 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
         if (!actionsRef.current) return;
         animate(actionsRef.current, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT }).finished.then(() => setExit(true));
       };
-      if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(dropButtons);
-      else dropButtons();
+      // al acabar el agitado, los botones PERMANECEN 0,5s disabled y LUEGO caen + aparece "Salir"
+      const afterShake = () => { dropTimer.current = window.setTimeout(dropButtons, 500); };
+      if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(afterShake);
+      else afterShake();
     } else if (geoRef.current) {
       shakingRef.current = true;
       setShaking(true); // incorrecto: agita + deshabilita Resolver/Cancelar; vuelven al acabar
