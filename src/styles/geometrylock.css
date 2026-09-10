@@ -50,7 +50,7 @@
 .geolock.verified .geolock-shape{ fill:#0f0 }
 
 /* flechas prev/next: rombo (igual que el original de Flickity) */
-.geolock-arrow{ position:absolute;top:0;width:60px;height:50px;border:none;border-radius:0;background:none;cursor:pointer }
+.geolock-arrow{ position:absolute;top:0;width:60px;height:50px;border:none;border-radius:0;background:none;cursor:pointer;transition:opacity .3s ease }   /* opacidad con fundido (disabled durante el sonido) */
 .geolock-prev{ left:-60px }
 .geolock-next{ right:-60px }
 .geolock-arrow::before{ content:'';position:absolute;top:0;bottom:0;left:0;right:0;margin:auto;width:12px;height:12px;z-index:1;opacity:0;
