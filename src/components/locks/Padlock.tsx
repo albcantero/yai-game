@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
-import { E_OUT, SHAKE } from "./lockAnim";
+import { E_OUT, E_INOUT, BTN_OUT, SHAKE } from "./lockAnim";
 import { useCarousel } from "./useCarousel";
 
 export type LockKind = "number" | "letters";
@@ -20,16 +20,14 @@ export const wordToCombo = (w: string): number[] =>
 const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy claro, casi blanco)
 // Eases CLAVADOS del original (GSAP): Power2.easeInOut = cúbica in-out; Power1.easeOut (default de GSAP) = quad out;
 // Power0 = linear; Back.easeOut.config(4) = polinomio con overshoot 4 (no es bezier: va como función de progreso).
-const E_INOUT: [number, number, number, number] = [0.645, 0.045, 0.355, 1]; // Power2.easeInOut
 const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
-// E_OUT (Power1.easeOut) y SHAKE (temblor) son compartidos con GeometryLock: viven en lockAnim.ts
+// E_OUT, E_INOUT, SHAKE y BTN_OUT (compartidos con GeometryLock) viven en lockAnim.ts
 const OK_GREEN = "hsl(120,50%,60%)"; // color del texto "CORRECTO" (mismo verde que el cuerpo del candado)
 const BAD_RED = "hsl(0,50%,60%)"; // color del texto "INCORRECTO" (mismo rojo que el cuerpo del candado)
 const HOLD_MS = 1500; // lo que el MENSAJE (CORRECTO/INCORRECTO) aguanta antes del fade-out
 const TRIED_HOLD_MS = 1500; // lo que la COMBINACIÓN aguanta antes del fade-out
 const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" (antes que el aguante del mensaje)
-const BTN_OUT = 100; // px que cae el botón al salir (proporción del original: botón +100)
-const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón)
+const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón). BTN_OUT (100) en lockAnim
 const ROW = 28; // alto/separación de cada símbolo de la rueda (px); DEBE coincidir con .{prefix}-num en su CSS
 const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro no da la vuelta ni se solapa)
 

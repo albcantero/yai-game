@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
-import { E_OUT, SHAKE } from "./lockAnim";
+import { E_OUT, E_INOUT, BTN_OUT, SHAKE } from "./lockAnim";
 
 // Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape).
 // Cambiar el set o el orden es trivial (solo SVG). Orden y nombres definidos por Alberto.
@@ -94,12 +94,14 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   const [solved, setSolved] = useState(false); // verde "ABIERTO": SOLO tras pulsar Resolver con la combinación correcta
   const [shaking, setShaking] = useState(false); // agitándose por error: deshabilita Resolver/Cancelar hasta que acaba
   const shakingRef = useRef(false);
+  const [exit, setExit] = useState(false); // tras acertar: los botones caen y aparece "Salir"
 
   // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
-  const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
+  const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake)
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
-  const resolveTimer = useRef<number | null>(null); // hold para ver el verde antes de deslizar hacia fuera
-  useEffect(() => () => { if (resolveTimer.current !== null) clearTimeout(resolveTimer.current); }, []);
+  const actionsRef = useRef<HTMLDivElement>(null); // botones Resolver/Cancelar (caen al acertar, 1:1 con pad/letterlock)
+  const exitRef = useRef<HTMLDivElement>(null); // botón "Salir" (aparece tras acertar)
+  useEffect(() => { if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT }); }, [exit]); // "Salir" con fade-in
 
   // Guard: al girar una fila suenan los engranajes y TODOS los botones quedan disabled (pista visual). Se liberan
   // al terminar la ANIMACIÓN del muelle (la fila llama a release en su onComplete), no al acabar el sonido.
@@ -123,10 +125,11 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
     if (busyRef.current || solved || shakingRef.current) return; // sonido en curso, resuelto o agitándose
     if (isCorrect) {
       setSolved(true); // verde: ABIERTO + combinación (fila) + figuras centrales
-      setBusy(true); // deshabilita las flechas de avanzar el dial (pista visual) mientras se resuelve
+      setBusy(true); // las flechas de avanzar el dial quedan (y PERMANECEN) disabled
       busyRef.current = true;
       if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // se agita IGUAL que el incorrecto, pero en verde
-      resolveTimer.current = window.setTimeout(() => panelRef.current?.close(onSolved), 700); // deja ver el verde y desliza
+      // Resolver/Cancelar CAEN (misma animación que pad/letterlock) y al terminar aparece "Salir" (cierra + resuelve)
+      if (actionsRef.current) animate(actionsRef.current, { y: BTN_OUT, opacity: 0 }, { duration: 0.5, ease: E_INOUT }).finished.then(() => setExit(true));
     } else if (geoRef.current) {
       shakingRef.current = true;
       setShaking(true); // incorrecto: agita + deshabilita Resolver/Cancelar; vuelven al acabar
@@ -156,10 +159,17 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       </div>
 
       {/* botones Win98 (mismo marco que el resto de candados). disabled mientras suena (pista visual) */}
-      <div className="lock-actions win98">
+      <div className="lock-actions win98" ref={actionsRef}>
         <button type="button" onClick={onResolve} disabled={busy || shaking}>Resolver</button>
         <button type="button" onClick={() => panelRef.current?.close(onClose)} disabled={busy || shaking}>Cancelar</button>
       </div>
+
+      {/* tras acertar: los botones caen y aparece "Salir" (fade-in), que cierra + resuelve el puzzle */}
+      {exit && (
+        <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
+          <button type="button" onClick={() => panelRef.current?.close(onSolved)}>Salir</button>
+        </div>
+      )}
     </LockPanel>
   );
 }
