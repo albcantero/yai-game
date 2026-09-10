@@ -46,6 +46,7 @@ export default function Win98Select({ options, value, defaultValue, onChange, ar
         aria-haspopup="listbox" aria-expanded={open} aria-disabled={disabled || undefined}
         aria-label={ariaLabel} data-open={open || undefined} data-disabled={disabled || undefined}
         data-no-arrow={hideArrow || undefined}
+        data-no-click-sfx={disabled || undefined}   /* 1 sola opción (deshabilitado): que screenClick NO suene el click del ratón */
         onClick={() => { if (!disabled) setOpen((o) => !o); }}
         onKeyDown={(e) => {
           if (disabled) return;
