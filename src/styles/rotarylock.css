@@ -24,7 +24,7 @@
 .rotary-right{ right:0;height:135px }
 
 /* flecha roja (puntero fijo, arriba del dial) */
-.rotary-arrow{ margin:11.25px auto 3px;border:7.5px solid transparent;border-color:#a00 transparent transparent transparent;transform:translateY(7.5px);height:0;width:0 }
+.rotary-arrow{ position:relative;z-index:2;margin:11.25px auto 3px;border:7.5px solid transparent;border-color:#a00 transparent transparent transparent;transform:translateY(7.5px);height:0;width:0 }   /* z-index:2 > dial (1): el caret se ve por encima del dial ya centrado */
 
 /* dial oscuro con anillo del pomo; gira (transform inline por JS) */
 .rotary-dial{ margin:auto;border-radius:50%;position:absolute;left:0;right:0;bottom:18px;height:144px;width:144px;z-index:1;   /* centrado sobre el cuerpo del candado (era 7.2 en el original) */
@@ -36,28 +36,13 @@
    con el mixin setTick del SCSS); transform-origin y altura según sea mayor o menor. */
 .rotary-tick{ position:absolute;background:#fff;color:#fff;font-size:15px;top:72px;left:70.5px;width:3px;height:9px;transform-origin:50% -63px }
 .rotary-tick.major{ height:18px;transform-origin:50% -54px }
-.rotary-tick span{ display:block;margin:-18px -18px 0 -18px;text-align:center;transform:rotate(180deg) }
+.rotary-tick span{ display:block;margin:-18px -18px 0 -18px;text-align:center;transform:rotate(180deg);font-family:'Pixelated Times New Roman','Determination Mono',serif }
 
 /* combinación (visible; verde al acertar en orden), como el original */
 .rotary-combo{ font-size:22.5px;text-align:center;display:flex;gap:6px }
 .rotary-num{ background:#ccc;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:7.5px;vertical-align:middle }
 .rotary-num.found{ background:#262;color:#fff }
 
-/* ---- Animación de apertura/cierre (1:1 del original: $secs=.5s, $delay=.4s) ---- */
-.rotary-shackle.unlocked{ animation:rotaryMoveUp .2s linear forwards, rotaryMoveUp .2s 2s linear reverse forwards }
-.rotary-left.moveRight{ animation:rotaryMoveRight .5s .4s linear forwards, rotaryMoveRight .5s 1.2s linear reverse forwards }
-.rotary-dent-l.moveLeft,.rotary-dent-r.moveLeft{ animation:rotaryMoveLeft .5s .4s linear forwards, rotaryMoveLeft .5s 1.2s linear reverse forwards }
-.rotary-top.pivot1{ animation:rotaryPivot1 .5s .4s linear forwards, rotaryPivot1 .5s 1.2s linear reverse forwards }
-.rotary-inner.pivot2{ animation:rotaryPivot2a .25s .4s cubic-bezier(.6,.3,.45,1) forwards, rotaryPivot2b .25s .65s cubic-bezier(.2,0,.63,.5) forwards, rotaryPivot2b .25s 1.3s cubic-bezier(.2,0,.63,.5) reverse forwards, rotaryPivot2a .25s 1.45s cubic-bezier(.6,.3,.45,1) reverse forwards }
-
+/* ---- Apertura SIMPLIFICADA: el cierre SOLO se ELEVA y se queda arriba (sin pivotar/girar ni volver a bajar) ---- */
+.rotary-shackle.unlocked{ animation:rotaryMoveUp .45s cubic-bezier(.2,.8,.3,1) forwards }
 @keyframes rotaryMoveUp{ from{ transform:translateY(0) } to{ transform:translateY(-63px) } }
-@keyframes rotaryMoveLeft{ from{ transform:translateX(0) } to{ transform:translateX(30px) } }
-@keyframes rotaryMoveRight{ from{ transform:translateX(0) } to{ transform:translateX(202.5px) } }
-@keyframes rotaryPivot1{
-  from{ transform:scale(1,1);right:0 }
-  50%{ transform:scale(.25,1) rotateY(0);right:0 }
-  50.01%{ transform:scale(.25,1) rotateY(180deg);right:33.75px }
-  to{ transform:scale(1,1) rotateY(180deg);right:33.75px }
-}
-@keyframes rotaryPivot2a{ from{ transform:scale(1,1) } to{ transform:scale(0,1) } }
-@keyframes rotaryPivot2b{ from{ transform:scale(0,1) } to{ transform:scale(1,1) } }

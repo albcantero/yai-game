@@ -80,9 +80,9 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     setFound(nf);
     if (nf === nums.length) {
       openRef.current = true;
-      setOpen(true); // arco: unlocked + pivot1 + pivot2 + moveLeft + moveRight (animación 1:1)
+      setOpen(true); // el cierre se ELEVA y se queda arriba (sin pivotar/girar)
       playSfx("/audio/lock-online-1.mp3", 0.6); // ¡abierto!
-      timerRef.current = window.setTimeout(() => setExit(true), 2400); // tras la animación de apertura, "Salir"
+      timerRef.current = window.setTimeout(() => setExit(true), 1000); // tras elevarse el cierre, aparece "Salir"
     } else {
       playSfx("/audio/lock-button-4.mp3", 0.6); // número correcto (aún no el último)
     }
@@ -94,12 +94,12 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
         <div className="rotary-container">
           <div className="rotary-lock">
             <div className={"rotary-shackle" + (open ? " unlocked" : "")}>
-              <div className={"rotary-top" + (open ? " pivot1" : "")}>
-                <div className={"rotary-inner" + (open ? " pivot2" : "")} />
+              <div className="rotary-top">
+                <div className="rotary-inner" />
               </div>
-              <div className={"rotary-left" + (open ? " moveRight" : "")}>
-                <div className={"rotary-dent-l" + (open ? " moveLeft" : "")} />
-                <div className={"rotary-dent-r" + (open ? " moveLeft" : "")} />
+              <div className="rotary-left">
+                <div className="rotary-dent-l" />
+                <div className="rotary-dent-r" />
               </div>
               <div className="rotary-right" />
             </div>
