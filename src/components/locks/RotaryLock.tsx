@@ -67,9 +67,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     if (!activeRef.current) return;
     activeRef.current = false;
     try { (e.currentTarget as Element).releasePointerCapture(e.pointerId); } catch { /* no capturado */ }
-    const snapped = Math.round(rotRef.current / TICK_ANGLE) * TICK_ANGLE; // encaja en la marca
-    setRotation(snapped);
-    check(snapped);
+    setRotation(Math.round(rotRef.current / TICK_ANGLE) * TICK_ANGLE); // encaja en la marca (la comprobación va en el botón central)
   };
 
   const check = (r: number) => {
@@ -104,6 +102,10 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
               <div className="rotary-right" />
             </div>
             <div className="rotary-arrow" />
+            {/* botón central: confirma el número alineado con la flecha (equivale al "click" del original) */}
+            <button type="button" className="rotary-center" onClick={() => check(rotRef.current)} disabled={open} aria-label="Comprobar">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V6h2v12Zm18 0h-2V6h2v12Zm-9-5h-2v-2h2v2ZM6 6H4V4h2v2Zm14 0h-2V4h2v2Zm-2-2H6V2h12v2Z" /></svg>
+            </button>
           </div>
           <div className="rotary-dial" ref={dialRef}
             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
