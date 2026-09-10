@@ -93,7 +93,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
             {tab === 1 && (
               <div className="aside-actions">
                 {/* "Resolver"/"Leer" desactivados si el grupo NO está en la sala (antes se desactivaba la pestaña entera) */}
-                <button type="button" onClick={resolveSelected} disabled={!isCurrent || puzzleSolved || puzzleOptions.length === 0}>Resolver</button>
+                <button type="button" onClick={resolveSelected} disabled={!isCurrent || puzzleSolved || puzzleOptions.length === 0}>Abrir</button>
                 <button type="button" disabled={!isCurrent || puzzleSolved}>Leer</button>
               </div>
             )}
