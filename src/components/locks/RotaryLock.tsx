@@ -61,7 +61,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     lastAngleRef.current = cur;
     setRotation(next);
     const t = Math.round(next / TICK_ANGLE);
-    if (t !== lastTickRef.current) { lastTickRef.current = t; playSfx("/audio/lock-button-1.mp3", 0.4); } // tic al cruzar cada marca
+    if (t !== lastTickRef.current) { lastTickRef.current = t; playSfx("/audio/tick.mp3", 1); } // mismo tic que los otros candados (al cruzar cada marca)
   };
   const onUp = (e: ReactPointerEvent) => {
     if (!activeRef.current) return;
