@@ -138,7 +138,7 @@ export default function Computer() {
     const t = e.target as Element | null;
     if (!t || !t.closest) return;
     if (t.closest('button, [role="tab"], select, .crt-select-trigger') || getComputedStyle(t).cursor === "pointer") {
-      playSfx("/audio/mouse-click.mp3");
+      playSfx("/audio/mouse-click.mp3", 0.5); // al 50%: a volumen completo sonaba demasiado fuerte
     }
   };
   const closeAttempt = () => {
