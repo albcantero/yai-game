@@ -31,7 +31,7 @@ const RENDER = 3; // celdas a cada lado del centro (las de fuera las recorta la 
 // Una FILA carrusel horizontal: arrastras y la forma centrada queda seleccionada (wrap 0..N-1). Snap al soltar.
 function Row({ value, onChange, tick }: { value: number; onChange: (v: number) => void; tick: () => void }) {
   // arrastre/snap/wrap + flechas prev/next en useCarousel (compartido con el dial del Padlock); aquí, el render horizontal
-  const { anim, pos, onDown, onMove, finish, step } = useCarousel({ axis: "x", size: CELL_W, count: N, value, onCommit: onChange, onTick: tick });
+  const { anim, pos, onDown, onMove, finish, step } = useCarousel({ axis: "x", size: CELL_W, count: N, value, onCommit: onChange, onGesture: tick });
   const c = Math.round(pos);
   const tr = anim ? "transform .19s ease-out" : "none";
   return (

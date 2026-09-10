@@ -6,13 +6,14 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 // del GeometryLock (axis "x"); solo cambian el eje y el paso (`size`). Mantiene el timer del snap y lo cancela
 // al desmontar. Devuelve `pos` (posición continua del centro, en índice), `drag`/`anim` para pintar, los
 // handlers de puntero y `step(dir)` para las flechas prev/next (animado igual que el snap del arrastre).
-export function useCarousel({ axis, size, count, value, onCommit, onTick, disabled }: {
+export function useCarousel({ axis, size, count, value, onCommit, onTick, onGesture, disabled }: {
   axis: "x" | "y";
   size: number;          // px por símbolo (ROW en el dial, CELL_W en la fila)
   count: number;         // nº de símbolos (para el wrap)
   value: number;         // índice actual (controlado por el padre)
   onCommit: (v: number) => void; // nuevo índice ya envuelto, al terminar el snap
-  onTick: () => void;    // "tick" al cruzar cada símbolo
+  onTick?: () => void;    // "tick" al cruzar CADA símbolo (dial de números/letras)
+  onGesture?: () => void; // UNA sola vez por gesto de movimiento (arrastre o flecha): p. ej. engranajes del candado de figuras
   disabled?: boolean;    // bloquea el gesto (p. ej. mientras el candado anima)
 }) {
   const [drag, setDrag] = useState(0); // desplazamiento en vivo del arrastre (px)
@@ -21,6 +22,7 @@ export function useCarousel({ axis, size, count, value, onCommit, onTick, disabl
   const active = useRef(false);
   const settling = useRef(false); // en el snap post-soltar: ignora nuevos gestos
   const lastC = useRef(value); // último símbolo en el centro (para el tick al cruzar)
+  const gestureSounded = useRef(false); // ya sonó el "un sonido por gesto" de este arrastre
   const timer = useRef<number | null>(null); // timeout del snap: se cancela al desmontar (evita setState en desmontado)
 
   useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
@@ -46,6 +48,7 @@ export function useCarousel({ axis, size, count, value, onCommit, onTick, disabl
     active.current = true;
     start.current = coord(e);
     lastC.current = value;
+    gestureSounded.current = false; // nuevo gesto: el sonido "por gesto" aún no ha sonado
     setAnim(false);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
@@ -53,7 +56,11 @@ export function useCarousel({ axis, size, count, value, onCommit, onTick, disabl
     if (!active.current) return;
     const nd = coord(e) - start.current;
     const nc = Math.round(value - nd / size); // símbolo que pasa por el centro ahora
-    if (nc !== lastC.current) { lastC.current = nc; onTick(); }
+    if (nc !== lastC.current) {
+      lastC.current = nc;
+      onTick?.(); // tick por CADA símbolo (dial de números/letras)
+      if (!gestureSounded.current) { gestureSounded.current = true; onGesture?.(); } // UNA vez, al empezar a moverse (figuras)
+    }
     setDrag(nd);
   };
   const finish = () => {
@@ -66,7 +73,7 @@ export function useCarousel({ axis, size, count, value, onCommit, onTick, disabl
   // flechas prev/next: desliza UNA celda animando (como el snap). dir +1 = siguiente, -1 = anterior.
   const step = (dir: number) => {
     if (settling.current) return;
-    onTick();
+    (onGesture ?? onTick)?.(); // la flecha es un gesto completo: un solo sonido
     settle(-dir);
   };
 
