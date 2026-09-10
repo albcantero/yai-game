@@ -28,11 +28,6 @@
    Anillo superior = (180-144)/2 = 18px; el triángulo (7.5px) a top:6 deja un pequeño hueco con el borde del dial. */
 .rotary-arrow{ position:absolute;top:6px;left:50%;margin-left:-7.5px;z-index:2;pointer-events:none;border:7.5px solid transparent;border-color:#a00 transparent transparent transparent;height:0;width:0 }
 
-/* botón CENTRAL (confirmar el número alineado): centrado sobre el dial, por encima de él (z-index) */
-.rotary-center{ position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;width:44px;height:44px;padding:0;border:none;background:transparent;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center }
-.rotary-center svg{ width:100%;height:100% }
-.rotary-center:disabled{ cursor:default;opacity:.5 }
-
 /* dial oscuro con anillo del pomo; gira (transform inline por JS) */
 .rotary-dial{ margin:auto;border-radius:50%;position:absolute;left:0;right:0;bottom:18px;height:144px;width:144px;z-index:1;   /* centrado sobre el cuerpo del candado (era 7.2 en el original) */
   background:#333 radial-gradient(transparent, transparent 30px, #171717 30px, #171717 32.25px, transparent 32.25px, transparent);
@@ -43,12 +38,23 @@
    con el mixin setTick del SCSS); transform-origin y altura según sea mayor o menor. */
 .rotary-tick{ position:absolute;background:#fff;color:#fff;font-size:15px;top:72px;left:70.5px;width:3px;height:9px;transform-origin:50% -63px }
 .rotary-tick.major{ height:18px;transform-origin:50% -54px }
-.rotary-tick span{ display:block;margin:-30px -18px 0 -18px;text-align:center;transform:rotate(180deg);font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:30px }
+.rotary-tick span{ display:block;margin:-30px -18px 0 -18px;text-align:center;transform:rotate(180deg);text-shadow:none;font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:30px }   /* text-shadow:none = no heredar la aberración cromática animada del .crt (los demás candados hacen lo mismo) */
 
-/* combinación (visible; verde al acertar en orden), como el original */
-.rotary-combo{ font-size:22.5px;text-align:center;display:flex;gap:6px }
-.rotary-num{ background:transparent;border:2px solid #fff;color:#fff;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:7.5px;vertical-align:middle }
-.rotary-num.found{ border-color:#3c3;color:#3c3 }   /* verde al acertar (borde + texto), sigue transparente */
+/* combinación como OTP-input (shadcn): cada hueco con borde blanco 2px SIEMPRE (mismo grosor/radius que el dial de
+   padlock), y el hueco ACTIVO añade un "ring" con box-shadow (verde del terminal) para indicar dónde estás metiendo
+   el número. Carets pixelados a los lados para moverse entre huecos. Verde en todos al resolver. */
+.rotary-combo{ display:flex;align-items:center;gap:6px }
+.rotary-num{ box-sizing:border-box;width:44px;height:52px;border:2px solid #fff;border-radius:6px;background:rgba(255,255,255,.04);
+  display:inline-flex;align-items:center;justify-content:center;color:#fff;text-shadow:none;line-height:1;
+  font-family:'Pixelated Times New Roman','Determination Mono',serif;font-size:28px }
+.rotary-num.active{ box-shadow:0 0 0 3px rgba(184,255,214,.5) }   /* ring de foco del hueco activo (como el focus del OTP de shadcn) */
+.rotary.solved .rotary-num{ border-color:#3c3;color:#3c3;box-shadow:none }   /* verde al resolver */
+
+/* carets pixelados para avanzar/retroceder de hueco (< [] [] [] [] >) */
+.rotary-caret{ background:transparent;border:none;padding:0;width:30px;height:30px;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center }
+.rotary-caret svg{ width:22px;height:22px;display:block }
+.rotary-caret.prev svg{ transform:scaleX(-1) }   /* el mismo caret, espejado, apunta a la izquierda */
+.rotary-caret:disabled{ opacity:.4;cursor:default }
 
 /* ---- Apertura SIMPLIFICADA: el cierre SOLO se ELEVA y se queda arriba (sin pivotar/girar ni volver a bajar) ---- */
 .rotary-shackle.unlocked{ animation:rotaryMoveUp .45s cubic-bezier(.2,.8,.3,1) forwards }
