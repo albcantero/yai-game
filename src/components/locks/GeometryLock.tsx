@@ -92,6 +92,8 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   const target = combo.join("-");
   const isCorrect = key === target; // ¿coincide ya la combinación? (para decidir en Resolver; NO pinta verde en vivo)
   const [solved, setSolved] = useState(false); // verde "ABIERTO": SOLO tras pulsar Resolver con la combinación correcta
+  const [shaking, setShaking] = useState(false); // agitándose por error: deshabilita Resolver/Cancelar hasta que acaba
+  const shakingRef = useRef(false);
 
   // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
@@ -118,7 +120,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   // Resolver: SOLO aquí se pinta verde (no en vivo). Correcto → verde (ABIERTO + combinación + figuras centrales),
   // congela, deja ver el verde un momento y desliza el candado hacia fuera. Incorrecto → shake.
   const onResolve = () => {
-    if (busyRef.current || solved) return; // sonido en curso o ya resuelto
+    if (busyRef.current || solved || shakingRef.current) return; // sonido en curso, resuelto o agitándose
     if (isCorrect) {
       setSolved(true); // verde: ABIERTO + combinación (fila) + figuras centrales
       setBusy(true); // deshabilita las flechas de avanzar el dial (pista visual) mientras se resuelve
@@ -126,7 +128,9 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // se agita IGUAL que el incorrecto, pero en verde
       resolveTimer.current = window.setTimeout(() => panelRef.current?.close(onSolved), 700); // deja ver el verde y desliza
     } else if (geoRef.current) {
-      animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // incorrecto → shake
+      shakingRef.current = true;
+      setShaking(true); // incorrecto: agita + deshabilita Resolver/Cancelar; vuelven al acabar
+      animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }).finished.then(() => { shakingRef.current = false; setShaking(false); });
     }
   };
 
@@ -153,8 +157,8 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
 
       {/* botones Win98 (mismo marco que el resto de candados). disabled mientras suena (pista visual) */}
       <div className="lock-actions win98">
-        <button type="button" onClick={onResolve} disabled={busy}>Resolver</button>
-        <button type="button" onClick={() => panelRef.current?.close(onClose)} disabled={busy}>Cancelar</button>
+        <button type="button" onClick={onResolve} disabled={busy || shaking}>Resolver</button>
+        <button type="button" onClick={() => panelRef.current?.close(onClose)} disabled={busy || shaking}>Cancelar</button>
       </div>
     </LockPanel>
   );
