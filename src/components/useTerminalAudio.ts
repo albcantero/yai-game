@@ -14,6 +14,8 @@ export function useTerminalAudio(enabled: boolean) {
   const suppressTickRef = useRef(false);
   const didInit = useRef(false);
   const warmedRef = useRef(false); // ya hubo 1er gesto y se calentaron los buffers cargados hasta ese momento
+  const warnedFallbackRef = useRef<Set<string>>(new Set()); // srcs de los que YA avisamos de fallback (evita spam en el log)
+  const fallbackElsRef = useRef<Record<string, HTMLAudioElement>>({}); // <audio> reutilizado por src en el fallback (no crear uno por tick)
 
   // "Calienta" un buffer (iOS lo prepara en su 1ª reproducción): lo suena a volumen 0 un instante. Requiere el
   // AudioContext ya reanudado (tras un gesto). Libera los nodos al acabar.
@@ -79,9 +81,18 @@ export function useTerminalAudio(enabled: boolean) {
         /* cae al fallback */
       }
     }
+    // FALLBACK: el buffer no está listo (aún sin decodificar, o decodeAudioData falló) o no hay AudioContext.
+    // new Audio() es LENTO en móvil, así que: (1) avisamos UNA vez por src para poder detectarlo en el log remoto,
+    // (2) reutilizamos un <audio> por src en vez de crear uno por llamada (evita el spam de elementos en el tick).
+    if (!warnedFallbackRef.current.has(src)) {
+      warnedFallbackRef.current.add(src);
+      rlog("audio", "playSfx FALLBACK (buffer no listo → new Audio, lento en móvil)", { src, hasAC: !!ac, hasBuf: !!sfxBuffersRef.current[src] });
+    }
     try {
-      const a = new Audio(src);
+      let a = fallbackElsRef.current[src];
+      if (!a) { a = new Audio(src); fallbackElsRef.current[src] = a; }
       a.volume = vol;
+      try { a.currentTime = 0; } catch { /* aún sin metadatos */ }
       a.play().catch(() => {});
     } catch {
       /* sin audio */
@@ -124,9 +135,10 @@ export function useTerminalAudio(enabled: boolean) {
               .then((a) => ac.decodeAudioData(a))
               .then((b) => {
                 sfxBuffersRef.current[src] = b;
+                if (src === "/audio/tick.mp3") rlog("audio", "tick.mp3 decodificado (ruta buffer OK, sin new Audio)", { dur: b.duration }); // confirmación positiva: el tic del dial NO cae al fallback
                 if (warmedRef.current) warmOne(b); // si ya hubo 1er gesto, calienta este buffer al cargar (iOS)
               })
-              .catch(() => {});
+              .catch((err) => { rlog("audio", "decodeAudioData FALLO (ese sonido caerá a new Audio)", { src, err: String(err) }); }); // antes se tragaba en silencio
           },
         );
       }
