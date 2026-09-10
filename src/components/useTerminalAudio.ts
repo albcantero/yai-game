@@ -114,7 +114,7 @@ export function useTerminalAudio(enabled: boolean) {
           })
           .catch(() => {});
         // TODOS los sfx cortos en buffer (para que estén disponibles YA, sin caer al fallback new Audio, lento en iOS)
-        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3", "/audio/terminal-power-button.mp3", "/audio/terminal-turning-on.mp3", "/audio/tick.mp3", "/audio/paper-slide.mp3"].forEach(
+        ["/audio/mouse-click.mp3", "/audio/terminal-button.mp3", "/audio/terminal-simple-button.mp3", "/audio/terminal-power-button.mp3", "/audio/terminal-turning-on.mp3", "/audio/tick.mp3", "/audio/paper-slide.mp3", "/audio/gears.mp3"].forEach(
           (src) => {
             fetch(src)
               .then((r) => r.arrayBuffer())

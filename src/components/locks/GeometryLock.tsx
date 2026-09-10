@@ -9,19 +9,20 @@ import LockPanel, { type LockPanelHandle } from "./LockPanel";
 import { E_OUT, SHAKE } from "./lockAnim";
 import { useCarousel } from "./useCarousel";
 
-// Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape). El último
-// es un HUECO (el: null): un botón vacío que significa "espacio". Cambiar el set o el orden es trivial (solo SVG).
+// Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape).
+// Cambiar el set o el orden es trivial (solo SVG). Orden y nombres definidos por Alberto.
 export const SHAPES: { name: string; el: ReactNode }[] = [
-  { name: "ancla", el: <path d="M13 3h2v4h8v4h-2v2h-2v3h2v6h-5v-2h-2v-2h-4v2H8v2H3v-6h2v-3H3v-2H1V7h8V3h2V1h2v2Z" /> },
+  { name: "estrella", el: <path d="M13 3h2v4h8v4h-2v2h-2v3h2v6h-5v-2h-2v-2h-4v2H8v2H3v-6h2v-3H3v-2H1V7h8V3h2V1h2v2Z" /> },
   { name: "luna", el: <path d="M14 4h-2v2h-2v6h2v2h6v-2h2v-2h2v8h-2v2h-2v2H8v-2H6v-2H4v-2H2V6h2V4h2V2h8v2Z" /> },
-  { name: "estrella", el: <path d="M13 9h2v2h7v2h-7v2h-2v7h-2v-7H9v-2H2v-2h7V9h2V2h2v7Zm-4 8H7v-2h2v2Zm8 0h-2v-2h2v2Zm-6-4h2v-2h-2v2ZM9 9H7V7h2v2Zm8 0h-2V7h2v2Z" /> },
+  { name: "chispa", el: <path d="M13 9h2v2h7v2h-7v2h-2v7h-2v-7H9v-2H2v-2h7V9h2V2h2v7Zm-4 8H7v-2h2v2Zm8 0h-2v-2h2v2Zm-6-4h2v-2h-2v2ZM9 9H7V7h2v2Zm8 0h-2V7h2v2Z" /> },
   { name: "triángulo", el: <path d="M13 4h2v4h2v4h2v4h2v6H3v-6h2v-4h2V8h2V4h2V2h2v2Z" /> },
-  { name: "corona", el: <path d="M18 4h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V6h2V4h2V2h12v2ZM8 7v2h2v8h2V9h2v6h2V9h2V7H8Zm8 8v2h2v-2h-2ZM6 9v2h2V9H6Z" /> },
-  { name: "sol", el: <path d="M13 22h-2v-3h2v3Zm-6-3H5v-2h2v2Zm12 0h-2v-2h2v2ZM15 9h2v6h-2v2H9v-2H7V9h2V7h6v2ZM5 13H2v-2h3v2Zm17 0h-3v-2h3v2ZM7 7H5V5h2v2Zm12 0h-2V5h2v2Zm-6-2h-2V2h2v3Z" /> },
   { name: "cuadrado", el: <path d="M22 22H2V2h20v20Z" /> },
-  { name: "espacio", el: null }, // hueco: no dibuja nada; significa "espacio" en la combinación
+  { name: "número", el: <path d="M18 4h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V6h2V4h2V2h12v2ZM8 7v2h2v8h2V9h2v6h2V9h2V7H8Zm8 8v2h2v-2h-2ZM6 9v2h2V9H6Z" /> },
+  { name: "sol", el: <path d="M13 22h-2v-3h2v3Zm-6-3H5v-2h2v2Zm12 0h-2v-2h2v2ZM15 9h2v6h-2v2H9v-2H7V9h2V7h6v2ZM5 13H2v-2h3v2Zm17 0h-3v-2h3v2ZM7 7H5V5h2v2Zm12 0h-2V5h2v2Zm-6-2h-2V2h2v3Z" /> },
+  { name: "nube", el: <path d="M16 6h2v2h2v2h2v2h2v6h-2v2H2v-2H0v-6h2v-2h2V8h4V6h2V4h6v2Z" /> },
+  { name: "espacio", el: null }, // hueco (último): no dibuja nada; significa "espacio" en la combinación
 ];
-const N = SHAPES.length; // 8 (7 figuras + el hueco)
+const N = SHAPES.length; // 9 (8 figuras + el hueco)
 const shapeAt = (i: number) => SHAPES[((i % N) + N) % N].el; // forma en el índice (con wrap)
 
 const CELL_W = 70; // ancho de celda (px); DEBE coincidir con .geolock-cell en geometrylock.css
@@ -68,7 +69,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   const key = values.join("-"); // clave para comparar (índices)
   const target = combo.join("-");
   const verified = key === target; // estado UNLOCKED/LOCKED derivado en vivo (sin estado ni efecto: se recalcula solo)
-  const tick = () => playSfx("/audio/mouse-click.mp3", 0.5);
+  const tick = () => playSfx("/audio/gears.mp3", 0.6); // engranajes al girar el carrusel (candado mecánico)
 
   // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)

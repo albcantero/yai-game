@@ -202,7 +202,7 @@ const PUZZLE_WORDS: Record<number, string> = {
 };
 // Puzzles con candado de FIGURAS: combinación de índices de forma (0..5). La longitud = nº de ruedas.
 const PUZZLE_GEOMETRY: Record<number, number[]> = {
-  1: [0, 4, 2, 5], // Puzzle 1 (Almacén): candado de FIGURAS → ancla, corona, estrella, sol (índices sobre SHAPES)
+  1: [0, 4, 2, 5], // Puzzle 1 (Almacén): candado de FIGURAS → estrella, cuadrado, chispa, número (índices sobre SHAPES)
 };
 // config del candado del puzzle roomId#idx según su número global (letras / figuras / números)
 const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" } => {
