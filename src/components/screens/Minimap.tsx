@@ -198,15 +198,15 @@ const PUZZLE_COMBOS: Record<number, number[]> = {
 };
 // Puzzles con candado de LETRAS: respuesta como PALABRA en MAYÚSCULAS (la longitud = nº de diales).
 const PUZZLE_WORDS: Record<number, string> = {
-  2: "HELLO", // Puzzle 2 (Biblioteca privada): candado de LETRAS, respuesta HELLO
+  // 2: "PALABRA", // Puzzle 2 (Biblioteca privada): candado de LETRAS. Palabra real por definir al diseñar/cablear el puzzle
 };
 // Puzzles con candado de FIGURAS: combinación de índices de forma (0..5). La longitud = nº de ruedas.
 const PUZZLE_GEOMETRY: Record<number, number[]> = {
-  1: [0, 0, 0, 0], // Puzzle 1 (Almacén): TEMPORAL para debug → TODO estrellas. Real: [0,4,2,5] = estrella, cuadrado, chispa, número
+  // 1: [0, 4, 2, 5], // Puzzle 1 (Almacén): FIGURAS = estrella, cuadrado, chispa, número. Real; se cablea al diseñar el puzzle
 };
 // Puzzles con candado ROTATORIO (dial de combinación tipo taquilla): secuencia de números 0..39 a alinear EN ORDEN.
 const PUZZLE_ROTARY: Record<number, number[]> = {
-  3: [0, 5, 0], // Puzzle 3 (Biblioteca privada, 2º): TEMPORAL para debug → 0, 5, 0. Real: [20, 5, 30]
+  // 3: [20, 5, 30], // Puzzle 3 (Biblioteca privada, 2º): ROTATORIO. Real; se cablea al diseñar el puzzle
 };
 // config del candado del puzzle roomId#idx según su número global (letras / figuras / rotatorio / números)
 const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" | "rotary" } => {
