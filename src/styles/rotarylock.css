@@ -24,7 +24,9 @@
 .rotary-right{ right:0;height:135px }
 
 /* flecha roja (puntero fijo, arriba del dial) */
-.rotary-arrow{ position:relative;z-index:2;margin:11.25px auto 3px;border:7.5px solid transparent;border-color:#a00 transparent transparent transparent;transform:translateY(7.5px);height:0;width:0 }   /* z-index:2 > dial (1): el caret se ve por encima del dial ya centrado */
+/* caret rojo en el ANILLO GRIS (entre el cuerpo y el dial), apuntando al dial desde arriba (no sobre el dial).
+   Anillo superior = (180-144)/2 = 18px; el triángulo (7.5px) va a top:10.5 → su punta toca el borde del dial. */
+.rotary-arrow{ position:absolute;top:10.5px;left:50%;margin-left:-7.5px;z-index:2;pointer-events:none;border:7.5px solid transparent;border-color:#a00 transparent transparent transparent;height:0;width:0 }
 
 /* dial oscuro con anillo del pomo; gira (transform inline por JS) */
 .rotary-dial{ margin:auto;border-radius:50%;position:absolute;left:0;right:0;bottom:18px;height:144px;width:144px;z-index:1;   /* centrado sobre el cuerpo del candado (era 7.2 en el original) */
