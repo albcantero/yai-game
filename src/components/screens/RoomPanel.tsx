@@ -90,17 +90,15 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
               </div>
             </div>
           <div className="minimap-panel-aside">
-            {tab === 1 && (
+            {/* pestaña "Llaves": en la sala → botones Abrir/Leer; lejos → el aviso SUSTITUYE a los botones (no disabled) */}
+            {tab === 1 && (isCurrent ? (
               <div className="aside-actions">
-                {/* "Resolver"/"Leer" desactivados si el grupo NO está en la sala (antes se desactivaba la pestaña entera) */}
-                <button type="button" onClick={resolveSelected} disabled={!isCurrent || puzzleSolved || puzzleOptions.length === 0}>Abrir</button>
-                <button type="button" disabled={!isCurrent || puzzleSolved}>Leer</button>
+                <button type="button" onClick={resolveSelected} disabled={puzzleSolved || puzzleOptions.length === 0}>Abrir</button>
+                <button type="button" disabled={puzzleSolved}>Leer</button>
               </div>
-            )}
-            {/* en "Información", si estás lejos: aviso rojo en el mismo hueco que los botones de "Llaves" */}
-            {tab === 0 && !isCurrent && (
-              <p className="aside-note">¡Estás muy lejos para resolver un puzzle!</p>
-            )}
+            ) : (
+              <p className="aside-note">¡Demasiado lejos para abrir un puzzle!</p>
+            ))}
             {bigIcon && <img src={bigIcon} alt="" />}
           </div>
         </div>
