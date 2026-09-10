@@ -15,10 +15,10 @@ const LockPanel = forwardRef<LockPanelHandle, { playSfx: (src: string, vol?: num
 
     // aparecer: entra deslizándose desde abajo (fuera del viewport → su sitio), sin opacidad, spring bounce 0
     useEffect(() => {
-      if (slideRef.current) {
-        playSfx("/audio/paper-slide.mp3", 1);
-        animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
-      }
+      if (!slideRef.current) return;
+      playSfx("/audio/paper-slide.mp3", 1);
+      const controls = animate(slideRef.current, { y: [window.innerHeight, 0] }, { type: "spring", bounce: 0, visualDuration: 0.55 });
+      return () => controls.stop(); // si se desmonta a mitad del slide-in, corta la animación (no anima un nodo desconectado)
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

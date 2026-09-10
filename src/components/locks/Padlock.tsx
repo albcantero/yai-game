@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
+import { E_OUT, SHAKE } from "./lockAnim";
 
 export type LockKind = "number" | "letters";
 
@@ -20,8 +21,8 @@ const RESTING = "hsl(120,50%,100%)"; // color en reposo del candado (verde muy c
 // Eases CLAVADOS del original (GSAP): Power2.easeInOut = cúbica in-out; Power1.easeOut (default de GSAP) = quad out;
 // Power0 = linear; Back.easeOut.config(4) = polinomio con overshoot 4 (no es bezier: va como función de progreso).
 const E_INOUT: [number, number, number, number] = [0.645, 0.045, 0.355, 1]; // Power2.easeInOut
-const E_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]; // Power1.easeOut (default de GSAP)
 const BACK_OUT_4 = (p: number) => { const t = p - 1; return t * t * (5 * t + 4) + 1; }; // Back.easeOut.config(4)
+// E_OUT (Power1.easeOut) y SHAKE (temblor) son compartidos con GeometryLock: viven en lockAnim.ts
 const OK_GREEN = "hsl(120,50%,60%)"; // color del texto "CORRECTO" (mismo verde que el cuerpo del candado)
 const BAD_RED = "hsl(0,50%,60%)"; // color del texto "INCORRECTO" (mismo rojo que el cuerpo del candado)
 const HOLD_MS = 1500; // lo que el MENSAJE (CORRECTO/INCORRECTO) aguanta antes del fade-out
@@ -185,7 +186,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
     animate(barRef.current!, { y: 0 }, { duration: 0.1, ease: "linear" });
     animate(bodyRef.current!, { scale: 1 }, { duration: 0.1, ease: "linear" });
     animate(100, 60, { duration: 0.1, ease: E_OUT, onUpdate: (L) => paint(0, L) });
-    return animate(bodyRef.current!, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
+    return animate(bodyRef.current!, { x: SHAKE }, { duration: 0.4, delay: 0.1, ease: [E_OUT, E_OUT, E_OUT, E_OUT] }).finished;
   };
   // respuesta: entra (0.5s, +30 + opacity) → aguanta → sale (0.5s); la combinación sale un pelín aparte
   const showResponse = async (msg: string, color: string) => {
@@ -196,6 +197,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
     // la COMBINACIÓN se va a los 1,5s (solo fade, sin subir); el MENSAJE también a 1,5s (sube 30 + fade)
     const triedExit = triedRef.current ? animate(triedRef.current, { opacity: [1, 0] }, { duration: 0.5, ease: E_OUT, delay: TRIED_HOLD_MS / 1000 }).finished : Promise.resolve();
     await wait(HOLD_MS);
+    if (killed.current) return; // desmontado durante el aguante (p. ej. X → Sí): no animes refs ya nulos
     await Promise.all([
       animate(responseRef.current!, { y: 0, opacity: 0 }, { duration: 0.5, ease: E_OUT }).finished,
       triedExit, // esperamos también a la combinación (acaba un poco después) antes de restaurar
@@ -203,6 +205,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
   };
   // restaurar (solo si falla): caja/barra/candado vuelven (0.25s), luego botón (0.5s) y ruedas en stagger (+0.25)
   const restore = async () => {
+    if (killed.current) return; // desmontado: no animes refs ya nulos
     await Promise.all([
       animate(60, 100, { duration: 0.25, ease: E_INOUT, onUpdate: (L) => paint(0, L) }).finished, // color de ambas piezas de rojo (L60) a blanco (L100), hue 0
       animate(barRef.current!, { y: 0 }, { duration: 0.25, ease: E_INOUT }).finished,

@@ -53,7 +53,6 @@
 .minimap-panel .sunken-panel{ padding:8px }   /* recuadro blanco hundido (98.css) */
 .minimap-panel .room-field-label{ flex:none;margin:0 0 3px }   /* etiqueta "Información:" (encima de su panel) */
 .minimap-panel .room-sala{ flex:none;margin:0 0 8px }          /* fila "Sala: [campo]" */
-.minimap-panel .room-name{ flex:1;min-width:0;min-height:1.3em;padding:0 6px }   /* campo hundido con el nombre (1 línea, fino); min-height para que el vacío no colapse */
 /* Desplegable PROPIO del puzzle (componente Win98Select). La lista es un <ul> nuestro DENTRO del CRT (la
    nativa se pinta en el top layer y no le entra warp/scanlines). La CAJA (bisel hundido, flecha SVG, border
    0, radius 0) se calca del <select> de 98.css, pero la TIPOGRAFÍA va normalizada como el resto del chrome
@@ -90,8 +89,7 @@
 .minimap-panel .crt-select-list li{ padding:2px 4px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
 .minimap-panel .crt-select-list li.is-selected,
 .minimap-panel .crt-select-list li:hover{ background:navy;color:#fff }   /* resaltado Win98 */
-.minimap-panel .room-info,
-.minimap-panel .room-fill{ flex:1;min-height:0 }   /* panel de descripción / contenido: ocupa el resto */
+.minimap-panel .room-info{ flex:1;min-height:0 }   /* panel de descripción: ocupa el resto */
 /* pestaña DESACTIVADA (p. ej. "Llaves" cuando no estamos en la sala): texto gris con relieve, no clicable */
 .minimap-panel menu[role="tablist"] > li[data-disabled]{ cursor:default }
 .minimap-panel menu[role="tablist"] > li[data-disabled] > a{ color:grey;text-shadow:1px 1px 0 #fff;cursor:default }
@@ -99,9 +97,6 @@
 .minimap-panel menu[role="tablist"] > li[aria-selected="true"] > a,
 .minimap-panel menu[role="tablist"] > li[aria-selected="true"] > a:focus{ outline:1px dotted #222;outline-offset:2px } /* offset = hueco entre el texto y el punteado (no pegado) */
 .minimap-panel .sunken-panel p{ margin:0 }
-.minimap-panel .puzzle-list{ display:flex;flex-direction:column;gap:8px }
-.minimap-panel .puzzle-row{ display:flex;align-items:center;justify-content:space-between;gap:12px }
-.minimap-panel .puzzle-row button{ min-width:0;padding:2px 10px }
 /* Popup del CANDADO (camino bloqueado): reutiliza .confirm-overlay/.confirm-dialog (computer.css). Icono en
    la franja de título + botón "Desbloquear N[llave]" con el icono de llave alineado; grisa en disabled. */
 .minimap-lock{ z-index:7 }   /* por encima del HUD (z5) y el panel (z6) del minimapa */

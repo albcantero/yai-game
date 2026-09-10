@@ -89,6 +89,7 @@ export function useChat({ print, printHead, clear, setForm, sys, spin, sleep, mo
       await sleep(2000);
       return { code: "OK", text: "Se ha cerrado su sesión correctamente", cls: "ok" };
     });
+    if (!mountedRef.current) return; // el terminal se cerró durante el spin: no toques estado
     clear();
   };
 
@@ -178,6 +179,7 @@ export function useChat({ print, printHead, clear, setForm, sys, spin, sleep, mo
   const openMessages = async () => {
     const me = meRef.current?.username ?? "";
     const [allChars, inbox] = await Promise.all([allCharacters(), fetchInbox()]);
+    if (!mountedRef.current) return; // desmontado durante la descarga: no pintes el roster
     const reads = getReads(me);
     const unread: Record<string, number> = {};
     for (const m of inbox) {
@@ -233,13 +235,12 @@ export function useChat({ print, printHead, clear, setForm, sys, spin, sleep, mo
   // El terminal desuscribe el realtime al desmontar (su cleanup del boot llama a este).
   const unsubscribe = () => chatUnsubRef.current?.();
 
+  // backToRoster y sendChat se usan solo dentro (openCompose); no se exportan.
   return {
     panel,
     thread,
     meRef,
     openPanel,
-    backToRoster,
-    sendChat,
     handlePanelKey,
     loadIdentity,
     unsubscribe,

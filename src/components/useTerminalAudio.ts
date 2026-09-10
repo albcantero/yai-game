@@ -130,7 +130,6 @@ export function useTerminalAudio(enabled: boolean) {
     } catch {
       /* sin audio */
     }
-    rlog("info", "PC arrancado");
   }, []);
 
   // Calienta los buffers en el primer gesto (iOS prepara cada buffer en su primera reproducción).

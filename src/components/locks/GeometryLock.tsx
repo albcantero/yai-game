@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { animate } from "motion";
 import LockPanel, { type LockPanelHandle } from "./LockPanel";
+import { E_OUT, SHAKE } from "./lockAnim";
 
 // Los símbolos (índices 0..N-1): pixel-art en viewBox 0 0 24 24; el fill lo pone el CSS (.geolock-shape). El último
 // es un HUECO (el: null): un botón vacío que significa "espacio". Cambiar el set o el orden es trivial (solo SVG).
@@ -68,7 +69,21 @@ function Row({ value, onChange, tick }: { value: number; onChange: (v: number) =
       settling.current = false;
     }, 190);
   };
-  const step = (dir: number) => { if (settling.current) return; tick(); onChange(((value + dir) % N + N) % N); };
+  // flechas prev/next: anima el deslizamiento una celda (igual que el drag-snap), en vez de saltar de golpe
+  const step = (dir: number) => {
+    if (settling.current) return;
+    tick();
+    settling.current = true;
+    setAnim(true);
+    setDrag(-dir * CELL_W); // desliza una celda en la dirección de la flecha
+    timer.current = window.setTimeout(() => {
+      timer.current = null;
+      onChange(((value + dir) % N + N) % N);
+      setAnim(false);
+      setDrag(0);
+      settling.current = false;
+    }, 190);
+  };
 
   const posX = value - drag / CELL_W; // posición continua del centro (en índice)
   const c = Math.round(posX);
@@ -113,13 +128,12 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
   // MARCO compartido con el resto de candados: LockPanel (sube + paper-slide al aparecer, slide-out al cerrar).
   const geoRef = useRef<HTMLDivElement>(null); // el candado en sí (para el shake si falla)
   const panelRef = useRef<LockPanelHandle>(null); // marco compartido: expone close(cb)
-  const EASE_OUT: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
   const setVal = (i: number, v: number) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)));
 
   const onResolve = () => {
     if (key === target) panelRef.current?.close(onSolved); // correcto → resolver + cerrar
-    else if (geoRef.current) animate(geoRef.current, { x: [0, 10, -10, 10, 0] }, { duration: 0.4, ease: EASE_OUT }); // incorrecto → shake
+    else if (geoRef.current) animate(geoRef.current, { x: SHAKE }, { duration: 0.4, ease: E_OUT }); // incorrecto → shake
   };
 
   return (
@@ -132,7 +146,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
                 <svg className="geolock-mini" viewBox="0 0 24 24" key={i} aria-hidden="true">{shapeAt(v)}</svg>
               ))}
             </div>
-            <div className="geolock-status">{verified ? "UNLOCKED" : "LOCKED"}</div>
+            <div className="geolock-status">{verified ? "ABIERTO" : "BLOQUEADO"}</div>
             <div className="geolock-scanlines" />
           </div>
           <div className="geolock-rows">

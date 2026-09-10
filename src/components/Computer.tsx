@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { initRemoteLog, BUILD } from "../lib/rlog";
+import { initRemoteLog, rlog, BUILD } from "../lib/rlog";
 import { usePressAnimation } from "./usePressAnimation";
 import { useWarpFilter } from "./useWarpFilter";
 import { useTerminalAudio } from "./useTerminalAudio";
 import { SCREENS, type ScreenId } from "./screens";
-import type { ScreenHandle, LockConfig } from "./screens/types";
+import type { ScreenHandle, LockConfig, ShiftMode } from "./screens/types";
 import Padlock from "./locks/Padlock";
 import GeometryLock from "./locks/GeometryLock";
 
@@ -30,11 +30,11 @@ export default function Computer() {
   const [lock, setLock] = useState<LockConfig | null>(null); // candado abierto (oscurece + pausa la pantalla)
   const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
   const [powerOn, setPowerOn] = useState(true);
-  const [shiftMode, setShiftMode] = useState<"off" | "shift" | "caps">("off"); // off=minús, shift=1 letra, caps=bloqueo
+  const [shiftMode, setShiftMode] = useState<ShiftMode>("off"); // off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
   const [view, setView] = useState<ScreenId>("home"); // pantalla activa; arranca en "home" (todas son screens del registro)
 
-  const shiftModeRef = useRef<"off" | "shift" | "caps">("off");
+  const shiftModeRef = useRef<ShiftMode>("off");
   const holdTimerRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
   const screenRef = useRef<ScreenHandle | null>(null); // handle de la pantalla activa (React lo pone null al desmontar)
@@ -47,7 +47,7 @@ export default function Computer() {
   const { keyTick, playSfx, suppressTickRef } = useTerminalAudio(AUDIO_ENABLED);
   const buzz = () => { if (navigator.vibrate) navigator.vibrate(BUZZ_MS); }; // háptica única de TODO botón real (teclado + monitor)
 
-  const setShiftState = (m: "off" | "shift" | "caps") => {
+  const setShiftState = (m: ShiftMode) => {
     shiftModeRef.current = m;
     setShiftMode(m);
   };
@@ -112,7 +112,9 @@ export default function Computer() {
     const repeatable = view === "terminal" && (k === "Backspace" || k.length === 1);
     if (!repeatable) return;
     holdTimerRef.current = window.setTimeout(() => {
+      const startedAt = performance.now();
       holdIntervalRef.current = window.setInterval(() => {
+        if (performance.now() - startedAt > 10000) { stopHold(); return; } // red de seguridad: si iOS secuestra el toque sin pointerup/cancel, no repetir eternamente
         suppressTickRef.current = true;
         suppressBuzzRef.current = true;
         dispatchKey(k); // repeticiones SIN sonido ni vibración
@@ -146,6 +148,7 @@ export default function Computer() {
   // ---------- Efectos del armazón ----------
   useEffect(() => {
     initRemoteLog();
+    rlog("info", "PC arrancado"); // DESPUÉS de initRemoteLog (si no, se dispara antes de activar rlog y se pierde)
   }, []);
 
   usePressAnimation(); // animación de pulsado por-botón + red de seguridad (ver hook)
@@ -159,6 +162,7 @@ export default function Computer() {
         e.preventDefault();
         dispatchRef.current(k);
       } else if (k.length === 1) {
+        if (k === " ") e.preventDefault(); // el espacio, con un botón del monitor enfocado, dispararía su click además de escribir
         dispatchRef.current(k);
       }
     };
@@ -187,7 +191,7 @@ export default function Computer() {
 
       <div className="monitor">
         <div className="screen-area">
-        <div className={"crt curved" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")} onPointerDownCapture={screenClick}>
+        <div className={"crt" + (warpReady && WARP_ENABLED ? " warp" : "") + (view === "home" ? " crt--home" : "")} onPointerDownCapture={screenClick}>
           {view !== "home" && (
             <div className="win98 win-header">
               <div className="title-bar">
@@ -271,6 +275,8 @@ export default function Computer() {
           </div>
         </div>
         <div className="curve-overlay"></div>
+        {/* pantalla APAGADA: capa negra "sin señal" que cubre todo el tubo (el contenido sigue vivo debajo) */}
+        {!powerOn && <div className="screen-off" aria-hidden="true" />}
         </div>
         <div className="monitor-chin">
           <span className="monitor-brand">SANTAS OCHOVA</span>
@@ -303,10 +309,10 @@ export default function Computer() {
               aria-pressed={powerOn}
               aria-label={powerOn ? "Apagar" : "Encender"}
               onPointerDown={() => {
-                playSfx("/audio/terminal-button.mp3");
+                playSfx("/audio/terminal-power-button.mp3"); // clic del interruptor físico
                 buzz();
               }}
-              onClick={() => setPowerOn((v) => !v)}
+              onClick={() => setPowerOn((v) => { const next = !v; if (next) playSfx("/audio/terminal-turning-on.mp3"); return next; })}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true"><path d="M18 22H6v-2h12v2ZM6 20H4v-2h2v2Zm14 0h-2v-2h2v2ZM4 18H2V8h2v10Zm18 0h-2V8h2v10Zm-9-7h-2V2h2v9ZM6 8H4V6h2v2Zm14 0h-2V6h2v2ZM8 6H6V4h2v2Zm10 0h-2V4h2v2Z"/></svg>
             </button>

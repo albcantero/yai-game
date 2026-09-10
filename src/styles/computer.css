@@ -164,6 +164,10 @@ body{
   background:radial-gradient(120% 100% at 50% 40%, #0b0d0b 0%, #050605 78%);
   box-shadow: inset 0 0 0 2px #000, inset 0 0 26px 8px rgba(0,0,0,0.8);
 }
+/* pantalla APAGADA (botón de power): capa "sin señal" sobre TODO el tubo (por encima del cristal), negra con
+   una levísima viñeta. El contenido sigue montado debajo, así encender = quitar la capa (sin recargar nada). */
+.screen-off{ position:absolute;inset:0;z-index:10;border-radius:18px;
+  background:radial-gradient(120% 100% at 50% 45%, #0a0b0a 0%, #040504 80%) }
 
 /* Chrome Windows 98: fuente con acentos (Determination Sans) y SIN aberración (es UI del SO, no fósforo) */
 .win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222;text-shadow:none }  /* text-shadow:none = el chrome Win98 (header/diálogo/sidebar) NO hereda la aberración cromática animada de .crt. El verde del terminal (.crt-body, sin .win98) la conserva */

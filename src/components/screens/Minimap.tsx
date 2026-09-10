@@ -3,6 +3,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from
 import type { ScreenHandle, ScreenServices } from "./types";
 import RoomPanel from "./RoomPanel";
 import { wordToCombo } from "../locks/Padlock";
+import { LOCK_PATH } from "../../lib/icons";
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
@@ -24,7 +25,9 @@ const ROOMS: Room[] = [
 ];
 // Cada conexión guarda su ruta (pts, con esquinas) para pintar el corredor tal cual, y el par de salas
 // que une (from/to) para la lógica de niebla. Ruta calcada del SVG de Affinity.
-// keys = llaves necesarias para cruzar esa puerta (alimentará los candados; 0/undefined = puerta libre).
+// keys = llaves para cruzar esa puerta. Si se OMITE, cuesta 1 por defecto (ver marksFor: `keys ?? 1`), así
+// que no hay puerta "libre" por keys; las puertas gratis/por objeto usan `item` (p. ej. la Tarjeta). Pon el
+// número explícito en cada puerta de niebla para no depender del default.
 // offFrom/offTo = offset de la marca POR LADO (sobreescribe MARK_ROOM_OFFSET): offFrom cuando estás en
 // `from`, offTo cuando estás en `to`. Así puedes afinar cada flecha por separado (-2, -1, 0, lo que sea).
 // reveals = nodos EXTRA que se descubren al desbloquear esta puerta (además del destino). Ej.: abrir
@@ -40,7 +43,7 @@ const LINKS: Link[] = [
   { from: "hub-almacen", to: "cross-north", pts: [[44, 44], [44, 15]], keys: 1, offFrom: 6, offTo: 2, reveals: ["r3"] }, // camino 2: 1 llave. offsets +6/+2. Al abrir descubre también R3 (Almacén→R3 directo)
   { from: "cross-north", to: "r3", pts: [[44, 15], [58, 15]], offFrom: 2, offTo: 5 }, // Intersección→R3: +2; R3→Intersección: +5
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
-  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], keys: 1, offFrom: 3, offTo: 3 }, // Despacho→Antesala: puerta SECRETA (1 llave); se revela al resolver el último puzzle del Despacho
+  { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], keys: 1, offFrom: 3, offTo: 3 }, // Despacho→Antesala: 1 llave. (Diseño: se pensó "secreta, revelada al resolver el Despacho", pero esa mecánica de revelado por puzzle aún NO existe; hoy es una puerta de niebla normal. El único `secret` es el de la salida.)
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], keys: 2, offFrom: 3, offTo: 3 }, // Antesala→Cámara: 2 llaves
   { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 2, offFrom: 6, offTo: 0 }, // Proyecto↔Despacho: 2 llaves
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 5 }, // Biblioteca↔Proyecto (conector)
@@ -113,7 +116,7 @@ const TF_FLAG_PAIR = placeIcon(FLAG_ICON, FLAG_H, PAIR_W / 2 - FLAG_W / 2, 0).tf
 // Flechas de dirección (izq/arriba/der/abajo). Arriba/abajo = las mismas de los botones del mentón.
 // Flecha base: apunta a la DERECHA (+x, 0°). Se ROTA al ángulo del pasillo, así respeta rectas y diagonales.
 const ARROW: Icon = { d: "M4 11v2h16v-2zm12 2v2h2v-2zm-2 2v2h2v-2zm-2 2v2h2v-2zm4-6V9h2v2z", d2: "M14 15V7h2v8zm-2 2V5h2v12z", bb: [0, 0, 24, 24] };
-const LOCK_ICON: Icon = { d: "M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z", bb: [0, 0, 24, 24] }; // candado (mismo que la Terminal)
+const LOCK_ICON: Icon = { d: LOCK_PATH, bb: [0, 0, 24, 24] }; // candado (path compartido con la Terminal, en lib/icons)
 const TARJETA_PATH = "M22 20H2V4h20v16ZM4 18h16v-6H4v6Zm8-2H6v-2h6v2ZM4 8h16V6H4v2Z"; // Tarjeta de seguridad (HUD + candado de la Librería)
 const KEY_PATH = "M11 8H13V9H23V14H21V18H19V14H17V16H15V14H13V16H11V18H3V16H1V8H3V6H11V8ZM5 14H9V10H5V14Z"; // llave (HUD + botones "Utilizar")
 const ARROW_H = 6, ARROW_D = 5.5; // alto de la marca (viewBox) + distancia hacia fuera del punto (junctions)
@@ -251,7 +254,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const [revealOpen, setRevealOpen] = useState(false); // popup del candado BLANCO (desocultar salida)
   const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
   const [solved, setSolved] = useState<Set<string>>(() => new Set()); // puzzles resueltos (id = "sala#índice"); cada uno da +1 llave
-  useImperativeHandle(ref, () => ({ handleKey: () => {}, isLoading: () => false, setPaused: () => {} }), []);
+  useImperativeHandle(ref, () => ({ handleKey: () => {}, setPaused: () => {} }), []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
   const svgRef = useRef<SVGSVGElement>(null);

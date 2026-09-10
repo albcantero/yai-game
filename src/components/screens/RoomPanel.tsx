@@ -68,7 +68,9 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
                         sala). Al ser una única opción sale desactivado: caja Win98 idéntica, sin desplegar. */}
                     <div className="field-row room-sala">
                       <span>Nombre:</span>
-                      <Win98Select ariaLabel="Nombre" options={[title]} hideArrow />
+                      {/* controlado (value=title): al saltar de sala a sala con el panel abierto, muestra
+                          SIEMPRE el nombre de la sala actual (si no, un select no controlado se quedaba en el anterior) */}
+                      <Win98Select ariaLabel="Nombre" options={[title]} value={title} hideArrow />
                     </div>
                     <p className="room-field-label">Descripción:</p>
                     {/* panel de descripción: ocupa el 100% del espacio restante (aunque esté vacío) */}

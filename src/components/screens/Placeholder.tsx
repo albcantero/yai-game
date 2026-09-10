@@ -7,7 +7,6 @@ import type { ScreenHandle, ScreenServices } from "./types";
 const Placeholder = forwardRef<ScreenHandle, ScreenServices>(function Placeholder(_props, ref) {
   useImperativeHandle(ref, () => ({
     handleKey: () => {},
-    isLoading: () => false,
     setPaused: () => {},
   }), []);
   return <div className="placeholder-screen" />;

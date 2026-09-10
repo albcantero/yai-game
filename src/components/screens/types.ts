@@ -1,8 +1,11 @@
 import type { MutableRefObject } from "react";
 
+// Estado de Mayús del teclado en pantalla: off=minúsculas, shift=una letra, caps=bloqueo.
+export type ShiftMode = "off" | "shift" | "caps";
+
 // Config de un CANDADO que una pantalla pide abrir al armazón (combinación + qué hacer al acertar).
 export interface LockConfig {
-  combo: number[]; // combinación correcta (índices por rueda: números 0..9, letras 0..26, o formas 0..5)
+  combo: number[]; // combinación correcta (índices por rueda: números 0..9, letras 0..26, o formas 0..7)
   kind?: "number" | "letters" | "geometry"; // tipo de candado (default "number")
   onSolved: () => void; // combo correcto: la pantalla resuelve su puzzle (y el armazón cierra el overlay)
 }
@@ -10,7 +13,7 @@ export interface LockConfig {
 // Servicios que el ARMAZÓN (Computer) da a cada pantalla montada encima (entradas: audio + shift).
 export interface ScreenServices {
   playSfx: (src: string, vol?: number) => void;
-  shiftModeRef: MutableRefObject<"off" | "shift" | "caps">;
+  shiftModeRef: MutableRefObject<ShiftMode>;
   consumeShift: () => void;
   navigate: (id: string) => void; // saltar a otra pantalla del registro por su id (lo usa el menú de Home)
   openLock: (config: LockConfig) => void; // abrir el candado (oscurece + pausa la pantalla, MISMO proceso que la "X")
@@ -38,7 +41,5 @@ export interface FormState {
 // vez de un puñado de refs sueltos asignados en el render. Añadir una pantalla nueva = implementar esto.
 export interface ScreenHandle {
   handleKey: (k: string) => void; // el armazón despacha aquí las teclas cuando esta pantalla está activa
-  runCmd?: (cmd: string) => void; // opcional: el menú lateral del armazón ejecuta un comando aquí
-  isLoading: () => boolean; // ¿hay un loader? (el armazón bloquea sus botones)
   setPaused: (v: boolean) => void; // el armazón pausa/reanuda al abrir menú/diálogo
 }

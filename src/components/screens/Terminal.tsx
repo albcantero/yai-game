@@ -6,14 +6,13 @@ import type { Command, Ctx, LineClass } from "../../terminal/types";
 import BANNER from "../../terminal/banner.txt?raw";
 import { rlog } from "../../lib/rlog";
 import { loginCharacter, ensureSession } from "../../lib/supabase";
+import { LOCK_PATH } from "../../lib/icons";
 import { useChat } from "./useChat";
 
-type Mark = "*" | ">" | "";
 interface Line {
   id: number;
   text: string;
   cls: LineClass;
-  mark: Mark;
   code?: string;
   bullet?: boolean;
   spinner?: boolean;
@@ -26,12 +25,26 @@ const BOOT_WIDTH = 24; // bloques de la barra de carga inicial
 const prefersReduced = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
 
+// Caret pixelart que marca la fila activa (formulario/roster). Aparece solo si `show`; parpadea vía CSS
+// (.fcaret svg). Antes estaba copiado 4 veces en el render; ahora es un solo componente.
+function FCaret({ show }: { show: boolean }) {
+  return (
+    <span className="fcaret" aria-hidden="true">
+      {show && (
+        <svg viewBox="9 7 6 10" fill="currentColor">
+          <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
+        </svg>
+      )}
+    </span>
+  );
+}
+
 // Pantalla-terminal (líneas, login, chat, boot...). Se MONTA al entrar y se DESMONTA al salir, así
 // reiniciar = remontar y React limpia todo (estado + async) solo. Recibe los servicios del armazón por
 // props (ScreenServices) y le EXPONE su ScreenHandle vía useImperativeHandle (más abajo), en vez de
 // que el armazón le asigne refs sueltos en el render.
 const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
-  { playSfx, shiftModeRef, consumeShift },
+  { shiftModeRef, consumeShift },
   ref,
 ) {
   const [lines, setLines] = useState<Line[]>([]);
@@ -59,14 +72,15 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   // resuelve hasta despausar. Así se congelan boot, typeLine y spinners sin tocar cada bucle, esté como esté.
   const pausedRef = useRef(false);
   const resumeWaitersRef = useRef<Array<() => void>>([]);
+  const flushWaiters = () => {
+    const ws = resumeWaitersRef.current; // libera a todos los que esperaban en la compuerta
+    resumeWaitersRef.current = [];
+    ws.forEach((fn) => fn());
+  };
   const setPaused = (v: boolean) => {
     if (pausedRef.current === v) return;
     pausedRef.current = v;
-    if (!v) {
-      const ws = resumeWaitersRef.current; // al reanudar, libera a todos los que esperaban en la compuerta
-      resumeWaitersRef.current = [];
-      ws.forEach((fn) => fn());
-    }
+    if (!v) flushWaiters(); // al reanudar, suelta la compuerta
   };
   const gate = () =>
     pausedRef.current
@@ -88,15 +102,15 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
   const setText = (id: number, text: string) =>
     setLines((p) => p.map((x) => (x.id === id ? { ...x, text } : x)));
   const print = (text: string, cls: LineClass = "") => {
-    addLine({ text, cls, mark: "" });
+    addLine({ text, cls });
   };
   const echo = (text: string) => {
-    addLine({ text: text ? "#" + text : "", cls: "", mark: "" });
+    addLine({ text: text ? "#" + text : "", cls: "" });
   };
   const sys = (code: string, text: string, cls: LineClass = "") => {
-    addLine({ text, cls, mark: "", code });
+    addLine({ text, cls, code });
   };
-  const printHead = (name: string) => addLine({ text: "", cls: "", mark: "", head: name }); // cabecera "Mensajes con <nombre>"
+  const printHead = (name: string) => addLine({ text: "", cls: "", head: name }); // cabecera "Mensajes con <nombre>"
   const clear = () => setLines([]);
   const setLine = (v: string) => {
     curRef.current = v;
@@ -107,12 +121,10 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     text: string,
     cls: LineClass = "",
     step = 9,
-    mark: Mark = "",
     extra: { bullet?: boolean } = {},
     alive?: () => boolean,
   ) => {
-    const mk: Mark = text ? mark : "";
-    const id = addLine({ text: "", cls, mark: mk, ...extra });
+    const id = addLine({ text: "", cls, ...extra });
     if (prefersReduced() || skipTypingRef.current) {
       setText(id, text); // movimiento reducido o el usuario saltó: aparece de golpe
       return;
@@ -157,10 +169,10 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     print("");
     for (let i = 0; i < dlines.length; i++) {
       busyRef.current = true;
-      await typeLine(dlines[i], "b", 24, "");
+      await typeLine(dlines[i], "b", 24);
       busyRef.current = false;
       const more = i < dlines.length - 1;
-      const chevId = addLine({ text: "", cls: "", mark: "", chev: true, chevMore: more });
+      const chevId = addLine({ text: "", cls: "", chev: true, chevMore: more });
       await waitForAdvance();
       setLines((p) => p.filter((x) => x.id !== chevId));
     }
@@ -175,7 +187,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     minMs = 0,
   ): Promise<{ code: "OK" | "ERROR"; text: string; cls?: LineClass }> => {
     print("");
-    const id = addLine({ text: loadingText, cls: "", mark: "", spinner: true });
+    const id = addLine({ text: loadingText, cls: "", spinner: true });
     setLoader(true);
     const start = Date.now();
     let res: { code: "OK" | "ERROR"; text: string; cls?: LineClass };
@@ -250,8 +262,8 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       editing: false,
       submitLabel: "Conectar",
       onSubmit: (vals) => {
-        addLine({ text: "[USER] Usuario: " + vals[0], cls: "", mark: "" });
-        addLine({ text: "[PASSWORD] Contraseña: " + "*".repeat(vals[1].length), cls: "", mark: "" });
+        addLine({ text: "[USER] Usuario: " + vals[0], cls: "" });
+        addLine({ text: "[PASSWORD] Contraseña: " + "*".repeat(vals[1].length), cls: "" });
         connectFlow(vals[0].trim(), vals[1]);
       },
     });
@@ -294,7 +306,6 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
               addLine({
                 text: fld.label + " " + (fld.mask ? "*".repeat(fld.value.length) : fld.value),
                 cls: "",
-                mark: "",
               }),
             );
             print("");
@@ -389,13 +400,10 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       }
     }
   };
-  // Handle que el armazón usa para hablar con esta pantalla (teclas, comandos del menú, loader, pausa).
-  // Sin dep-array: se recrea en cada commit (como useLayoutEffect), así los closures van siempre frescos
-  // sin asignar refs en el cuerpo del render.
+  // Handle que el armazón usa para hablar con esta pantalla (teclas + pausa). Sin dep-array: se recrea en
+  // cada commit (como useLayoutEffect), así los closures van siempre frescos sin asignar refs en el render.
   useImperativeHandle(ref, () => ({
     handleKey,
-    runCmd: submit,
-    isLoading: () => loader,
     setPaused,
   }));
 
@@ -449,13 +457,13 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
       }
       if (!alive) return;
       setBooting(false); // fuera el splash (y el logo con él)
-      await typeLine("Bienvenido/a a SANTAS OCHOVA La Mejor Librería", "", 16, "", {}, () => alive);
+      await typeLine("Bienvenido/a a SANTAS OCHOVA, La Mejor Librería", "", 16, {}, () => alive);
       if (!alive) return;
-      await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16, "", {}, () => alive);
+      await typeLine("Antes de continuar, le recordamos nuestras directivas:", "", 16, {}, () => alive);
       if (!alive) return;
-      await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, "", { bullet: true }, () => alive);
-      await typeLine("Una mente condicionada es una mente feliz", "muted", 16, "", { bullet: true }, () => alive);
-      await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, "", { bullet: true }, () => alive);
+      await typeLine("Literatura correcta para ciudadanos correctos", "muted", 16, { bullet: true }, () => alive);
+      await typeLine("Una mente condicionada es una mente feliz", "muted", 16, { bullet: true }, () => alive);
+      await typeLine("La lectura sin propósito produce inestabilidad social", "muted", 16, { bullet: true }, () => alive);
       if (!alive) return;
       print("");
       setBooted(true);
@@ -464,6 +472,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
     return () => {
       alive = false; // cancela la bienvenida en curso
       mountedRef.current = false; // corta subscripciones/pintados de awaits que sigan en vuelo
+      flushWaiters(); // suelta cualquier sleep aparcado en la compuerta (si se desmonta en pausa): así el await sale por su guarda !alive
       window.removeEventListener("resize", onResize);
       unsubscribe(); // desuscribe el realtime del chat (vive en useChat)
     };
@@ -524,7 +533,6 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
           </div>
         ) : (
           <div className={"row" + (l.cls ? " " + l.cls : "")} key={l.id}>
-            {l.mark && <span className={l.mark === ">" ? "prompt" : "astk"}>{l.mark + " "}</span>}
             {l.text}
           </div>
         ),
@@ -543,13 +551,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
         <div className="form">
           {form.fields.map((f, i) => (
             <div className="inputline" key={i}>
-              <span className="fcaret" aria-hidden="true">
-                {!loader && i === form.active && !form.editing && (
-                  <svg viewBox="9 7 6 10" fill="currentColor">
-                    <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
-                  </svg>
-                )}
-              </span>
+              <FCaret show={!loader && i === form.active && !form.editing} />
               {!f.nocheck && (
                 <span className="fcheck" aria-hidden="true">
                   {"["}
@@ -572,29 +574,17 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
           ))}
           {fHasConnect && (
             <div className="inputline fconnect-row">
-              <span className="fcaret" aria-hidden="true">
-                {!loader && form.active === form.fields.length && (
-                  <svg viewBox="9 7 6 10" fill="currentColor">
-                    <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
-                  </svg>
-                )}
-              </span>
+              <FCaret show={!loader && form.active === form.fields.length} />
               <span className={"faction" + (fAllFilled ? "" : " locked")}>
                 {!fAllFilled && (
-                  <svg className="flock-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 8h4v14H3V8h4V2h10v6Zm-8 7h2v2h2v-2h2v-2H9v2Zm0-7h6V4H9v4Z" /></svg>
+                  <svg className="flock-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={LOCK_PATH} /></svg>
                 )}
                 {form.submitLabel}
               </span>
             </div>
           )}
           <div className={"inputline" + (fHasConnect ? "" : " fconnect-row")}>
-            <span className="fcaret" aria-hidden="true">
-              {!loader && form.active === fCancelIdx && (
-                <svg viewBox="9 7 6 10" fill="currentColor">
-                  <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
-                </svg>
-              )}
-            </span>
+            <FCaret show={!loader && form.active === fCancelIdx} />
             <span className="faction">Salir</span>
           </div>
         </div>
@@ -606,13 +596,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
               className={"inputline" + (o.gapBefore ? " fconnect-row" : "") + (o.unread !== undefined ? " roster-item" : "")}
               key={i}
             >
-              <span className="fcaret" aria-hidden="true">
-                {!loader && i === panel.active && (
-                  <svg viewBox="9 7 6 10" fill="currentColor">
-                    <path d="M9 17h2v-2h2v-2h2v-2h-2V9h-2V7H9v10Z" />
-                  </svg>
-                )}
-              </span>
+              <FCaret show={!loader && i === panel.active} />
               <span className="faction">
                 {o.icon === "room" ? (
                   <svg className="chat-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16h2v2h2v4H0v-4h2v-2h2v-2h8v2Zm10 2h2v4h-6v-6h-2v-2h4v2h2v2ZM11 4h2v6h-2v2H5v-2H3V4h2V2h6v2Zm8 0h2v6h-2v2h-4V2h4v2Z" /></svg>
@@ -631,7 +615,7 @@ const Terminal = forwardRef<ScreenHandle, ScreenServices>(function Terminal(
           ))}
         </div>
       )}
-      {showInput && (
+      {showInput && !form && (
         <div className="help-block">
           <div className="help-q">¿Necesitas ayuda?</div>
           <div className="hint">

@@ -18,9 +18,6 @@
 .muted{ color:#37f07d }   /* verde base (el oscuro #1f9e5e queda SOLO para el hint) */
 .d{ color:#ff5f5f }   /* errores en rojo */
 .ok{ color:#4db8ff }   /* mensajes [OK] / éxito en azul (verde=texto, rojo=errores, azul=OKs) */
-.astk{ color:#1f9e5e }
-.row.d .astk{ color:#ff5f5f }  /* en errores, el asterisco también en rojo */
-.prompt{ color:#1f9e5e }
 .ftbold{ animation:textShadowBold 4s infinite }   /* negrita FAUX (copia 1px a la derecha, on-grid = nítida) + aberración CRT animada en la MISMA capa: fijar solo text-shadow mataba la aberración heredada. Keyframes en crt.css */
 /* Linea de sistema en DOS COLUMNAS flex: [CODE] fijo | texto que hace wrap alineado bajo si mismo */
 .syscode-row{ display:flex;gap:.5ch;padding-left:0;text-indent:0 }

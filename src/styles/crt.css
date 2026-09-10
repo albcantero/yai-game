@@ -23,7 +23,7 @@
 /* ESCALERA DE CAPAS. Con el warp ON, .crt crea contexto de apilado (por el filtro), así que las capas
    de pantalla ordenan DENTRO de .crt (vía .crt-body, que no crea contexto propio) contra ::before/::after;
    y .curve-overlay es HERMANO de .crt en .screen-area, por eso su z6 gana sobre todo lo de dentro:
-   1  contenido de pantalla  .content / .home-screen / .win-sidebar
+   1  contenido de pantalla  .content / .home-screen
    2  diálogo de confirmación .confirm-overlay  (tapa el contenido, pero vive DENTRO de la pantalla)
    3  rejilla + flicker       .crt::before / .crt::after  (fósforo por encima de TODO lo de pantalla, diálogo incluido)
    6  cristal / viñeta        .curve-overlay  (la luna del tubo, siempre lo más alto) */

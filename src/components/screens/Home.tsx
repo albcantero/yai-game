@@ -1,9 +1,10 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { menuNav } from "../../terminal/input";
 
-// Opciones del menú de inicio. target = id de una pantalla del registro SCREENS; sin target = aún sin
-// pantalla (Tienda/Notas/Registro/Fases): se muestran pero no navegan.
+// Opciones del menú de inicio. target = id de una pantalla del registro SCREENS. Hoy todas navegan
+// (Tienda/Notas/Fax → Placeholder; Terminal; Libro de Juego → Minimap); el guard de `target` opcional se
+// conserva como defensa por si en el futuro alguna opción se muestra antes de tener pantalla.
 const OPEN_DELAY = 250; // ms que la opción se queda en AZUL antes de abrir el programa (para que se vea la selección)
 const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
   { label: "Tienda", target: "tienda", icon: "/icons/internet.png" },      // tienda online del juego (icono html)
@@ -19,6 +20,9 @@ const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
 const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ navigate }, ref) {
   const [active, setActive] = useState(0);
   const activeRef = useRef(0); // el handle lee de aquí (no del state) para no capturar un active viejo
+  const openTimerRef = useRef<number | null>(null); // timeout del OPEN_DELAY: se limpia al desmontar
+
+  useEffect(() => () => { if (openTimerRef.current !== null) clearTimeout(openTimerRef.current); }, []);
 
   const setActiveBoth = (i: number) => {
     activeRef.current = i;
@@ -28,7 +32,7 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ navigate }
     setActiveBoth(i); // marca la opción en azul (selección Win98)
     const t = HOME_OPTS[i].target;
     if (!t) return; // sin pantalla aún (placeholder): solo se queda seleccionada
-    window.setTimeout(() => navigate(t), OPEN_DELAY); // espera para que se VEA el azul y luego abre el programa
+    openTimerRef.current = window.setTimeout(() => navigate(t), OPEN_DELAY); // espera para que se VEA el azul y luego abre el programa
   };
 
   // El armazón nos despacha las teclas aquí: las flechas mueven la selección, OK/Enter entra.
@@ -41,7 +45,6 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ navigate }
       const na = menuNav(activeRef.current, HOME_OPTS.length, k);
       if (na !== activeRef.current) setActiveBoth(na);
     },
-    isLoading: () => false,
     setPaused: () => {},
   }), []);
 
