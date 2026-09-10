@@ -26,7 +26,8 @@ export type RotaryLockProps = {
 
 export default function RotaryLock({ combo, playSfx, onSolved, onClose }: RotaryLockProps) {
   const nums = combo.map((n) => ((n % TICKS) + TICKS) % TICKS); // 0..39 (como el original: >=40 → 0)
-  const [rot, setRot] = useState(0); // rotación del dial (deg); el hueco activo muestra numberAtArrow(rot)
+  const [dispNum, setDispNum] = useState(0); // número mostrado en el hueco activo. NO se re-renderiza por cada move:
+  // el giro del dial se escribe DIRECTO al DOM (ver applyRot) y esto solo cambia al cruzar una marca (1 re-render/marca)
   const [active, setActive] = useState(0); // índice del hueco con foco (ring)
   const [stored, setStored] = useState<number[]>(() => nums.map(() => 0)); // valor fijado de cada hueco NO activo
   const [open, setOpen] = useState(false); // correcto: el arco se eleva (CSS) + OTP verde; disabled permanente
@@ -51,7 +52,8 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
   useEffect(() => () => { if (dropTimer.current !== null) clearTimeout(dropTimer.current); }, []);
   useEffect(() => { if (exit && exitRef.current) animate(exitRef.current, { opacity: [0, 1] }, { duration: 0.5, ease: E_OUT }); }, [exit]); // "Salir" con fade-in
 
-  const setRotation = (v: number) => { rotRef.current = v; setRot(v); };
+  // aplica la rotación DIRECTO al DOM (sin setState → sin re-render): fluido y sin arrastrar el hilo (audio al instante)
+  const applyRot = (v: number) => { rotRef.current = v; if (dialRef.current) dialRef.current.style.transform = `rotate(${v}deg)`; };
   const angleOf = (e: ReactPointerEvent) => {
     const el = dialRef.current;
     if (!el) return 0;
@@ -72,15 +74,21 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     const cur = angleOf(e);
     const next = rotRef.current + norm180(cur - lastAngleRef.current);
     lastAngleRef.current = cur;
-    setRotation(next); // el hueco activo refleja este giro en vivo
+    applyRot(next); // giro directo al DOM (sin re-render en cada move)
     const t = Math.round(next / TICK_ANGLE);
-    if (t !== lastTickRef.current) { lastTickRef.current = t; playSfx("/audio/tick.mp3", 1); } // mismo tic que los otros candados (al cruzar cada marca)
+    if (t !== lastTickRef.current) { // al CRUZAR una marca: tic + refrescar el número (único re-render, y solo cuando cambia)
+      lastTickRef.current = t;
+      playSfx("/audio/tick.mp3", 1); // mismo tic que los otros candados
+      setDispNum(numberAtArrow(next));
+    }
   };
   const onUp = (e: ReactPointerEvent) => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
     try { (e.currentTarget as Element).releasePointerCapture(e.pointerId); } catch { /* no capturado */ }
-    setRotation(Math.round(rotRef.current / TICK_ANGLE) * TICK_ANGLE); // encaja en la marca
+    const snapped = Math.round(rotRef.current / TICK_ANGLE) * TICK_ANGLE; // encaja en la marca
+    applyRot(snapped);
+    setDispNum(numberAtArrow(snapped));
   };
 
   // mueve el foco entre huecos: fija el número actual en el hueco que dejamos y lleva el dial al valor del nuevo
@@ -95,7 +103,9 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
     setStored(next);
     activeIdxRef.current = ni;
     setActive(ni);
-    setRotation(-next[ni] * TICK_ANGLE); // el dial salta al valor guardado del nuevo hueco (0 si nunca se tocó)
+    const target = -next[ni] * TICK_ANGLE; // el dial salta al valor guardado del nuevo hueco (0 si nunca se tocó)
+    applyRot(target);
+    setDispNum(numberAtArrow(target));
   };
 
   // Resolver: comprueba la combinación. Correcto/incorrecto REPLICA a geometryLock (mismos valores y efecto).
@@ -144,8 +154,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
             <div className="rotary-arrow" />
           </div>
           <div className="rotary-dial" ref={dialRef}
-            onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
-            style={{ transform: `rotate(${rot}deg)` }}>
+            onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
             {Array.from({ length: TICKS }, (_, j) => {
               const major = j % 5 === 0;
               return (
@@ -164,7 +173,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
           </button>
           {nums.map((_, i) => (
             <span key={i} className={"rotary-num" + (i === active ? " active" : "")}>
-              {i === active ? numberAtArrow(rot) : stored[i]}
+              {i === active ? dispNum : stored[i]}
             </span>
           ))}
           <button type="button" className="rotary-caret next" onClick={() => move(1)} disabled={open || shaking || active === nums.length - 1} aria-label="Hueco siguiente">
