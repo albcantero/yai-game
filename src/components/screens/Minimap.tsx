@@ -194,14 +194,18 @@ const PUZZLE_COMBOS: Record<number, number[]> = {
 };
 // Puzzles con candado de LETRAS: respuesta como PALABRA en MAYÚSCULAS (la longitud = nº de diales).
 const PUZZLE_WORDS: Record<number, string> = {
-  1: "HELLO", // Puzzle 1 (Almacén): candado de LETRAS, respuesta HELLO
+  2: "HELLO", // Puzzle 2 (Biblioteca privada): candado de LETRAS, respuesta HELLO
 };
-// config del candado del puzzle roomId#idx según su número global: letras (palabra) o números (combo/placeholder)
-const lockConfigFor = (roomId: string, idx: number): { combo: number[]; letters: boolean } => {
+// Puzzles con candado de FIGURAS: combinación de índices de forma (0..5). La longitud = nº de ruedas.
+const PUZZLE_GEOMETRY: Record<number, number[]> = {
+  1: [0, 4, 2, 5], // Puzzle 1 (Almacén): candado de FIGURAS → triángulo, luna, cuadrado, estrella
+};
+// config del candado del puzzle roomId#idx según su número global (letras / figuras / números)
+const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" } => {
   const n = (puzzleBaseOf[roomId] ?? 0) + idx + 1;
-  const word = PUZZLE_WORDS[n];
-  if (word) return { combo: wordToCombo(word), letters: true };
-  return { combo: PUZZLE_COMBOS[n] ?? PLACEHOLDER_COMBO, letters: false };
+  if (PUZZLE_WORDS[n]) return { combo: wordToCombo(PUZZLE_WORDS[n]), kind: "letters" };
+  if (PUZZLE_GEOMETRY[n]) return { combo: PUZZLE_GEOMETRY[n], kind: "geometry" };
+  return { combo: PUZZLE_COMBOS[n] ?? PLACEHOLDER_COMBO, kind: "number" };
 };
 
 const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock }, ref) {

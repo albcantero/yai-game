@@ -8,6 +8,7 @@ import { SCREENS, type ScreenId } from "./screens";
 import type { ScreenHandle, LockConfig } from "./screens/types";
 import Padlock from "./locks/Padlock";
 import PadlockLetters from "./locks/PadlockLetters";
+import GeometryLock from "./locks/GeometryLock";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -215,23 +216,32 @@ export default function Computer() {
               (mismo z2) pinten POR ENCIMA del candado. Clic en el backdrop (fuera del candado) = cerrar. */}
           {lock && (
             <div className="lock-overlay" onPointerDown={(e) => { if (e.target === e.currentTarget) setLock(null); }}>
-              <div className="padlock-stage">
-                {lock.letters ? (
-                  <PadlockLetters
-                    combo={lock.combo}
-                    playSfx={playSfx}
-                    onSolved={() => { lock.onSolved(); setLock(null); }}
-                    onClose={() => setLock(null)}
-                  />
-                ) : (
-                  <Padlock
-                    combo={lock.combo}
-                    playSfx={playSfx}
-                    onSolved={() => { lock.onSolved(); setLock(null); }}
-                    onClose={() => setLock(null)}
-                  />
-                )}
-              </div>
+              {lock.kind === "geometry" ? (
+                <GeometryLock
+                  combo={lock.combo}
+                  playSfx={playSfx}
+                  onSolved={() => { lock.onSolved(); setLock(null); }}
+                  onClose={() => setLock(null)}
+                />
+              ) : (
+                <div className="padlock-stage">
+                  {lock.kind === "letters" ? (
+                    <PadlockLetters
+                      combo={lock.combo}
+                      playSfx={playSfx}
+                      onSolved={() => { lock.onSolved(); setLock(null); }}
+                      onClose={() => setLock(null)}
+                    />
+                  ) : (
+                    <Padlock
+                      combo={lock.combo}
+                      playSfx={playSfx}
+                      onSolved={() => { lock.onSolved(); setLock(null); }}
+                      onClose={() => setLock(null)}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           )}
           {confirmClose && (
