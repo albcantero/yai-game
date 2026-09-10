@@ -183,9 +183,9 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
     if (correct) {
       await resultCorrect();
       if (killed.current) return;
+      playSfx("/audio/lock-online-1.mp3", 0.6); // ACIERTO: al TERMINAR la animación (candado abierto en verde), no al aparecer el texto
       // CORRECTO + combinación ENTRAN y PERSISTEN (sin fade-out); tras X seg aparece "Salir"
       setResponse("CORRECTO");
-      playSfx("/audio/lock-online-1.mp3", 0.6); // sonido de ACIERTO (común a los 4 candados)
       if (responseRef.current) responseRef.current.style.color = OK_GREEN;
       await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
       await wait(EXIT_DELAY_MS);
@@ -193,7 +193,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
       setExit(true); // aparece el botón "Salir" (al pulsarlo: onSolved → resolver + cerrar)
     } else {
       await resultIncorrect();
-      playSfx("/audio/lock-fail-1.mp3", 0.6); // sonido de FALLO (común a los 4 candados), al aparecer "INCORRECTO"
+      playSfx("/audio/lock-fail-1.mp3", 0.6); // FALLO: al TERMINAR la animación (candado cerrado en rojo + shake), no al aparecer el texto
       await showResponse("INCORRECTO", BAD_RED);
       await restore();
       if (killed.current) return;
