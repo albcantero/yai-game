@@ -1,27 +1,19 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { useGameState, getGameState, applyRpc } from "../../lib/gameState";
+import { DIALOG, FAX_START, type FaxNode } from "../../game/fax";
 
 // FAX ELECTRÓNICO (pantalla `registro`): chat con el informante ("???", aún sin revelar que es Miquela).
 // Los mensajes que ELLA deja aparecen de golpe (sin typing); al CHATEAR (tras responderle) su respuesta llega
-// con "..." + typewriter. Nuestra respuesta NO se manda como burbuja: los dos recuadros quedan bloqueados
-// (la elegida con borde negro, la otra atenuada) como registro.
+// con "..." + typewriter, y suena "new-message" al APARECER cada mensaje (no con los "..."). Nuestra respuesta
+// NO se manda como burbuja: los dos recuadros quedan bloqueados (elegida con borde negro, otra atenuada).
 //
-// PERSISTENCIA (game_state, fila 'live', COMPARTIDA + realtime, como el resto del juego): solo se guarda
-// `fax_picks` (las elecciones en orden); toda la conversación se reconstruye del SCRIPT. Al entrar se
-// reconstruye INSTANTÁNEO (no se reinicia ni se re-tipea); solo se anima lo NUEVO de esta sesión. Las
-// elecciones se persisten con la RPC atómica `fax_choose`.
+// El guion es un GRAFO RAMIFICADO (src/game/fax.ts): cada respuesta lleva a su propio nodo. La partida solo
+// guarda la SECUENCIA de elecciones (game_state.fax_picks), que determina el camino recorrido.
 //
-// v1 (BOCETO): guion lineal de RELLENO tras el primer intercambio (placeholder).
-type Step = { incoming: string[]; a: string; b: string };
-const SCRIPT: Step[] = [
-  { incoming: ["A ver, hmm. ¡Probando!", "¿Hola...? ¿Hay alguien ahí?", "Espero que funcione este cacharro."],
-    a: "Te recibimos, ¿y tú a nosotras? Gracias por ayudarnos.", b: "Funciona. Pero ¿quién eres?" },
-  { incoming: ["El cuadro de luces del fondo es un señuelo", "Detrás hay una puerta que no deberíais poder abrir"],
-    a: "¿Y cómo la abrimos?", b: "¿Por qué nos ayudas?" },
-  { incoming: ["Cada sala esconde una llave", "Id sumándolas. Yo os guío desde aquí"],
-    a: "De acuerdo", b: "Esto no me da buena espina" },
-];
+// PERSISTENCIA (game_state, fila 'live', COMPARTIDA + realtime): al entrar se reconstruye INSTANTÁNEO desde
+// fax_picks (no se reinicia ni se re-tipea); solo se anima lo NUEVO de esta sesión. Las elecciones se
+// persisten con la RPC atómica `fax_choose`.
 
 const TYPE_STEP = 28; // ms por carácter (typewriter, como el typeLine de Terminal)
 const prefersReduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -31,61 +23,71 @@ const randWait = () => 1000 + Math.random() * 2000; // espera ALEATORIA de 1-3 s
 type Entry = { kind: "them"; text: string } | { kind: "pick"; a: string; b: string; sel: 0 | 1 };
 const sameArr = (a: number[], b: number[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 
-// Reconstruye las entradas del historial (mensajes del contacto + elecciones resueltas) desde las elecciones
-// guardadas + el SCRIPT. Puro: se usa para el estado inicial (sin parpadeo) y en rebuild().
-function buildEntries(picks: number[]): Entry[] {
+// Recorre el grafo aplicando las elecciones guardadas: reconstruye el historial (mensajes + elecciones) y
+// devuelve el nodo ACTUAL pendiente (`curId`), cuyas opciones se pintarán interactivas. Puro (sin parpadeo).
+function trace(picks: number[]): { entries: Entry[]; curId: string | null } {
   const entries: Entry[] = [];
-  const n = Math.min(picks.length, SCRIPT.length);
-  for (let i = 0; i < n; i++) {
-    for (const t of SCRIPT[i].incoming) entries.push({ kind: "them", text: t });
-    entries.push({ kind: "pick", a: SCRIPT[i].a, b: SCRIPT[i].b, sel: picks[i] === 1 ? 1 : 0 });
+  let id: string | null = FAX_START;
+  for (let i = 0; i < picks.length; i++) {
+    if (id === null) break;
+    const node: FaxNode | undefined = DIALOG[id];
+    if (!node) { id = null; break; }
+    for (const t of node.incoming) entries.push({ kind: "them", text: t });
+    const sel: 0 | 1 = picks[i] === 1 ? 1 : 0;
+    entries.push({ kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel });
+    id = (sel === 0 ? node.a?.next : node.b?.next) ?? null;
   }
-  if (n < SCRIPT.length) for (const t of SCRIPT[n].incoming) entries.push({ kind: "them", text: t });
-  return entries;
+  if (id !== null) {
+    const node: FaxNode | undefined = DIALOG[id];
+    if (node) for (const t of node.incoming) entries.push({ kind: "them", text: t });
+    else id = null;
+  }
+  return { entries, curId: id };
 }
 
 const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, ref) {
   const gs = useGameState();                     // estado compartido (ya cargado al abrir la app: sin parpadeo)
-  const boot = getGameState()?.fax_picks ?? [];  // elecciones ya guardadas: inicializa el historial de golpe
-  const bootStep = Math.min(boot.length, SCRIPT.length);
+  const boot = trace(getGameState()?.fax_picks ?? []); // recorrido inicial (para pintar el historial de golpe)
   const loaded = getGameState() !== null;
 
-  const [msgs, setMsgs] = useState<Entry[]>(() => buildEntries(boot));
+  const [msgs, setMsgs] = useState<Entry[]>(() => boot.entries);
   const [live, setLive] = useState<string | null>(null); // mensaje entrante tecleándose (char a char); null = ninguno
   const [typing, setTyping] = useState(false);            // "..." durante la espera previa (chateando)
   const [delivering, setDelivering] = useState(!loaded);  // sin estado aún = "entregando"; con estado, opciones listas
-  const [step, setStep] = useState(bootStep);
+  const [curId, setCurId] = useState<string | null>(boot.curId);
   const [ready, setReady] = useState(loaded);             // estado compartido cargado (evita parpadeo de opciones)
 
-  const stepRef = useRef(bootStep);   // paso actual SÍNCRONO (teclas + guard de choose)
+  const curIdRef = useRef<string | null>(boot.curId); // nodo actual SÍNCRONO (teclas + guard de choose)
   const deliveringRef = useRef(!loaded);
   const pausedRef = useRef(false);    // el armazón pausa la pantalla (diálogo/candado abiertos)
   const queueRef = useRef<string[]>([]);        // mensajes entrantes pendientes de teclear (chateando)
   const timerRef = useRef<number | null>(null);
-  const renderedRef = useRef<number[]>(boot.slice());     // elecciones YA pintadas (para reconciliar con la DB)
+  const renderedRef = useRef<number[]>((getGameState()?.fax_picks ?? []).slice()); // elecciones YA pintadas (reconciliar con la DB)
   const threadRef = useRef<HTMLDivElement>(null);
 
   const clearTimer = () => { if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; } };
   const finishStep = () => { deliveringRef.current = false; setDelivering(false); }; // cola vacía: aparecen las opciones
 
-  // Reconstruye TODA la conversación (INSTANTÁNEA) desde las elecciones guardadas + el SCRIPT. Se usa al cargar
-  // y para reconciliar si otra jugadora avanzó (o hubo reset): así al entrar no se reinicia ni se re-tipea.
+  // Reconstruye TODA la conversación (INSTANTÁNEA) desde las elecciones guardadas. Se usa al cargar y para
+  // reconciliar si otra jugadora avanzó (o hubo reset): así al entrar no se reinicia ni se re-tipea.
   function rebuild(picks: number[]) {
     clearTimer();
     setLive(null);
     setTyping(false);
-    setMsgs(buildEntries(picks));
-    const n = Math.min(picks.length, SCRIPT.length);
-    stepRef.current = n; setStep(n);
+    const { entries, curId: id } = trace(picks);
+    setMsgs(entries);
+    curIdRef.current = id; setCurId(id);
     deliveringRef.current = false; setDelivering(false);
     renderedRef.current = picks.slice();
   }
 
-  // ── Entrega EN VIVO (chateando): antes de cada mensaje, "..." una espera aleatoria de 1-3 s y luego typewriter ──
+  // ── Entrega EN VIVO (chateando): antes de cada mensaje, "..." una espera aleatoria de 1-3 s y luego typewriter.
+  //    Suena "new-message" al APARECER el mensaje (al empezar a teclearlo), NO con los "...". ──
   function typeMessage(text: string) {
     if (prefersReduced()) { // movimiento reducido: aparece de golpe
       setMsgs((m) => [...m, { kind: "them", text }]);
       setLive(null);
+      playSfx("/audio/new-message.mp3", 0.6); // aparece de golpe = ya está el mensaje
       if (queueRef.current.length > 0) pumpTyping(); else finishStep();
       return;
     }
@@ -97,6 +99,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       if (i < text.length) { timerRef.current = window.setTimeout(tick, TYPE_STEP); return; }
       setMsgs((m) => [...m, { kind: "them", text }]);
       setLive(null);
+      playSfx("/audio/new-message.mp3", 0.6); // al TERMINAR de aparecer (fin del typewriter) suena "mensaje nuevo"
       if (queueRef.current.length > 0) pumpTyping(); else finishStep(); // "..." al instante; la espera va dentro
     };
     timerRef.current = window.setTimeout(tick, TYPE_STEP);
@@ -115,7 +118,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     pumpTyping();
   }
 
-  const current = step < SCRIPT.length ? SCRIPT[step] : null;
+  const curNode = curId !== null ? DIALOG[curId] : null;   // nodo pendiente (sus opciones se pintan interactivas)
 
   // persiste la elección por RPC atómica (actualiza el store; realtime sincroniza al resto). Fire-and-forget:
   // el estado local ya se reflejó de forma optimista; si hay carrera, la reconciliación por `gs` lo corrige.
@@ -125,17 +128,22 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
 
   const choose = (which: "A" | "B") => {
     if (pausedRef.current || deliveringRef.current) return; // no elegir mientras el contacto escribe
-    const s = stepRef.current;
-    if (s >= SCRIPT.length) return;
-    const cur = SCRIPT[s];
+    const id = curIdRef.current;
+    if (id === null) return;
+    const node: FaxNode | undefined = DIALOG[id];
+    if (!node) return;
+    const chosen = which === "A" ? node.a : node.b;
+    if (!chosen) return; // esa opción no existe en este nodo
     const sel: 0 | 1 = which === "A" ? 0 : 1;
-    const next = SCRIPT[s + 1];
-    playSfx("/audio/terminal-simple-button.mp3");
-    setMsgs((m) => [...m, { kind: "pick", a: cur.a, b: cur.b, sel }]); // optimista: bloquea los recuadros
+    playSfx("/audio/my-message.mp3", 0.6); // sonido al mandar NUESTRA respuesta (pulsar un recuadro)
+    setMsgs((m) => [...m, { kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel }]); // optimista: bloquea los recuadros
+    const stepIdx = renderedRef.current.length;
     renderedRef.current = [...renderedRef.current, sel];
-    stepRef.current = s + 1; setStep(s + 1);
-    persistChoice(s, sel);
-    if (next) startLive(next.incoming); else finishStep(); // CHATEANDO: la respuesta llega con "..." + typewriter
+    const nextId = chosen.next;
+    curIdRef.current = nextId; setCurId(nextId);
+    persistChoice(stepIdx, sel);
+    const nextNode = nextId !== null ? DIALOG[nextId] : null;
+    if (nextNode) startLive(nextNode.incoming); else finishStep(); // CHATEANDO: la respuesta llega con "..." + typewriter
   };
 
   // reconcilia con el estado compartido (carga inicial, avance remoto o reset): reconstruye INSTANTÁNEO si cambia
@@ -161,7 +169,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
 
-  const showChoices = ready && !delivering && current !== null;
+  const showChoices = ready && !delivering && !!curNode?.a && !!curNode?.b; // nodo de decisión (dos opciones)
 
   return (
     <div className="fax win98">
@@ -197,10 +205,10 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
           </div>
         )}
         {/* justo debajo del último mensaje, DENTRO del panel: las dos respuestas (dos recuadros al 50%) */}
-        {showChoices && (
+        {showChoices && curNode && (
           <div className="fax-choices">
-            <div className="fax-choice" onClick={() => choose("A")}>{current!.a}</div>
-            <div className="fax-choice" onClick={() => choose("B")}>{current!.b}</div>
+            <div className="fax-choice" onClick={() => choose("A")}>{curNode.a!.text}</div>
+            <div className="fax-choice" onClick={() => choose("B")}>{curNode.b!.text}</div>
           </div>
         )}
       </div>
