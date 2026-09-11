@@ -1,32 +1,29 @@
-/* FAX ELECTRÓNICO (pantalla `registro`): mensajería tipo Lifeline dentro del CRT verde. Cabecera con el
-   contacto (???), hilo de mensajes (entrantes izquierda / propios derecha) y abajo DOS columnas A/B con
-   las respuestas. v1 (boceto). Paleta de crt.css: #37f07d verde, #b8ffd6 brillante, #1f9e5e tenue, #050805 fondo. */
-.fax{ position:absolute;inset:0;display:flex;flex-direction:column;color:#37f07d;
-  font-family:'Determination Mono','Determination Sans',monospace }
+/* FAX ELECTRÓNICO (pantalla `registro`): mensajería tipo Lifeline. Interfaz BLANCA (app real de mensajes),
+   nada de TUI verde. Cabecera con el contacto (???), hilo de burbujas (entrantes izquierda / propios derecha)
+   y abajo DOS columnas A/B con las respuestas. Sigue dentro del tubo CRT (scanlines/warp del monitor). v1. */
+.fax{ position:absolute;inset:0;display:flex;flex-direction:column;background:#fff;color:#111;
+  font-family:'Helvetica Neue',Arial,system-ui,sans-serif;text-shadow:none }
 
-/* cabecera: contacto + estado */
+/* cabecera */
 .fax-head{ flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:9px 12px;border-bottom:1.5px solid #1f9e5e }
-.fax-contact{ font-size:17px;color:#b8ffd6;letter-spacing:2px }
-.fax-status{ font-size:11px;color:#1f9e5e;text-transform:uppercase;letter-spacing:1px }
+  padding:10px 14px;background:#f2f2f2;border-bottom:1px solid #d8d8d8 }
+.fax-contact{ font-size:16px;font-weight:600;color:#111;letter-spacing:.5px }
+.fax-status{ font-size:11px;color:#8a8a8a;text-transform:uppercase;letter-spacing:.5px }
 
-/* hilo: scroll propio, mensajes en burbujas */
+/* hilo: scroll propio, burbujas grises sobre blanco */
 .fax-thread{ flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
-  display:flex;flex-direction:column;gap:8px;padding:12px }
-.fax-msg{ max-width:78%;padding:7px 11px;font-size:14px;line-height:1.35;white-space:pre-wrap;
-  border:1.5px solid #1f9e5e;border-radius:11px }
-.fax-msg.them{ align-self:flex-start;border-bottom-left-radius:2px;color:#c9ffe4 }        /* entrante (???) */
-.fax-msg.me{ align-self:flex-end;border-bottom-right-radius:2px;color:#37f07d;            /* respuesta propia */
-  border-color:#37f07d;background:rgba(55,240,125,.08) }
+  display:flex;flex-direction:column;gap:8px;padding:14px;background:#fff }
+.fax-msg{ max-width:78%;padding:8px 12px;font-size:14px;line-height:1.4;white-space:pre-wrap;border-radius:16px }
+.fax-msg.them{ align-self:flex-start;background:#ececec;color:#111;border-bottom-left-radius:4px }   /* entrante (???) */
+.fax-msg.me{ align-self:flex-end;background:#dcdcdc;color:#111;border-bottom-right-radius:4px }        /* respuesta propia */
 
 /* abajo: DOS columnas con las opciones A y B */
-.fax-choices{ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;
-  padding:10px 12px;border-top:1.5px solid #1f9e5e }
+.fax-choices{ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  padding:12px 14px;background:#f7f7f7;border-top:1px solid #d8d8d8 }
 .fax-choice{ display:flex;flex-direction:column;gap:5px;min-height:58px;
-  padding:9px 11px;text-align:left;cursor:pointer;
-  background:transparent;color:#37f07d;border:1.5px solid #1f9e5e;border-radius:9px;
-  font-family:inherit;transition:background .15s ease,border-color .15s ease }
-.fax-choice:hover{ border-color:#37f07d;background:rgba(55,240,125,.06) }
-.fax-choice:disabled{ opacity:.3;cursor:default }
-.fax-key{ font-size:11px;color:#b8ffd6;letter-spacing:2px }        /* la letra A / B */
-.fax-opt{ font-size:13px;line-height:1.3 }                        /* el texto de la respuesta */
+  padding:10px 12px;text-align:left;cursor:pointer;background:#fff;color:#111;
+  border:1px solid #cfcfcf;border-radius:10px;font-family:inherit;transition:background .15s ease,border-color .15s ease }
+.fax-choice:hover{ background:#f0f0f0;border-color:#9a9a9a }
+.fax-choice:disabled{ opacity:.4;cursor:default }
+.fax-key{ font-size:11px;font-weight:700;color:#7a7a7a;letter-spacing:1px }   /* la letra A / B */
+.fax-opt{ font-size:13px;line-height:1.3;color:#111 }                         /* el texto de la respuesta */
