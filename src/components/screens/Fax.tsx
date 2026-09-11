@@ -78,8 +78,16 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     timerRef.current = window.setTimeout(() => { setTyping(false); typeMessage(next); }, randWait());
   }
 
-  function startDelivery(incoming: string[]) {
+  // `live=false`: mensajes que ELLA DEJÓ (ya están cuando entras) → aparecen de golpe, SIN typing ni "...".
+  // `live=true`: estamos CHATEANDO (tras responderle) → el contacto responde con "..." + typewriter.
+  function startDelivery(incoming: string[], live: boolean) {
     clearTimer();
+    if (!live) {
+      setMsgs((m) => [...m, ...incoming.map((text) => ({ kind: "them" as const, text }))]);
+      deliveringRef.current = false;
+      setDelivering(false);
+      return;
+    }
     queueRef.current = [...incoming];
     deliveringRef.current = true;
     setDelivering(true);
@@ -88,8 +96,8 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     pumpTyping();
   }
 
-  // Al montar: el contacto empieza a escribir el primer paso. Limpia el timer al desmontar.
-  useEffect(() => { startDelivery(SCRIPT[0].incoming); return clearTimer;
+  // Al montar: los mensajes que el contacto YA dejó aparecen de golpe (sin typing). Limpia el timer al desmontar.
+  useEffect(() => { startDelivery(SCRIPT[0].incoming, false); return clearTimer;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -109,7 +117,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     playSfx("/audio/terminal-simple-button.mp3");
     setStep(s + 1);
     setMsgs((m) => [...m, { kind: "pick", a: cur.a, b: cur.b, sel }]); // NO se manda: registra la elección (recuadros bloqueados)
-    if (next) startDelivery(next.incoming);              // el contacto sigue escribiendo lo siguiente
+    if (next) startDelivery(next.incoming, true);        // CHATEANDO: el contacto responde con "..." + typewriter
   };
 
   useImperativeHandle(ref, () => ({
