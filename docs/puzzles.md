@@ -17,7 +17,7 @@
 
 | Puzzle | Sala | "Leer" (enunciado) | "Descripción" (panel) | Solución (OTP) | Objetos que usa | Da (info/item/llave) | Nota (→ Notas) | Depende de |
 |---|---|---|---|---|---|---|---|---|
-| Puzzle 1 | Almacén de tienda | — | — | — | — | +1 llave (con ella eliges norte/sur) | — | — |
+| Puzzle 1 | Almacén de tienda | adivinanza "Vuela sin tener alas..." (resp. EL TIEMPO) | — | **letters** · "TIEMPO" (por confirmar) | candado Almacén 1 y 2 | +1 llave (con ella eliges norte/sur) | — | — |
 | Puzzle 2 | Biblioteca privada | — | — | — | — | +1 llave | — | — |
 | Puzzle 3 | Biblioteca privada | — | — | — | — | +1 llave | — | — |
 | Puzzle 4 | Depósito | — | — | — | — | +1 llave | — | **info de otra sala** (por definir) |
@@ -56,6 +56,8 @@ SECRETA: se revela al resolver el último puzzle del Despacho.
 | Expediente Miquela Quirós 2023: *La jauría humana* | 3 informes OFICIALES (con expediente/caso/firma): Cap. IV pág. 8 ("Calder"+"Ruby"), portada pág. 9 ("no es el ejemplar"), créditos pág. 10 (© Ediciones G. P. 1976) | documento/pista | Sobre 1 | — | prueba que la ed. de **1976 lleva "Calder"**: NO es el ejemplar buscado (el de **1975 con "Hawes"**). Material numérico: ISBN, depósito legal, caso 161720-B |
 | Informe Miquela Quirós 2025: portada del *Compendio* (Horace Faulkner) | informe INÉDITO (sin expediente/caso/sujeto), notas a mano: "¿Dónde está H...?", "¿H. F. = H. F.?", "me estoy volviendo loca" | documento/pista | Sobre 3 | — | conexión **Horace Faulkner = Horton Foote = firma H.F. de Higgins** (ver lore §3.1); contrasta con los oficiales de 2023 |
 | Informe en blanco: pista de la caja fuerte (geometryLock) | informe SIN rellenar, garabateado a rotulador: tres-en-raya, notas musicales y un **grid con estrellas**; firmado "H. F." | objeto/pista | Sobre 4 | — | la **posición de las estrellas** en el grid = combinación de un **geometryLock** (sala por definir); otra firma H.F. de Higgins |
+| Adivinanza del Almacén (candado 1) | folio con la adivinanza "Vuela sin tener alas..."; la RESPUESTA va impresa EN ESPEJO en una solapa doblable (oculta) | pista/enunciado | — | Almacén | respuesta = **EL TIEMPO** (semilla temática: el tiempo = núcleo del lore); enunciado del Puzzle 1 (**letterlock**) |
+| Símbolos del Almacén (candado 2) | folio con símbolos: triángulo (arr. izq.), **7 rodeado** (arr. der.), luna creciente (centro), **π** (bajo la luna), triángulo (ab. der.) | pista | — | Almacén | **mecánica por confirmar**: ¿combinación de otro candado? ¿orden/posición? ¿π y 7 como índices? |
 | — | — | — | — | — | (añadir más piezas según se diseñen los puzzles) |
 
 ## Notas de uso
