@@ -29,9 +29,7 @@
 
 /* mensaje: cada uno en su franja a lo ANCHO con fondo azulado Win98 (opacidad) sobre el blanco. Los del
    contacto van SIN etiqueta (el chat es solo con él); los nuestros se marcan "Nosotras:" (formato MSN). */
-.fax-msg{ background:rgba(0,0,128,.1);padding:10px;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1;color:#222;white-space:pre-wrap }
-.fax-msg.me{ background:rgba(0,0,0,.1) }   /* nuestros mensajes: franja GRIS (en vez del azul del contacto) */
-.fax-from{ display:block;font-weight:700;margin-bottom:1px;color:#9e2b14 }   /* "Nosotras:" en granate */
+.fax-msg{ background:rgba(0,0,255,.15);padding:10px;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1;color:#222;white-space:pre-wrap }   /* contacto: franja AZUL */
 
 /* indicador de tecleo: tres CUADRADOS (SVG) animados, SIN franja azul (los puntos de la fuente son diminutos) */
 .fax-typing{ padding:4px 10px;color:#3a3a3a }
@@ -44,6 +42,9 @@
 /* respuestas: DENTRO del panel, justo debajo del último mensaje (el gap:8px del hilo las separa). Dos
    recuadros al 50% cada uno (grid 1fr 1fr, ancho fijo, NO se ajustan al texto), misma franja azulada. */
 .fax-choices{ display:grid;grid-template-columns:1fr 1fr;gap:8px }
-.fax-choice{ background:rgba(0,0,128,.1);padding:10px;cursor:pointer;color:#222;text-align:center;
-  display:flex;align-items:center;justify-content:center;   /* centra el texto vertical y horizontalmente (los dos recuadros igualan altura) */
+.fax-choice{ background:rgba(0,0,0,.12);padding:10px;cursor:pointer;color:#222;text-align:center;   /* nuestras respuestas: recuadro GRIS */
+  display:flex;align-items:center;justify-content:center;   /* centra el texto (los dos recuadros igualan altura) */
   font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1 }
+.fax-choices.locked .fax-choice{ cursor:default }   /* elección ya resuelta: no clicable */
+.fax-choice.picked{ border:1px solid #000 }          /* la opción elegida: borde negro */
+.fax-choice.dim{ opacity:.65 }                        /* la NO elegida: atenuada al 65% */

@@ -25,10 +25,13 @@ const TYPE_STEP = 28; // ms por carácter (typewriter, como el typeLine de Termi
 const prefersReduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
 const randWait = () => 1000 + Math.random() * 2000; // espera ALEATORIA de 1-3 s antes de cada mensaje
 
-type Msg = { from: "them" | "me"; text: string };
+// Historial: cada entrada es un mensaje del contacto ("them") o una ELECCIÓN nuestra ya resuelta ("pick":
+// las dos opciones + `sel` = la elegida). Al elegir NO se manda mensaje: los dos recuadros quedan
+// bloqueados (la elegida con borde negro, la otra atenuada) como registro.
+type Entry = { kind: "them"; text: string } | { kind: "pick"; a: string; b: string; sel: 0 | 1 };
 
 const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, ref) {
-  const [msgs, setMsgs] = useState<Msg[]>([]);       // mensajes ya completos
+  const [msgs, setMsgs] = useState<Entry[]>([]);     // historial (mensajes del contacto + elecciones resueltas)
   const [live, setLive] = useState<string | null>(null); // mensaje entrante tecleándose (char a char); null = ninguno
   const [typing, setTyping] = useState(false);       // "Escribiendo..." durante la espera previa
   const [delivering, setDelivering] = useState(true); // llegando mensajes: las opciones quedan ocultas
@@ -47,7 +50,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
   // Teclea un mensaje del contacto carácter a carácter; al acabar lo confirma y pasa al siguiente (o termina).
   function typeMessage(text: string) {
     if (prefersReduced()) { // movimiento reducido: aparece de golpe
-      setMsgs((m) => [...m, { from: "them", text }]);
+      setMsgs((m) => [...m, { kind: "them", text }]);
       setLive(null);
       if (queueRef.current.length > 0) pumpTyping(); // fin de mensaje: los "..." salen YA (la espera 1-3s va dentro de pumpTyping)
       else finishStep();
@@ -59,7 +62,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       i++;
       setLive(text.slice(0, i));
       if (i < text.length) { timerRef.current = window.setTimeout(tick, TYPE_STEP); return; }
-      setMsgs((m) => [...m, { from: "them", text }]); // completo: lo fija
+      setMsgs((m) => [...m, { kind: "them", text }]); // completo: lo fija
       setLive(null);
       if (queueRef.current.length > 0) pumpTyping(); // fin de mensaje: los "..." salen YA (la espera 1-3s va dentro de pumpTyping)
       else finishStep();
@@ -100,13 +103,13 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     const s = stepRef.current;
     if (s >= SCRIPT.length) return;
     const cur = SCRIPT[s];
-    const reply = which === "A" ? cur.a : cur.b;
     const next = SCRIPT[s + 1];
+    const sel: 0 | 1 = which === "A" ? 0 : 1;
     stepRef.current = s + 1;
     playSfx("/audio/terminal-simple-button.mp3");
     setStep(s + 1);
-    setMsgs((m) => [...m, { from: "me", text: reply }]); // la respuesta propia, al instante
-    if (next) startDelivery(next.incoming);              // el contacto empieza a escribir lo siguiente
+    setMsgs((m) => [...m, { kind: "pick", a: cur.a, b: cur.b, sel }]); // NO se manda: registra la elección (recuadros bloqueados)
+    if (next) startDelivery(next.incoming);              // el contacto sigue escribiendo lo siguiente
   };
 
   useImperativeHandle(ref, () => ({
@@ -128,10 +131,15 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       </header>
       <div className="fax-thread sunken-panel" ref={threadRef}>
         {msgs.map((m, i) => (
-          <div key={i} className={"fax-msg " + m.from}>
-            {m.from === "me" && <span className="fax-from">Nosotras:</span>}
-            <span className="fax-text">{m.text}</span>
-          </div>
+          m.kind === "them" ? (
+            <div key={i} className="fax-msg them"><span className="fax-text">{m.text}</span></div>
+          ) : (
+            /* elección resuelta: los dos recuadros BLOQUEADOS (la elegida con borde negro, la otra atenuada) */
+            <div key={i} className="fax-choices locked">
+              <div className={"fax-choice" + (m.sel === 0 ? " picked" : " dim")}>{m.a}</div>
+              <div className={"fax-choice" + (m.sel === 1 ? " picked" : " dim")}>{m.b}</div>
+            </div>
+          )
         ))}
         {live !== null && (
           <div className="fax-msg them"><span className="fax-text">{live}</span></div>
@@ -148,8 +156,8 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
         {/* justo debajo del último mensaje, DENTRO del panel: las dos respuestas (dos recuadros al 50%) */}
         {showChoices && (
           <div className="fax-choices">
-            <div className="fax-choice left" onClick={() => choose("A")}>{current!.a}</div>
-            <div className="fax-choice right" onClick={() => choose("B")}>{current!.b}</div>
+            <div className="fax-choice" onClick={() => choose("A")}>{current!.a}</div>
+            <div className="fax-choice" onClick={() => choose("B")}>{current!.b}</div>
           </div>
         )}
       </div>
