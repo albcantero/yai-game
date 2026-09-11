@@ -17,6 +17,7 @@ export interface ScreenServices {
   consumeShift: () => void;
   navigate: (id: string) => void; // saltar a otra pantalla del registro por su id (lo usa el menú de Home)
   openLock: (config: LockConfig) => void; // abrir el candado (oscurece + pausa la pantalla, MISMO proceso que la "X")
+  openRead: (text: string) => void; // abrir el panel de LECTURA ("Leer" de un puzzle): mismo marco/animación que un candado
 }
 
 // Formulario TUI (login, y el compose del chat): campos + acción (Enviar/Conectar) + Salir, navegable

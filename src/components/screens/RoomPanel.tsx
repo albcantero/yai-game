@@ -23,10 +23,11 @@ export type RoomPanelProps = {
   onTab: (i: number) => void;
   solved: Set<string>; // puzzles resueltos del juego
   onResolve: (id: string) => void; // pedir abrir el candado de un puzzle (al acertar la combinación: +1 llave)
+  onRead: (text: string) => void; // abrir el panel "Leer" (mismo marco que un candado; lo monta el armazón)
   onClose: () => void;
 };
 
-export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onResolve, onClose }: RoomPanelProps) {
+export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onResolve, onRead, onClose }: RoomPanelProps) {
   // una opción por puzzle de la sala (placeholder hasta tener los nombres reales)
   const puzzleOptions = Array.from({ length: puzzles }, (_, i) => puzzleByN(puzzleBase + i + 1)?.titulo ?? `Puzzle ${puzzleBase + i + 1}`);
   // puzzle SELECCIONADO en el desplegable (índice). Se reinicia al primero al cambiar de sala.
@@ -35,7 +36,6 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
   const idx = puzzleIdx < puzzleOptions.length ? puzzleIdx : 0; // índice válido (por si el reinicio va un frame por detrás)
   const puzzleId = roomId + "#" + idx;
   const puzzleSolved = solved.has(puzzleId);
-  const [readOpen, setReadOpen] = useState(false); // popup "Leer" (enunciado del puzzle)
   const content = puzzleByN(puzzleBase + idx + 1); // contenido del puzzle seleccionado (game/content.ts)
   const puzzleDesc = content?.descripcion ?? "";   // "Descripción" del panel: dónde/qué es el puzzle
   const puzzleLeer = content?.leer ?? "";          // "Leer": el enunciado (la nota/acertijo de la pieza física)
@@ -106,7 +106,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
             {tab === 1 && (isCurrent ? (
               <div className="aside-actions">
                 <button type="button" onClick={resolveSelected} disabled={puzzleSolved || puzzleOptions.length === 0}>Abrir</button>
-                <button type="button" onClick={() => setReadOpen(true)} disabled={puzzleSolved || !puzzleLeer}>Leer</button>
+                <button type="button" onClick={() => onRead(puzzleLeer)} disabled={puzzleSolved || !puzzleLeer}>Leer</button>
               </div>
             ) : (
               <p className="aside-note">¡Demasiado lejos para abrir un puzzle!</p>
@@ -115,22 +115,6 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
           </div>
         </div>
       </div>
-      {/* popup "Leer": muestra el enunciado del puzzle (la nota/acertijo de la pieza física) */}
-      {readOpen && (
-        <div className="confirm-overlay win98" onClick={() => setReadOpen(false)}>
-          <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="title-bar">
-              <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
-              <div className="title-bar-text">{content?.titulo ?? "Nota"}</div>
-              <div className="title-bar-controls"><button type="button" aria-label="Close" onClick={() => setReadOpen(false)}></button></div>
-            </div>
-            <div className="window-body">
-              <p className="room-leer">{puzzleLeer}</p>
-              <div className="confirm-buttons"><button type="button" onClick={() => setReadOpen(false)}>Cerrar</button></div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

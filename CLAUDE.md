@@ -15,6 +15,13 @@ en `src/components/screens/`, hoy `Terminal.tsx`). Se despliega con `git push or
 - Siguen aplicando las reglas de puntuación española del CLAUDE.md global (no usar "—" como
   separador; ":" para introducir; ";" para proposiciones paralelas).
 
+## Voz del juego (REGLA FIJA)
+
+- **NUNCA dirigirse a las jugadoras con meta-frases de juego.** Nada de "vuestro encierro", "estáis
+  atrapadas", "tenéis que resolver...", ni romper la cuarta pared. Todos los textos (terminal,
+  minimap, descripciones, notas) describen la ficción DESDE DENTRO (la librería, las salas, los
+  objetos). Jamás se refieren a las jugadoras como jugadoras ni comentan que están jugando/encerradas.
+
 ## Teclado en pantalla
 
 - El teclado (teclas, Mayús, escritura) es **independiente** del estado del terminal: funciona

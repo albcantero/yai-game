@@ -24,7 +24,7 @@ const ROOMS: Room[] = [
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho", puzzles: 2 }, // 2 puzzles; uno necesita info del Sótano (backtracking). Fin de la 1ª mitad
   { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 1 }, // callejón; 1 puzzle: da la Tarjeta + info para el Despacho
   { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 2 }, // 2 puzzles; uno necesita info de la Librería
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", description: "Un cuarto pequeño y polvoriento en la trastienda: cajas de cartón apiladas, libros sin catalogar y estanterías metálicas hasta el techo. El almacén de la librería, y ahora vuestro encierro.", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", description: "Un cuarto pequeño y polvoriento en la trastienda: cajas de cartón apiladas, libros sin catalogar y estanterías metálicas hasta el techo. El almacén de la librería.", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 4 }, // nudo de rutas; al menos 1 necesita info de otra sala
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 1 }, // 1 puzzle (necesita info de Librería): da la Copia de la Llave Maestra
@@ -238,7 +238,7 @@ function LockPopup({ onClose, children }: { onClose: () => void; children: React
   );
 }
 
-const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock }, ref) {
+const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock, openRead }, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
   const [tab, setTab] = useState(0); // pestaña activa del panel
   const [view, setView] = useState<View>(FIT); // transform de la cámara
@@ -638,6 +638,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
           onTab={setTab}
           solved={solved}
           onResolve={(id) => { const h = id.indexOf("#"); const cfg = lockConfigFor(id.slice(0, h), Number(id.slice(h + 1))); openLock({ ...cfg, onSolved: () => solvePuzzle(id) }); }}
+          onRead={openRead}
           onClose={() => setSelected(null)}
         />
       )}

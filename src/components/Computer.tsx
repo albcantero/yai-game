@@ -9,6 +9,7 @@ import type { ScreenHandle, LockConfig, ShiftMode } from "./screens/types";
 import Padlock from "./locks/Padlock";
 import GeometryLock from "./locks/GeometryLock";
 import RotaryLock from "./locks/RotaryLock";
+import ReadPanel from "./locks/ReadPanel";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -29,6 +30,7 @@ export default function Computer() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false); // popup de "Información" (botón "?" de la barra de título)
   const [lock, setLock] = useState<LockConfig | null>(null); // candado abierto (oscurece + pausa la pantalla)
+  const [read, setRead] = useState<string | null>(null); // panel "Leer" abierto (mismo marco que un candado); guarda el texto
   const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
   const [powerOn, setPowerOn] = useState(true);
   const [shiftMode, setShiftMode] = useState<ShiftMode>("off"); // off=minús, shift=1 letra, caps=bloqueo
@@ -64,6 +66,8 @@ export default function Computer() {
   // Abrir el candado: la pantalla activa (p.ej. el Minimap al pulsar "Resolver") lo pide con su combinación
   // y qué hacer al acertar. Oscurece + pausa la pantalla igual que el diálogo de cerrar (la "X").
   const openLock = (config: LockConfig) => setLock(config);
+  // Abrir el panel de LECTURA ("Leer" de un puzzle): mismo marco/animación que un candado (oscurece + pausa).
+  const openRead = (text: string) => setRead(text);
   // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega en la pantalla activa.
   const dispatchKey = (k: string) => {
     keyTick(); // el TECLADO es INDEPENDIENTE: SIEMPRE suena, aunque haya menú/diálogo abierto o un loader
@@ -73,7 +77,7 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    if (confirmClose || infoOpen || lock) return; // diálogo/info/candado abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
+    if (confirmClose || infoOpen || lock || read !== null) return; // diálogo/info/candado/lectura abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
     screenRef.current?.handleKey(k); // delega en la pantalla activa (home incluido: su menú navega con flechas + OK)
   };
   dispatchRef.current = dispatchKey;
@@ -81,12 +85,12 @@ export default function Computer() {
   // Diálogo de cierre abierto => PAUSA la pantalla activa (congela boot/typeLine/spinners, esté como
   // esté). Al cerrarlo, reanuda donde iba. Vía screenRef.setPaused.
   useEffect(() => {
-    screenRef.current?.setPaused(confirmClose || infoOpen || lock !== null);
-  }, [confirmClose, infoOpen, lock]);
+    screenRef.current?.setPaused(confirmClose || infoOpen || lock !== null || read !== null);
+  }, [confirmClose, infoOpen, lock, read]);
 
   // El candado pertenece a la pantalla activa: si cambia la vista (cerrar el programa con la "X", navegar...),
   // la pantalla que lo abrió se desmonta, así que el candado debe cerrarse también (si no, se queda en el DOM).
-  useEffect(() => { setLock(null); }, [view]);
+  useEffect(() => { setLock(null); setRead(null); if (view === "fases") setShowKeyboard(false); }, [view]); // "Libro de juego" (minimap): sin teclado (lo oculta al entrar; el botón queda disabled)
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
@@ -230,6 +234,7 @@ export default function Computer() {
             consumeShift={consumeShift}
             navigate={navigate}
             openLock={openLock}
+            openRead={openRead}
           />
           {/* CANDADO: oscurece la pantalla interior (menos el header) y muestra el candado centrado. Mismo
               proceso que la "X" (oscurecer + pausa). Va ANTES de los diálogos de X/Información para que estos
@@ -244,6 +249,13 @@ export default function Computer() {
                 // números y letras = el MISMO componente Padlock; `kind` elige símbolos, curvatura y clases CSS
                 <Padlock kind={lock.kind === "letters" ? "letters" : "number"} combo={lock.combo} playSfx={playSfx} onSolved={lock.onSolved} onClose={() => setLock(null)} />
               )}
+            </div>
+          )}
+          {/* PANEL "LEER": mismo overlay/marco que un candado (oscurece + pausa + slide desde abajo). Cuerpo
+              vacío de momento; solo el botón "Salir". Va aquí, junto al candado, para compartir z-index/proceso. */}
+          {read !== null && (
+            <div className="lock-overlay">
+              <ReadPanel text={read} playSfx={playSfx} onClose={() => setRead(null)} />
             </div>
           )}
           {confirmClose && (
@@ -305,6 +317,7 @@ export default function Computer() {
               className={"chin-btn chin-kb" + (showKeyboard ? " is-on" : "")}
               aria-pressed={showKeyboard}
               aria-label={showKeyboard ? "Ocultar teclado" : "Mostrar teclado"}
+              disabled={view === "fases"}
               onPointerDown={() => {
                 playSfx("/audio/terminal-button.mp3");
                 buzz();
@@ -340,7 +353,7 @@ export default function Computer() {
         </div>
       </div>
 
-      {showKeyboard && (
+      {showKeyboard && view !== "fases" && (
       <div className="keyboard">
         {!numMode ? (
         <>
