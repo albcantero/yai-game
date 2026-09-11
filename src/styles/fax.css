@@ -10,10 +10,10 @@
   src:url('/fonts/PixelOperator.ttf') format('truetype');
   font-display:swap;
 }
-.fax{ --fax-size:20px;   /* tamaño de texto del chat (independiente del --ui-text global) */
+.fax{ --fax-size:20px;   /* tamaño de texto del CHAT (mensajes/respuestas); la cabecera usa la UI normal */
   position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;gap:7px;
-  padding:8px;background:silver;color:#222;letter-spacing:-.5px;   /* kerning un pelín negativo */
-  font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;text-shadow:none }
+  padding:8px;background:silver;color:#222;text-shadow:none;
+  font-family:'Determination Sans',Arial,sans-serif }   /* cabecera ("???"/"Conectado") = fuente normal de la UI */
 
 /* cabecera: nombre + estado a la izquierda; rectángulo de "imagen de perfil" (marco hundido) a la derecha */
 .fax-head{ flex:none;display:flex;align-items:center;gap:10px;padding:0 2px 4px }
@@ -29,7 +29,7 @@
 
 /* mensaje: cada uno en su franja a lo ANCHO con fondo azulado Win98 (opacidad) sobre el blanco. Los del
    contacto van SIN etiqueta (el chat es solo con él); los nuestros se marcan "Nosotras:" (formato MSN). */
-.fax-msg{ background:rgba(0,0,128,.1);padding:6px 10px;font-size:var(--fax-size);line-height:1.35;color:#222;white-space:pre-wrap }
+.fax-msg{ background:rgba(0,0,128,.1);padding:6px 10px;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1.35;color:#222;white-space:pre-wrap }
 .fax-from{ display:block;font-weight:700;margin-bottom:1px;color:#9e2b14 }   /* "Nosotras:" en granate */
 
 /* indicador de tecleo: tres CUADRADOS (SVG) animados, SIN franja azul (los puntos de la fuente son diminutos) */
@@ -43,7 +43,7 @@
 /* abajo: las dos respuestas (izquierda / derecha). Como mensajes (mismo tamaño), NO como botones. */
 .fax-choices{ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:6px 4px 0;
   border-top:1px solid #808080 }
-.fax-choice{ padding:5px 6px;cursor:pointer;color:#222;font-size:var(--fax-size);line-height:1.3 }
+.fax-choice{ padding:5px 6px;cursor:pointer;color:#222;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1.3 }
 .fax-choice.left{ text-align:left }
 .fax-choice.right{ text-align:right }
 .fax-choice:hover{ text-decoration:underline }

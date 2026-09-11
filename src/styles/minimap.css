@@ -26,7 +26,7 @@
 .minimap-hud .hud-btn{ width:36px;height:36px;min-width:0;min-height:0;padding:0;display:flex;align-items:center;justify-content:center }
 .minimap-hud .hud-btn svg{ width:24px;height:24px;display:block }
 .hud-icon{ width:24px;height:24px;display:block;fill:#fff }
-.hud-count{ color:#fff;font-family:'Determination Mono',"Courier New",monospace;font-size:20px;line-height:1;text-shadow:1px 1px 0 rgba(0,0,0,.7) }
+.hud-count{ color:#fff;font-family:'Determination Sans',"Courier New",monospace;font-size:20px;line-height:1;text-shadow:1px 1px 0 rgba(0,0,0,.7) }
 /* Panel de info de sala (al tocar la bandera): overlay en la MITAD INFERIOR, ventana Win98 con pestañas.
    Es overlay (no refluye el mapa): el mapa se desplaza por debajo con el pin centrado en la mitad de arriba. */
 .minimap-info{ position:absolute;left:0;right:0;bottom:0;height:50%;z-index:6;padding:6px;display:flex }
