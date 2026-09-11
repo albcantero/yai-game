@@ -29,7 +29,7 @@
 
 /* mensaje: cada uno en su franja a lo ANCHO con fondo azulado Win98 (opacidad) sobre el blanco. Los del
    contacto van SIN etiqueta (el chat es solo con él); los nuestros se marcan "Nosotras:" (formato MSN). */
-.fax-msg{ background:rgba(0,0,128,.1);padding:6px 10px;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1;color:#222;white-space:pre-wrap }
+.fax-msg{ background:rgba(0,0,128,.1);padding:10px;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1;color:#222;white-space:pre-wrap }
 .fax-from{ display:block;font-weight:700;margin-bottom:1px;color:#9e2b14 }   /* "Nosotras:" en granate */
 
 /* indicador de tecleo: tres CUADRADOS (SVG) animados, SIN franja azul (los puntos de la fuente son diminutos) */
