@@ -145,14 +145,14 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
             </svg>
           </div>
         )}
+        {/* justo debajo del último mensaje, DENTRO del panel: las dos respuestas (dos recuadros al 50%) */}
+        {showChoices && (
+          <div className="fax-choices">
+            <div className="fax-choice left" onClick={() => choose("A")}>{current!.a}</div>
+            <div className="fax-choice right" onClick={() => choose("B")}>{current!.b}</div>
+          </div>
+        )}
       </div>
-      {/* abajo: las dos respuestas (una a la izquierda, otra a la derecha). Sin letras A/B: solo el texto. */}
-      {showChoices && (
-        <div className="fax-choices">
-          <div className="fax-choice left" onClick={() => choose("A")}>{current!.a}</div>
-          <div className="fax-choice right" onClick={() => choose("B")}>{current!.b}</div>
-        </div>
-      )}
     </div>
   );
 });
