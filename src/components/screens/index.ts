@@ -4,6 +4,7 @@ import Home from "./Home";
 import Terminal from "./Terminal";
 import Placeholder from "./Placeholder";
 import Minimap from "./Minimap";
+import Fax from "./Fax";
 
 // Registro de pantallas montables sobre el armazón. Añadir una pantalla = un componente
 // forwardRef<ScreenHandle, ScreenServices> + una entrada aquí. El armazón monta SCREENS[view].Component
@@ -21,7 +22,7 @@ export const SCREENS = {
   terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", Component: Terminal },
   tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet-sm.png", Component: Placeholder },
   notas: { label: "Notas", title: "Notas", icon: "/icons/notepad-sm.png", Component: Placeholder },
-  registro: { label: "Fax Electrónico", title: "Fax Electrónico", icon: "/icons/printer-sm.png", Component: Placeholder },
+  registro: { label: "Fax Electrónico", title: "Fax Electrónico", icon: "/icons/printer-sm.png", Component: Fax },
   fases: { label: "Libro de Juego", title: "Libro de Juego", icon: "/icons/fases-sm.png", Component: Minimap }, // PROVISIONAL: cuelgo aquí el minimapa para verlo; ya decidiremos su sitio
 } satisfies Record<string, ScreenDef>;
 
