@@ -4,15 +4,15 @@
    texto, sin burbujas izquierda/derecha) y, abajo, las dos respuestas (una a la izquierda, otra a la
    derecha) como texto, NO como botones. Fuente Determination Mono; tamaño de texto = var(--ui-text). Sigue
    dentro del tubo CRT. v1. Ref. de UI: MSN 7.5 (manz, CodePen) y clon Windows Live Messenger (garcia-clara). */
-/* Arial Pixelated (Pixearg): SOLO en el chat (esta hoja solo afecta a .fax) */
+/* PixelOperator (fuente de píxel con acentos/¿¡ completos): SOLO en el chat (esta hoja solo afecta a .fax) */
 @font-face{
-  font-family:'Pixel Arial';
-  src:url('/fonts/PIXEARG_.TTF') format('truetype');
+  font-family:'Pixel Operator';
+  src:url('/fonts/PixelOperator.ttf') format('truetype');
   font-display:swap;
 }
 .fax{ position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;gap:7px;
   padding:8px;background:silver;color:#222;
-  font-family:'Pixel Arial','Determination Sans',Arial,sans-serif;text-shadow:none }
+  font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;text-shadow:none }
 
 /* cabecera: nombre + estado a la izquierda; rectángulo de "imagen de perfil" (marco hundido) a la derecha */
 .fax-head{ flex:none;display:flex;align-items:center;gap:10px;padding:0 2px 4px }
