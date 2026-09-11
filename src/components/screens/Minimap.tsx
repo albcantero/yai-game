@@ -278,7 +278,10 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
       supabase.from("game_state").select("*").eq("id", "live").single()
         .then(({ data }) => { if (alive && data) setGs(data as GameState); });
       ch = supabase.channel("gs-live")
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_state" }, (p) => setGs(p.new as GameState))
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_state" }, (p) => {
+          const n = p.new as Partial<GameState>;
+          if (n && typeof n.keys === "number") setGs(n as GameState); // ignora payloads vacíos/redactados (no pisar a 0)
+        })
         .subscribe();
     }).catch(() => {});
     return () => { alive = false; if (ch) supabase.removeChannel(ch); };
