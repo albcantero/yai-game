@@ -16,9 +16,9 @@ function loadEnv(path = ".env") {
 loadEnv();
 
 const url = process.env.PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE;
+const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE; // sistema nuevo (sb_secret_...) o el viejo
 if (!url || !key) {
-  console.error("Falta PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE en .env (ver .env.example)");
+  console.error("Falta PUBLIC_SUPABASE_URL o SUPABASE_SECRET_KEY en .env (ver .env.example)");
   process.exit(1);
 }
 
