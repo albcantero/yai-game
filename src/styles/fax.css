@@ -43,5 +43,7 @@
 /* respuestas: DENTRO del panel, justo debajo del último mensaje (el gap:8px del hilo las separa). Dos
    recuadros al 50% cada uno (grid 1fr 1fr, ancho fijo, NO se ajustan al texto), misma franja azulada. */
 .fax-choices{ display:grid;grid-template-columns:1fr 1fr;gap:8px }
-.fax-choice{ background:rgba(0,0,128,.1);padding:6px 10px;cursor:pointer;color:#222;text-align:center;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1 }
+.fax-choice{ background:rgba(0,0,128,.1);padding:6px 10px;cursor:pointer;color:#222;text-align:center;
+  display:flex;align-items:center;justify-content:center;   /* centra el texto vertical y horizontalmente (los dos recuadros igualan altura) */
+  font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1 }
 .fax-choice:hover{ background:rgba(0,0,128,.2) }
