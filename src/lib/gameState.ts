@@ -17,6 +17,7 @@ export type GameState = {
   fax_picks: number[];                       // (obsoleto: sustituido por fax_progress)
   fax_read: boolean;
   fax_progress: Record<string, number[]>;    // picks del Fax POR BLOQUE (id_de_bloque -> [0/1,...])
+  fax_seen: number;                           // nº de bloques del Fax "vistos" (para el aviso de mensajes nuevos)
 };
 
 let state: GameState | null = null;

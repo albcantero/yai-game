@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { useGameState, getGameState, applyRpc, type GameState } from "../../lib/gameState";
-import { BLOCKS, triggerMet, type FaxBlock, type FaxNode } from "../../game/fax";
+import { BLOCKS, triggerMet, unlockedCount, type FaxBlock, type FaxNode } from "../../game/fax";
 
 // FAX ELECTRÓNICO (pantalla `registro`): chat con el informante ("???", aún sin revelar que es Miquela).
 // Conversación en BLOQUES (src/game/fax.ts), cada uno con su trigger y su mini-grafo ramificado.
@@ -85,6 +85,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
   const queueRef = useRef<string[]>([]);
   const timerRef = useRef<number | null>(null);
   const didInitRef = useRef(getGameState() !== null); // ¿ya inicializado? (si gs llegó después del montaje, no)
+  const markedRef = useRef(false); // ¿ya marcado leído en esta apertura?
   const threadRef = useRef<HTMLDivElement>(null);
 
   const clearTimer = () => { if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; } };
@@ -186,10 +187,16 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gs]);
 
-  // al abrir el Fax: marcar leído (para el futuro aviso de "mensajes nuevos"). Limpia el timer de typing al salir.
-  useEffect(() => { void applyRpc("fax_mark_read"); return clearTimer;
+  // al abrir el Fax (una vez, cuando haya estado): marca leído = guarda cuántos bloques hay disponibles.
+  // El aviso "!" del menú se muestra cuando (bloques disponibles) > fax_seen.
+  useEffect(() => {
+    if (gs && !markedRef.current) {
+      markedRef.current = true;
+      if (unlockedCount(gs) > (gs.fax_seen ?? 0)) void applyRpc("fax_mark_read", { p_seen: unlockedCount(gs) });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [gs]);
+  useEffect(() => () => clearTimer(), []); // limpia el timer de typing al salir
 
   // auto-scroll al fondo con cada cambio
   useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [shown, live, typing]);

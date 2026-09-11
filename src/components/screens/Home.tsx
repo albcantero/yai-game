@@ -1,6 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { menuNav } from "../../terminal/input";
+import { useGameState } from "../../lib/gameState";
+import { faxUnread } from "../../game/fax";
 
 // Opciones del menú de inicio. target = id de una pantalla del registro SCREENS. Hoy todas navegan
 // (Tienda/Notas/Fax → Placeholder; Terminal; Libro de Juego → Minimap); el guard de `target` opcional se
@@ -19,6 +21,8 @@ const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
 // como los demás y salta a otra pantalla por el servicio navigate del armazón.
 const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ navigate }, ref) {
   const [active, setActive] = useState(0);
+  const gs = useGameState();
+  const faxNew = gs ? faxUnread(gs) : false; // aviso de mensajes nuevos en el Fax ("!" a la derecha del botón)
   const activeRef = useRef(0); // el handle lee de aquí (no del state) para no capturar un active viejo
   const openTimerRef = useRef<number | null>(null); // timeout del OPEN_DELAY: se limpia al desmontar
 
@@ -60,6 +64,7 @@ const Home = forwardRef<ScreenHandle, ScreenServices>(function Home({ navigate }
           >
             <img className="home__menu-icon" src={opt.icon} alt="" />
             {opt.label}
+            {opt.target === "registro" && faxNew && <span className="home__badge" aria-label="mensajes nuevos">!</span>}
           </button>
         ))}
       </nav>

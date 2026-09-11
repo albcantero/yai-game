@@ -90,3 +90,12 @@ export const BLOCKS: FaxBlock[] = [
     },
   },
 ];
+
+// nº de bloques desbloqueados con el estado actual (sus triggers cumplidos)
+export function unlockedCount(gs: GameState): number {
+  return BLOCKS.filter((b) => triggerMet(b.trigger, gs)).length;
+}
+// ¿hay bloques disponibles que aún no se han "visto" (abierto el Fax)? = aviso de "mensajes nuevos"
+export function faxUnread(gs: GameState): boolean {
+  return unlockedCount(gs) > (gs.fax_seen ?? 0);
+}
