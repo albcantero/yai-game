@@ -8,24 +8,25 @@
   padding:8px;background:silver;color:#222;
   font-family:'Determination Mono','Determination Sans',monospace;text-shadow:none }
 
-/* cabecera: contacto (???) + estado */
-.fax-head{ flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px }
+/* cabecera: nombre + estado a la izquierda; rectángulo de "imagen de perfil" (marco hundido) a la derecha */
+.fax-head{ flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px 4px }
+.fax-id{ display:flex;flex-direction:column;gap:2px }
 .fax-contact{ font-weight:700;font-size:var(--ui-text);letter-spacing:1px }
 .fax-status{ font-size:calc(var(--ui-text) - 3px);color:#3a3a3a }
+.fax-avatar{ width:46px;height:46px;flex:none;background:#fff;   /* placeholder de foto de perfil (marco Win98 hundido) */
+  box-shadow:inset -1px -1px #fff,inset 1px 1px grey,inset -2px -2px #dfdfdf,inset 2px 2px #0a0a0a }
 
 /* historial: panel HUNDIDO (la clase .sunken-panel de 98.css da el borde recesado + fondo blanco); scroll propio */
-.fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:9px;padding:8px 10px }
+/* sin padding lateral: cada franja de mensaje llega de lado a lado; 3px de separación entre mensajes */
+.fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;padding:3px 0 }
 
-/* mensaje: a lo ANCHO, sin burbuja. Los del contacto van SIN etiqueta (el chat es solo con él); los nuestros
-   se marcan "Nosotras:" (formato MSN "Nombre:" + texto debajo) */
-.fax-msg{ font-size:var(--ui-text);line-height:1.35;color:#222;white-space:pre-wrap }
+/* mensaje: cada uno en su franja a lo ANCHO con fondo azulado Win98 (opacidad) sobre el blanco. Los del
+   contacto van SIN etiqueta (el chat es solo con él); los nuestros se marcan "Nosotras:" (formato MSN). */
+.fax-msg{ background:rgba(0,0,128,.1);padding:6px 10px;font-size:var(--ui-text);line-height:1.35;color:#222;white-space:pre-wrap }
 .fax-from{ display:block;font-weight:700;margin-bottom:1px;color:#9e2b14 }   /* "Nosotras:" en granate */
-/* cursor del typewriter (mientras el contacto teclea un mensaje) */
-.fax-cursor{ display:inline-block;width:7px;height:1em;margin-left:1px;vertical-align:-1px;background:#222;animation:faxblink 1s steps(1) infinite }
-@keyframes faxblink{ 50%{opacity:0} }
 
-/* "??? está escribiendo..." (línea tenue a lo ancho, con puntos animados) */
-.fax-typing{ font-size:var(--ui-text);color:#3a3a3a;font-style:italic }
+/* "Escribiendo..." (misma franja azulada, a lo ancho, con puntos animados) */
+.fax-typing{ background:rgba(0,0,128,.1);padding:6px 10px;font-size:var(--ui-text);color:#3a3a3a;font-style:italic }
 .fax-dots i{ font-style:normal;opacity:.2;animation:faxdot 1.2s infinite }
 .fax-dots i:nth-child(2){ animation-delay:.2s }
 .fax-dots i:nth-child(3){ animation-delay:.4s }

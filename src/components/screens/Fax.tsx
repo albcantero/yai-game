@@ -120,8 +120,11 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
   return (
     <div className="fax win98">
       <header className="fax-head">
-        <span className="fax-contact">???</span>
-        <span className="fax-status">En línea</span>
+        <div className="fax-id">
+          <span className="fax-contact">???</span>
+          <span className="fax-status">Conectado</span>
+        </div>
+        <div className="fax-avatar" aria-hidden="true" />
       </header>
       <div className="fax-thread sunken-panel" ref={threadRef}>
         {msgs.map((m, i) => (
@@ -131,7 +134,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
           </div>
         ))}
         {live !== null && (
-          <div className="fax-msg them"><span className="fax-text">{live}</span><span className="fax-cursor" /></div>
+          <div className="fax-msg them"><span className="fax-text">{live}</span></div>
         )}
         {typing && (
           <div className="fax-typing">Escribiendo<span className="fax-dots"><i>.</i><i>.</i><i>.</i></span></div>
