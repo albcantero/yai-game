@@ -15,7 +15,9 @@ export default function ReadPanel({ text, playSfx, onClose }: ReadPanelProps) {
   const panelRef = useRef<LockPanelHandle>(null);
   return (
     <LockPanel ref={panelRef} playSfx={playSfx}>
-      {/* cuerpo VACÍO de momento (aquí irá `text` en la próxima iteración) */}
+      {/* el texto del puzzle, en Pixelated Times New Roman blanco (la misma fuente del CORRECTO de los candados).
+          Div con scroll PROPIO: si el texto es largo, se desplaza DENTRO de la caja (no crece el panel). */}
+      <div className="read-text">{text}</div>
 
       {/* botón "Salir" abajo del todo, idéntico a los candados: cierra con la animación inversa (baja + paper-slide) */}
       <div className="lock-exit win98">

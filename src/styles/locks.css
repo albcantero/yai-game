@@ -17,6 +17,12 @@
 /* botón "Salir" (aparece tras resolver): abajo del todo, absoluto para no descolocar el contenido */
 .lock-exit{ position:absolute;left:0;right:0;bottom:8%;display:flex;justify-content:center;z-index:30 }   /* por encima del candado (geolock-lock va a z-index:20 y si no le tapaba el texto) */
 
+/* texto del panel "Leer": Pixelated Times New Roman, blanco, centrado y legible. Caja con SCROLL PROPIO
+   (altura acotada + overflow): si el texto es largo, se desplaza dentro; deja hueco abajo para "Salir". */
+.read-text{ color:#fff;font-family:'Pixelated Times New Roman','Determination Mono',serif;text-shadow:none;
+  max-width:min(84%,560px);max-height:60vh;margin:0 0 14%;text-align:center;font-size:clamp(16px,4.6vw,22px);line-height:1.55;
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch }
+
 /* ---- Interior de los candados de RUEDAS (Padlock números/letras): reglas IDÉNTICAS a ambos prefijos ----
    Lo que DIVERGE (borde por-slot + ranuras en números; una caja única con líneas en letras) vive en
    padlock.css / letterlock.css. La fuente 'Pixelated Times New Roman' se declara en padlock.css. */
