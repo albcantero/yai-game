@@ -10,6 +10,7 @@ import Padlock from "./locks/Padlock";
 import GeometryLock from "./locks/GeometryLock";
 import RotaryLock from "./locks/RotaryLock";
 import ReadPanel from "./locks/ReadPanel";
+import { startGameState } from "../lib/gameState";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -91,6 +92,10 @@ export default function Computer() {
   // El candado pertenece a la pantalla activa: si cambia la vista (cerrar el programa con la "X", navegar...),
   // la pantalla que lo abrió se desmonta, así que el candado debe cerrarse también (si no, se queda en el DOM).
   useEffect(() => { setLock(null); setRead(null); if (view === "fases") setShowKeyboard(false); }, [view]); // "Libro de juego" (minimap): sin teclado (lo oculta al entrar; el botón queda disabled)
+
+  // Carga el estado compartido (game_state) al ABRIR la app, no al abrir cada pantalla: así Minimap/Fax ya
+  // salen con los datos (sin el parpadeo de estado vacío -> cargado). Idempotente.
+  useEffect(() => { startGameState(); }, []);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.

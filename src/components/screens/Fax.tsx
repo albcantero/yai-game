@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
-import { supabase, ensureSession } from "../../lib/supabase";
+import { useGameState, getGameState, applyRpc } from "../../lib/gameState";
 
 // FAX ELECTRÓNICO (pantalla `registro`): chat con el informante ("???", aún sin revelar que es Miquela).
 // Los mensajes que ELLA deja aparecen de golpe (sin typing); al CHATEAR (tras responderle) su respuesta llega
@@ -15,8 +15,8 @@ import { supabase, ensureSession } from "../../lib/supabase";
 // v1 (BOCETO): guion lineal de RELLENO tras el primer intercambio (placeholder).
 type Step = { incoming: string[]; a: string; b: string };
 const SCRIPT: Step[] = [
-  { incoming: ["¡Hola!", "¿Hola...? ¿Hay alguien ahí?", "No sé si funciona este cacharro."],
-    a: "Hola. Sí recibimos tus mensajes. Gracias por ayudarnos.", b: "Funciona. Pero ¿quién eres?" },
+  { incoming: ["A ver, hmm. ¡Probando!", "¿Hola...? ¿Hay alguien ahí?", "Espero que funcione este cacharro."],
+    a: "Te recibimos, ¿y tú a nosotras? Gracias por ayudarnos.", b: "Funciona. Pero ¿quién eres?" },
   { incoming: ["El cuadro de luces del fondo es un señuelo", "Detrás hay una puerta que no deberíais poder abrir"],
     a: "¿Y cómo la abrimos?", b: "¿Por qué nos ayudas?" },
   { incoming: ["Cada sala esconde una llave", "Id sumándolas. Yo os guío desde aquí"],
@@ -31,20 +31,38 @@ const randWait = () => 1000 + Math.random() * 2000; // espera ALEATORIA de 1-3 s
 type Entry = { kind: "them"; text: string } | { kind: "pick"; a: string; b: string; sel: 0 | 1 };
 const sameArr = (a: number[], b: number[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 
+// Reconstruye las entradas del historial (mensajes del contacto + elecciones resueltas) desde las elecciones
+// guardadas + el SCRIPT. Puro: se usa para el estado inicial (sin parpadeo) y en rebuild().
+function buildEntries(picks: number[]): Entry[] {
+  const entries: Entry[] = [];
+  const n = Math.min(picks.length, SCRIPT.length);
+  for (let i = 0; i < n; i++) {
+    for (const t of SCRIPT[i].incoming) entries.push({ kind: "them", text: t });
+    entries.push({ kind: "pick", a: SCRIPT[i].a, b: SCRIPT[i].b, sel: picks[i] === 1 ? 1 : 0 });
+  }
+  if (n < SCRIPT.length) for (const t of SCRIPT[n].incoming) entries.push({ kind: "them", text: t });
+  return entries;
+}
+
 const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, ref) {
-  const [msgs, setMsgs] = useState<Entry[]>([]);
+  const gs = useGameState();                     // estado compartido (ya cargado al abrir la app: sin parpadeo)
+  const boot = getGameState()?.fax_picks ?? [];  // elecciones ya guardadas: inicializa el historial de golpe
+  const bootStep = Math.min(boot.length, SCRIPT.length);
+  const loaded = getGameState() !== null;
+
+  const [msgs, setMsgs] = useState<Entry[]>(() => buildEntries(boot));
   const [live, setLive] = useState<string | null>(null); // mensaje entrante tecleándose (char a char); null = ninguno
   const [typing, setTyping] = useState(false);            // "..." durante la espera previa (chateando)
-  const [delivering, setDelivering] = useState(true);     // llegando mensajes: las opciones quedan ocultas
-  const [step, setStep] = useState(0);
-  const [ready, setReady] = useState(false);              // estado compartido cargado (evita parpadeo de opciones)
+  const [delivering, setDelivering] = useState(!loaded);  // sin estado aún = "entregando"; con estado, opciones listas
+  const [step, setStep] = useState(bootStep);
+  const [ready, setReady] = useState(loaded);             // estado compartido cargado (evita parpadeo de opciones)
 
-  const stepRef = useRef(0);          // paso actual SÍNCRONO (teclas + guard de choose)
-  const deliveringRef = useRef(true);
+  const stepRef = useRef(bootStep);   // paso actual SÍNCRONO (teclas + guard de choose)
+  const deliveringRef = useRef(!loaded);
   const pausedRef = useRef(false);    // el armazón pausa la pantalla (diálogo/candado abiertos)
   const queueRef = useRef<string[]>([]);        // mensajes entrantes pendientes de teclear (chateando)
   const timerRef = useRef<number | null>(null);
-  const renderedRef = useRef<number[]>([]);     // elecciones YA pintadas (para reconciliar con la DB)
+  const renderedRef = useRef<number[]>(boot.slice());     // elecciones YA pintadas (para reconciliar con la DB)
   const threadRef = useRef<HTMLDivElement>(null);
 
   const clearTimer = () => { if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; } };
@@ -56,14 +74,8 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     clearTimer();
     setLive(null);
     setTyping(false);
-    const entries: Entry[] = [];
+    setMsgs(buildEntries(picks));
     const n = Math.min(picks.length, SCRIPT.length);
-    for (let i = 0; i < n; i++) {
-      for (const t of SCRIPT[i].incoming) entries.push({ kind: "them", text: t });
-      entries.push({ kind: "pick", a: SCRIPT[i].a, b: SCRIPT[i].b, sel: picks[i] === 1 ? 1 : 0 });
-    }
-    if (n < SCRIPT.length) for (const t of SCRIPT[n].incoming) entries.push({ kind: "them", text: t });
-    setMsgs(entries);
     stepRef.current = n; setStep(n);
     deliveringRef.current = false; setDelivering(false);
     renderedRef.current = picks.slice();
@@ -105,10 +117,10 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
 
   const current = step < SCRIPT.length ? SCRIPT[step] : null;
 
-  // persiste la elección (RPC atómica; realtime sincroniza al resto). Fire-and-forget: el estado local ya se
-  // ha reflejado de forma optimista, y al recargar se leerá de la DB.
-  const persistChoice = async (stepIdx: number, pick: number) => {
-    try { await ensureSession(); await supabase.rpc("fax_choose", { p_step: stepIdx, p_pick: pick }); } catch { /* realtime/recarga reconcilian */ }
+  // persiste la elección por RPC atómica (actualiza el store; realtime sincroniza al resto). Fire-and-forget:
+  // el estado local ya se reflejó de forma optimista; si hay carrera, la reconciliación por `gs` lo corrige.
+  const persistChoice = (stepIdx: number, pick: number) => {
+    void applyRpc("fax_choose", { p_step: stepIdx, p_pick: pick });
   };
 
   const choose = (which: "A" | "B") => {
@@ -122,32 +134,21 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     setMsgs((m) => [...m, { kind: "pick", a: cur.a, b: cur.b, sel }]); // optimista: bloquea los recuadros
     renderedRef.current = [...renderedRef.current, sel];
     stepRef.current = s + 1; setStep(s + 1);
-    void persistChoice(s, sel);
+    persistChoice(s, sel);
     if (next) startLive(next.incoming); else finishStep(); // CHATEANDO: la respuesta llega con "..." + typewriter
   };
 
-  // carga la fila 'live' (fax_picks), reconstruye, marca leído y se suscribe a realtime (estado compartido)
+  // reconcilia con el estado compartido (carga inicial, avance remoto o reset): reconstruye INSTANTÁNEO si cambia
   useEffect(() => {
-    let alive = true;
-    let ch: ReturnType<typeof supabase.channel> | null = null;
-    const apply = (picks: number[]) => { if (!sameArr(picks, renderedRef.current)) rebuild(picks); }; // reconcilia (remoto/reset)
-    ensureSession().then(() => {
-      if (!alive) return;
-      supabase.from("game_state").select("fax_picks").eq("id", "live").single().then(({ data }) => {
-        if (!alive) return;
-        const picks = Array.isArray((data as { fax_picks?: number[] } | null)?.fax_picks) ? (data as { fax_picks: number[] }).fax_picks : [];
-        rebuild(picks);
-        setReady(true);
-        supabase.rpc("fax_mark_read").then(() => {}, () => {}); // marca leído al abrir (para el futuro aviso)
-      });
-      ch = supabase.channel("gs-fax")
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_state" }, (p) => {
-          const n = p.new as { fax_picks?: number[] };
-          if (n && Array.isArray(n.fax_picks)) apply(n.fax_picks); // ignora payloads sin fax_picks (redactados)
-        })
-        .subscribe();
-    }).catch(() => {});
-    return () => { alive = false; clearTimer(); if (ch) supabase.removeChannel(ch); };
+    if (!gs) return;
+    const picks = gs.fax_picks ?? [];
+    if (!sameArr(picks, renderedRef.current)) rebuild(picks);
+    setReady(true); // idempotente
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gs]);
+
+  // al abrir el Fax: marcar leído (para el futuro aviso de "mensajes nuevos"). Limpia el timer de typing al salir.
+  useEffect(() => { void applyRpc("fax_mark_read"); return clearTimer;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

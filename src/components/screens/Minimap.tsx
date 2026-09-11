@@ -4,11 +4,11 @@ import type { ScreenHandle, ScreenServices } from "./types";
 import RoomPanel from "./RoomPanel";
 import { wordToCombo } from "../locks/Padlock";
 import { LOCK_PATH } from "../../lib/icons";
-import { supabase, ensureSession } from "../../lib/supabase";
+import { useGameState, applyRpc } from "../../lib/gameState";
 import { puzzleByN } from "../../game/content";
 
-// fila 'live' de game_state (estado compartido de la partida). Espejo del esquema de supabase/migrations.
-type GameState = { id: string; keys: number; open_paths: string[]; current: string; solved: string[]; items: string[]; started: boolean };
+// El estado compartido (game_state, fila 'live') se lee del store cargado al abrir la app (lib/gameState),
+// no se pide a la DB aquí: así al abrir el minimapa ya sale con los datos (sin parpadeo).
 // qué ITEM otorga cada puzzle al resolverse (asentado: Sótano -> Tarjeta, La Cámara -> Copia de la Llave Maestra)
 const ITEM_BY_PUZZLE: Record<string, string> = { "r5#0": "tarjeta", "r8#0": "llave-maestra" };
 
@@ -245,9 +245,9 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const [frozenH, setFrozenH] = useState<number | null>(null); // alto FIJO del mapa (pantalla sin teclado)
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
   const [revealOpen, setRevealOpen] = useState(false); // popup del candado BLANCO (desocultar salida)
-  // ESTADO COMPARTIDO en la DB (game_state fila 'live'): todas leen/mutan lo mismo. Las acciones van por RPC
-  // atómica (solve/unlock/move) y realtime sincroniza. Aquí solo derivamos lo que pinta el mapa.
-  const [gs, setGs] = useState<GameState | null>(null);
+  // ESTADO COMPARTIDO (game_state fila 'live') desde el store cargado al abrir la app. Las acciones van por
+  // RPC atómica (solve/unlock/move) y realtime sincroniza. Aquí solo derivamos lo que pinta el mapa.
+  const gs = useGameState();
   const keys = gs?.keys ?? 0;                                       // llaves del grupo
   const openPaths = gs?.open_paths ?? [];
   const items = gs?.items ?? [];                                    // inventario compartido
@@ -258,24 +258,6 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const discovered = new Set<string>([...INITIAL_DISCOVERED, ...openPaths]); // niebla: base + nodos abiertos (DB)
   const solved = new Set<string>(gs?.solved ?? []);                // puzzles resueltos (DB)
   useImperativeHandle(ref, () => ({ handleKey: () => {}, setPaused: () => {} }), []);
-
-  // carga la fila 'live' y se suscribe a sus cambios (realtime): las 6 jugadoras ven el mismo estado al instante
-  useEffect(() => {
-    let alive = true;
-    let ch: ReturnType<typeof supabase.channel> | null = null;
-    ensureSession().then(() => {
-      if (!alive) return;
-      supabase.from("game_state").select("*").eq("id", "live").single()
-        .then(({ data }) => { if (alive && data) setGs(data as GameState); });
-      ch = supabase.channel("gs-live")
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_state" }, (p) => {
-          const n = p.new as Partial<GameState>;
-          if (n && typeof n.keys === "number") setGs(n as GameState); // ignora payloads vacíos/redactados (no pisar a 0)
-        })
-        .subscribe();
-    }).catch(() => {});
-    return () => { alive = false; if (ch) supabase.removeChannel(ch); };
-  }, []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
   const svgRef = useRef<SVGSVGElement>(null);
@@ -292,11 +274,6 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
   // junctions descubiertos que llevan "parche" de esquina (tapa el pico donde se juntan pasillos); la salida no
   const junctionPatches = JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida");
-  // muta el estado compartido por RPC atómica y aplica la fila devuelta (realtime sincroniza al resto de jugadoras)
-  const applyRpc = async (fn: string, args: Record<string, unknown>) => {
-    const { data, error } = await supabase.rpc(fn, args);
-    if (!error && data) setGs(data as GameState);
-  };
   // resolver un puzzle: +1 llave (idempotente en la DB: una sola vez por puzzle). id = "sala#índice".
   const solvePuzzle = (id: string) => { if (!solved.has(id)) void applyRpc("solve", { p_puzzle: id, p_item: ITEM_BY_PUZZLE[id] ?? null }); };
   // mover al grupo a un nodo (posición compartida)
