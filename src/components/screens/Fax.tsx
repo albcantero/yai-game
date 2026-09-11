@@ -1,17 +1,16 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 
-// FAX ELECTRÓNICO (pantalla `registro`): mensajería tipo Lifeline. El contacto es "???" (aún NO se revela
-// que es Miquela Quirós). Hilo de mensajes (entrantes a la izquierda, respuestas propias a la derecha) y,
-// abajo, DOS columnas con las opciones A y B que las jugadoras eligen para responder.
+// FAX ELECTRÓNICO (pantalla `registro`): mensajería estilo MSN (Windows XP) con el chat con el informante
+// (contacto "???", aún sin revelar que es Miquela Quirós). Mensajes a lo ancho (sin burbujas izq/der); como
+// el chat es SOLO con ella, los suyos no llevan etiqueta (es evidente), y los nuestros van marcados "Nosotras:".
+// Abajo, las dos respuestas: una a la izquierda y otra a la derecha.
 //
-// Ritmo Lifeline: los mensajes del contacto NO aparecen de golpe. Antes de cada uno se muestra "Escribiendo..."
-// durante 3 s (la pausa entre mensajes) y luego aparece. Las opciones A/B solo salen cuando ha terminado de
-// escribir todo el paso. Al elegir, la respuesta propia aparece al instante y el contacto empieza a escribir
-// las siguientes.
+// Ritmo: antes de cada mensaje del contacto se muestra "Escribiendo..." una ESPERA ALEATORIA de 1-3 s, y luego
+// el mensaje aparece con efecto TYPEWRITER (carácter a carácter, misma idea que el typeLine de Terminal.tsx).
+// Las opciones solo salen cuando ha terminado de escribir todo el paso.
 //
-// v1 (BOCETO): guion lineal de RELLENO (placeholder). Ambas opciones avanzan igual por ahora; la ramificación
-// y el contenido real vendrán después.
+// v1 (BOCETO): guion lineal de RELLENO (placeholder). Ambas opciones avanzan igual por ahora.
 type Step = { incoming: string[]; a: string; b: string };
 const SCRIPT: Step[] = [
   { incoming: ["¿Estáis dentro?", "No tengo mucho tiempo, así que escuchad bien"],
@@ -22,54 +21,77 @@ const SCRIPT: Step[] = [
     a: "De acuerdo", b: "Esto no me da buena espina" },
 ];
 
-const TYPING_MS = 3000; // "Escribiendo..." antes de cada mensaje (la pausa de 3 s)
-const GAP_MS = 400;     // respiro tras un mensaje antes de volver a "Escribiendo..."
+const TYPE_STEP = 28; // ms por carácter (typewriter, como el typeLine de Terminal)
+const prefersReduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
+const randWait = () => 1000 + Math.random() * 2000; // espera ALEATORIA de 1-3 s antes de cada mensaje
 
 type Msg = { from: "them" | "me"; text: string };
 
 const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, ref) {
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [typing, setTyping] = useState(false);       // muestra la burbuja "Escribiendo..."
+  const [msgs, setMsgs] = useState<Msg[]>([]);       // mensajes ya completos
+  const [live, setLive] = useState<string | null>(null); // mensaje entrante tecleándose (char a char); null = ninguno
+  const [typing, setTyping] = useState(false);       // "Escribiendo..." durante la espera previa
   const [delivering, setDelivering] = useState(true); // llegando mensajes: las opciones quedan ocultas
   const [step, setStep] = useState(0);
 
-  const stepRef = useRef(0);          // paso actual SÍNCRONO (para teclas y para el guard de choose)
+  const stepRef = useRef(0);          // paso actual SÍNCRONO (teclas + guard de choose)
   const deliveringRef = useRef(true); // ídem (no elegir mientras llegan mensajes)
   const pausedRef = useRef(false);    // el armazón pausa la pantalla (diálogo/candado abiertos)
-  const queueRef = useRef<string[]>([]);            // mensajes entrantes pendientes de revelar
+  const queueRef = useRef<string[]>([]);   // mensajes entrantes pendientes de teclear
   const timerRef = useRef<number | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
 
   const clearTimer = () => { if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; } };
+  const finishStep = () => { deliveringRef.current = false; setDelivering(false); }; // cola vacía: aparecen las opciones
 
-  // Entrega la cola: "Escribiendo..." 3 s → revela un mensaje → (respiro) → repite. Al vaciarse: aparecen las opciones.
-  const pump = () => {
-    if (queueRef.current.length === 0) { setTyping(false); deliveringRef.current = false; setDelivering(false); return; }
+  // Teclea un mensaje del contacto carácter a carácter; al acabar lo confirma y pasa al siguiente (o termina).
+  function typeMessage(text: string) {
+    if (prefersReduced()) { // movimiento reducido: aparece de golpe
+      setMsgs((m) => [...m, { from: "them", text }]);
+      setLive(null);
+      if (queueRef.current.length > 0) timerRef.current = window.setTimeout(pumpTyping, randWait());
+      else finishStep();
+      return;
+    }
+    let i = 0;
+    setLive("");
+    const tick = () => {
+      i++;
+      setLive(text.slice(0, i));
+      if (i < text.length) { timerRef.current = window.setTimeout(tick, TYPE_STEP); return; }
+      setMsgs((m) => [...m, { from: "them", text }]); // completo: lo fija
+      setLive(null);
+      if (queueRef.current.length > 0) timerRef.current = window.setTimeout(pumpTyping, randWait());
+      else finishStep();
+    };
+    timerRef.current = window.setTimeout(tick, TYPE_STEP);
+  }
+
+  // Muestra "Escribiendo..." una espera aleatoria de 1-3 s y luego teclea el siguiente mensaje de la cola.
+  function pumpTyping() {
+    if (queueRef.current.length === 0) { setTyping(false); finishStep(); return; }
+    const next = queueRef.current.shift()!;
     setTyping(true);
-    timerRef.current = window.setTimeout(() => {
-      const next = queueRef.current.shift()!;
-      setMsgs((m) => [...m, { from: "them", text: next }]);
-      setTyping(false);
-      if (queueRef.current.length > 0) timerRef.current = window.setTimeout(pump, GAP_MS);
-      else { deliveringRef.current = false; setDelivering(false); }
-    }, TYPING_MS);
-  };
+    timerRef.current = window.setTimeout(() => { setTyping(false); typeMessage(next); }, randWait());
+  }
 
-  const startDelivery = (incoming: string[]) => {
+  function startDelivery(incoming: string[]) {
     clearTimer();
     queueRef.current = [...incoming];
     deliveringRef.current = true;
     setDelivering(true);
-    pump();
-  };
+    setLive(null);
+    setTyping(false);
+    pumpTyping();
+  }
 
   // Al montar: el contacto empieza a escribir el primer paso. Limpia el timer al desmontar.
   useEffect(() => { startDelivery(SCRIPT[0].incoming); return clearTimer;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // auto-scroll al fondo con cada mensaje nuevo (y al aparecer/desaparecer "Escribiendo...")
-  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [msgs, typing]);
+  // auto-scroll al fondo con cada cambio (mensaje nuevo, tecleo en curso o "Escribiendo...")
+  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [msgs, live, typing]);
 
   const current = step < SCRIPT.length ? SCRIPT[step] : null;
 
@@ -104,12 +126,15 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       <div className="fax-thread sunken-panel" ref={threadRef}>
         {msgs.map((m, i) => (
           <div key={i} className={"fax-msg " + m.from}>
-            <span className="fax-from">{m.from === "them" ? "???" : "Nosotras"}:</span>
+            {m.from === "me" && <span className="fax-from">Nosotras:</span>}
             <span className="fax-text">{m.text}</span>
           </div>
         ))}
+        {live !== null && (
+          <div className="fax-msg them"><span className="fax-text">{live}</span><span className="fax-cursor" /></div>
+        )}
         {typing && (
-          <div className="fax-typing">??? está escribiendo<span className="fax-dots"><i>.</i><i>.</i><i>.</i></span></div>
+          <div className="fax-typing">Escribiendo<span className="fax-dots"><i>.</i><i>.</i><i>.</i></span></div>
         )}
       </div>
       {/* abajo: las dos respuestas (una a la izquierda, otra a la derecha). Sin letras A/B: solo el texto. */}

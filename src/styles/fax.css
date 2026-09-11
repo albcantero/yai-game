@@ -16,11 +16,13 @@
 /* historial: panel HUNDIDO (la clase .sunken-panel de 98.css da el borde recesado + fondo blanco); scroll propio */
 .fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:9px;padding:8px 10px }
 
-/* mensaje: a lo ANCHO, sin burbuja. Formato MSN: "Nombre:" (en color) arriba + texto debajo */
+/* mensaje: a lo ANCHO, sin burbuja. Los del contacto van SIN etiqueta (el chat es solo con él); los nuestros
+   se marcan "Nosotras:" (formato MSN "Nombre:" + texto debajo) */
 .fax-msg{ font-size:var(--ui-text);line-height:1.35;color:#222;white-space:pre-wrap }
-.fax-from{ display:block;font-weight:700;margin-bottom:1px }
-.fax-msg.them .fax-from{ color:#14459e }   /* contacto (???): azul */
-.fax-msg.me .fax-from{ color:#9e2b14 }      /* nosotras: granate */
+.fax-from{ display:block;font-weight:700;margin-bottom:1px;color:#9e2b14 }   /* "Nosotras:" en granate */
+/* cursor del typewriter (mientras el contacto teclea un mensaje) */
+.fax-cursor{ display:inline-block;width:7px;height:1em;margin-left:1px;vertical-align:-1px;background:#222;animation:faxblink 1s steps(1) infinite }
+@keyframes faxblink{ 50%{opacity:0} }
 
 /* "??? está escribiendo..." (línea tenue a lo ancho, con puntos animados) */
 .fax-typing{ font-size:var(--ui-text);color:#3a3a3a;font-style:italic }
