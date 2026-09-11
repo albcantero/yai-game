@@ -4,6 +4,10 @@ import type { ScreenHandle, ScreenServices } from "./types";
 import RoomPanel from "./RoomPanel";
 import { wordToCombo } from "../locks/Padlock";
 import { LOCK_PATH } from "../../lib/icons";
+import { supabase, ensureSession } from "../../lib/supabase";
+
+// fila 'live' de game_state (estado compartido de la partida). Espejo del esquema de supabase/migrations.
+type GameState = { id: string; keys: number; open_paths: string[]; current: string; solved: string[]; started: boolean };
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
@@ -250,16 +254,36 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const [tab, setTab] = useState(0); // pestaña activa del panel
   const [view, setView] = useState<View>(FIT); // transform de la cámara
   const [frozenH, setFrozenH] = useState<number | null>(null); // alto FIJO del mapa (pantalla sin teclado)
-  const [current, setCurrent] = useState(START_ROOM); // sala en la que estás (te mueves tocando las flechas)
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
-  const [keys, setKeys] = useState(START_KEYS); // llaves del grupo
-  const [tarjetas] = useState(START_TARJETAS); // items "Tarjeta" (abren la Librería; no se gastan)
-  const [llaveMaestra] = useState(START_LLAVE_MAESTRA); // Copia de la Llave Maestra (item del final; se pinta roja en el HUD)
-  const [salidaRevealed, setSalidaRevealed] = useState(false); // el candado BLANCO ya desocultó la salida (pasillo + salida "?" + candado rojo)
   const [revealOpen, setRevealOpen] = useState(false); // popup del candado BLANCO (desocultar salida)
-  const [discovered, setDiscovered] = useState<Set<string>>(() => new Set(INITIAL_DISCOVERED)); // nodos descubiertos (se amplía al desbloquear)
-  const [solved, setSolved] = useState<Set<string>>(() => new Set()); // puzzles resueltos (id = "sala#índice"); cada uno da +1 llave
+  const [tarjetas] = useState(START_TARJETAS); // item "Tarjeta" (abre la Librería; no se gasta). TODO: inventario en DB
+  const [llaveMaestra] = useState(START_LLAVE_MAESTRA); // Copia de la Llave Maestra (item final). TODO: inventario en DB
+
+  // ESTADO COMPARTIDO en la DB (game_state fila 'live'): todas leen/mutan lo mismo. Las acciones van por RPC
+  // atómica (solve/unlock/move) y realtime sincroniza. Aquí solo derivamos lo que pinta el mapa.
+  const [gs, setGs] = useState<GameState | null>(null);
+  const keys = gs?.keys ?? 0;                                       // llaves del grupo
+  const openPaths = gs?.open_paths ?? [];
+  const current = gs?.current ?? START_ROOM;                        // posición compartida del grupo
+  const salidaRevealed = openPaths.includes("salida-revealed");     // el candado BLANCO ya desocultó la salida
+  const discovered = new Set<string>([...INITIAL_DISCOVERED, ...openPaths]); // niebla: base + nodos abiertos (DB)
+  const solved = new Set<string>(gs?.solved ?? []);                // puzzles resueltos (DB)
   useImperativeHandle(ref, () => ({ handleKey: () => {}, setPaused: () => {} }), []);
+
+  // carga la fila 'live' y se suscribe a sus cambios (realtime): las 6 jugadoras ven el mismo estado al instante
+  useEffect(() => {
+    let alive = true;
+    let ch: ReturnType<typeof supabase.channel> | null = null;
+    ensureSession().then(() => {
+      if (!alive) return;
+      supabase.from("game_state").select("*").eq("id", "live").single()
+        .then(({ data }) => { if (alive && data) setGs(data as GameState); });
+      ch = supabase.channel("gs-live")
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_state" }, (p) => setGs(p.new as GameState))
+        .subscribe();
+    }).catch(() => {});
+    return () => { alive = false; if (ch) supabase.removeChannel(ch); };
+  }, []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
   const svgRef = useRef<SVGSVGElement>(null);
@@ -276,26 +300,29 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const marks = marksFor(current, discovered); // flechas/candados de la sala actual (se recalculan al moverte / descubrir)
   // junctions descubiertos que llevan "parche" de esquina (tapa el pico donde se juntan pasillos); la salida no
   const junctionPatches = JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida");
-  // resolver un puzzle: +1 llave (una sola vez por puzzle). id = "sala#índice".
-  const solvePuzzle = (id: string) => {
-    if (solved.has(id)) return;
-    setSolved((s) => new Set(s).add(id));
-    setKeys((k) => k + 1);
+  // muta el estado compartido por RPC atómica y aplica la fila devuelta (realtime sincroniza al resto de jugadoras)
+  const applyRpc = async (fn: string, args: Record<string, unknown>) => {
+    const { data, error } = await supabase.rpc(fn, args);
+    if (!error && data) setGs(data as GameState);
   };
-  // desbloquear una puerta: gasta llaves (o requiere un ITEM, p.ej. la Tarjeta) y descubre la sala vecina
+  // resolver un puzzle: +1 llave (idempotente en la DB: una sola vez por puzzle). id = "sala#índice".
+  const solvePuzzle = (id: string) => { if (!solved.has(id)) void applyRpc("solve", { p_puzzle: id }); };
+  // mover al grupo a un nodo (posición compartida)
+  const move = (dest: string) => { void applyRpc("move", { p_node: dest }); };
+  // desbloquear una puerta: gasta llaves (o requiere un ITEM, p.ej. la Tarjeta) y descubre la sala vecina + reveals
   const unlock = (m: Mark) => {
     if (m.item) {
-      if (m.item === "tarjeta" && tarjetas < 1) return; // necesitas la Tarjeta; NO se gasta (llave-tarjeta reutilizable)
-      if (m.item === "llave-maestra" && llaveMaestra < 1) return; // salida final: necesitas la Copia de la Llave Maestra
+      if (m.item === "tarjeta" && tarjetas < 1) return;           // necesitas la Tarjeta; NO se gasta
+      if (m.item === "llave-maestra" && llaveMaestra < 1) return; // salida final: Copia de la Llave Maestra
+      void applyRpc("unlock", { p_node: m.dest, p_cost: 0, p_reveals: m.reveals ?? [] }); // los items no gastan llaves
     } else {
       if (keys < m.keys) return;
-      setKeys((k) => k - m.keys);
+      void applyRpc("unlock", { p_node: m.dest, p_cost: m.keys, p_reveals: m.reveals ?? [] });
     }
-    setDiscovered((d) => { const n = new Set(d); n.add(m.dest); m.reveals.forEach((id) => n.add(id)); return n; }); // destino + extras (p.ej. R3)
     setLocked(null);
   };
-  // candado BLANCO de la Librería: DESOCULTA la salida (aparecen pasillo + Salida "?" + candado rojo). Gasta llaves.
-  const doReveal = () => { if (keys < REVEAL_KEYS) return; setKeys((k) => k - REVEAL_KEYS); setSalidaRevealed(true); setRevealOpen(false); };
+  // candado BLANCO de la Librería: DESOCULTA la salida (nodo 'salida-revealed'). Gasta REVEAL_KEYS llaves.
+  const doReveal = () => { if (keys < REVEAL_KEYS) return; void applyRpc("unlock", { p_node: "salida-revealed", p_cost: REVEAL_KEYS, p_reveals: [] }); setRevealOpen(false); };
 
   const setV = (v: View) => { viewRef.current = v; setView(v); };
 
@@ -551,7 +578,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
                 dirección (pixel); los candados no. Los iconos de dos trazos pintan d + d2 (evita el agujero). */}
             {marks.filter((m) => !(m.secret && !salidaRevealed)).map((m) => (
               <g key={"mk" + m.key}
-                onClick={() => { if (movedRef.current) return; if (m.blocked) setLocked(m); else setCurrent(m.dest); }}
+                onClick={() => { if (movedRef.current) return; if (m.blocked) setLocked(m); else move(m.dest); }}
                 className={m.blocked ? undefined : "minimap-arrow-float"}
                 style={m.blocked ? { cursor: "pointer" } : ({ "--ax": m.ax, "--ay": m.ay, cursor: "pointer" } as CSSProperties)}>
                 <rect x={m.x - 5} y={m.y - 5} width={10} height={10} fill="transparent" pointerEvents="all" />
