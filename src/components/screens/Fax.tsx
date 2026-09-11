@@ -49,7 +49,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     if (prefersReduced()) { // movimiento reducido: aparece de golpe
       setMsgs((m) => [...m, { from: "them", text }]);
       setLive(null);
-      if (queueRef.current.length > 0) timerRef.current = window.setTimeout(pumpTyping, randWait());
+      if (queueRef.current.length > 0) pumpTyping(); // fin de mensaje: los "..." salen YA (la espera 1-3s va dentro de pumpTyping)
       else finishStep();
       return;
     }
@@ -61,7 +61,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       if (i < text.length) { timerRef.current = window.setTimeout(tick, TYPE_STEP); return; }
       setMsgs((m) => [...m, { from: "them", text }]); // completo: lo fija
       setLive(null);
-      if (queueRef.current.length > 0) timerRef.current = window.setTimeout(pumpTyping, randWait());
+      if (queueRef.current.length > 0) pumpTyping(); // fin de mensaje: los "..." salen YA (la espera 1-3s va dentro de pumpTyping)
       else finishStep();
     };
     timerRef.current = window.setTimeout(tick, TYPE_STEP);
