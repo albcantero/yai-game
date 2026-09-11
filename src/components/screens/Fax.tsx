@@ -1,20 +1,22 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
+import { supabase, ensureSession } from "../../lib/supabase";
 
-// FAX ELECTRÓNICO (pantalla `registro`): mensajería estilo MSN (Windows XP) con el chat con el informante
-// (contacto "???", aún sin revelar que es Miquela Quirós). Mensajes a lo ancho (sin burbujas izq/der); como
-// el chat es SOLO con ella, los suyos no llevan etiqueta (es evidente), y los nuestros van marcados "Nosotras:".
-// Abajo, las dos respuestas: una a la izquierda y otra a la derecha.
+// FAX ELECTRÓNICO (pantalla `registro`): chat con el informante ("???", aún sin revelar que es Miquela).
+// Los mensajes que ELLA deja aparecen de golpe (sin typing); al CHATEAR (tras responderle) su respuesta llega
+// con "..." + typewriter. Nuestra respuesta NO se manda como burbuja: los dos recuadros quedan bloqueados
+// (la elegida con borde negro, la otra atenuada) como registro.
 //
-// Ritmo: antes de cada mensaje del contacto se muestra "Escribiendo..." una ESPERA ALEATORIA de 1-3 s, y luego
-// el mensaje aparece con efecto TYPEWRITER (carácter a carácter, misma idea que el typeLine de Terminal.tsx).
-// Las opciones solo salen cuando ha terminado de escribir todo el paso.
+// PERSISTENCIA (game_state, fila 'live', COMPARTIDA + realtime, como el resto del juego): solo se guarda
+// `fax_picks` (las elecciones en orden); toda la conversación se reconstruye del SCRIPT. Al entrar se
+// reconstruye INSTANTÁNEO (no se reinicia ni se re-tipea); solo se anima lo NUEVO de esta sesión. Las
+// elecciones se persisten con la RPC atómica `fax_choose`.
 //
-// v1 (BOCETO): guion lineal de RELLENO (placeholder). Ambas opciones avanzan igual por ahora.
+// v1 (BOCETO): guion lineal de RELLENO tras el primer intercambio (placeholder).
 type Step = { incoming: string[]; a: string; b: string };
 const SCRIPT: Step[] = [
-  { incoming: ["¿Estáis dentro?", "No tengo mucho tiempo, así que escuchad bien"],
-    a: "Sí, estamos en el almacén", b: "¿Quién eres?" },
+  { incoming: ["¡Hola!", "¿Hola...? ¿Hay alguien ahí?", "No sé si funciona este cacharro."],
+    a: "Hola. Sí recibimos tus mensajes. Gracias por ayudarnos.", b: "Funciona. Pero ¿quién eres?" },
   { incoming: ["El cuadro de luces del fondo es un señuelo", "Detrás hay una puerta que no deberíais poder abrir"],
     a: "¿Y cómo la abrimos?", b: "¿Por qué nos ayudas?" },
   { incoming: ["Cada sala esconde una llave", "Id sumándolas. Yo os guío desde aquí"],
@@ -23,37 +25,56 @@ const SCRIPT: Step[] = [
 
 const TYPE_STEP = 28; // ms por carácter (typewriter, como el typeLine de Terminal)
 const prefersReduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion:reduce)").matches;
-const randWait = () => 1000 + Math.random() * 2000; // espera ALEATORIA de 1-3 s antes de cada mensaje
+const randWait = () => 1000 + Math.random() * 2000; // espera ALEATORIA de 1-3 s antes de cada mensaje (chateando)
 
-// Historial: cada entrada es un mensaje del contacto ("them") o una ELECCIÓN nuestra ya resuelta ("pick":
-// las dos opciones + `sel` = la elegida). Al elegir NO se manda mensaje: los dos recuadros quedan
-// bloqueados (la elegida con borde negro, la otra atenuada) como registro.
+// Entrada del historial: mensaje del contacto ("them") o una ELECCIÓN nuestra ya resuelta ("pick").
 type Entry = { kind: "them"; text: string } | { kind: "pick"; a: string; b: string; sel: 0 | 1 };
+const sameArr = (a: number[], b: number[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, ref) {
-  const [msgs, setMsgs] = useState<Entry[]>([]);     // historial (mensajes del contacto + elecciones resueltas)
+  const [msgs, setMsgs] = useState<Entry[]>([]);
   const [live, setLive] = useState<string | null>(null); // mensaje entrante tecleándose (char a char); null = ninguno
-  const [typing, setTyping] = useState(false);       // "Escribiendo..." durante la espera previa
-  const [delivering, setDelivering] = useState(true); // llegando mensajes: las opciones quedan ocultas
+  const [typing, setTyping] = useState(false);            // "..." durante la espera previa (chateando)
+  const [delivering, setDelivering] = useState(true);     // llegando mensajes: las opciones quedan ocultas
   const [step, setStep] = useState(0);
+  const [ready, setReady] = useState(false);              // estado compartido cargado (evita parpadeo de opciones)
 
   const stepRef = useRef(0);          // paso actual SÍNCRONO (teclas + guard de choose)
-  const deliveringRef = useRef(true); // ídem (no elegir mientras llegan mensajes)
+  const deliveringRef = useRef(true);
   const pausedRef = useRef(false);    // el armazón pausa la pantalla (diálogo/candado abiertos)
-  const queueRef = useRef<string[]>([]);   // mensajes entrantes pendientes de teclear
+  const queueRef = useRef<string[]>([]);        // mensajes entrantes pendientes de teclear (chateando)
   const timerRef = useRef<number | null>(null);
+  const renderedRef = useRef<number[]>([]);     // elecciones YA pintadas (para reconciliar con la DB)
   const threadRef = useRef<HTMLDivElement>(null);
 
   const clearTimer = () => { if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; } };
   const finishStep = () => { deliveringRef.current = false; setDelivering(false); }; // cola vacía: aparecen las opciones
 
-  // Teclea un mensaje del contacto carácter a carácter; al acabar lo confirma y pasa al siguiente (o termina).
+  // Reconstruye TODA la conversación (INSTANTÁNEA) desde las elecciones guardadas + el SCRIPT. Se usa al cargar
+  // y para reconciliar si otra jugadora avanzó (o hubo reset): así al entrar no se reinicia ni se re-tipea.
+  function rebuild(picks: number[]) {
+    clearTimer();
+    setLive(null);
+    setTyping(false);
+    const entries: Entry[] = [];
+    const n = Math.min(picks.length, SCRIPT.length);
+    for (let i = 0; i < n; i++) {
+      for (const t of SCRIPT[i].incoming) entries.push({ kind: "them", text: t });
+      entries.push({ kind: "pick", a: SCRIPT[i].a, b: SCRIPT[i].b, sel: picks[i] === 1 ? 1 : 0 });
+    }
+    if (n < SCRIPT.length) for (const t of SCRIPT[n].incoming) entries.push({ kind: "them", text: t });
+    setMsgs(entries);
+    stepRef.current = n; setStep(n);
+    deliveringRef.current = false; setDelivering(false);
+    renderedRef.current = picks.slice();
+  }
+
+  // ── Entrega EN VIVO (chateando): antes de cada mensaje, "..." una espera aleatoria de 1-3 s y luego typewriter ──
   function typeMessage(text: string) {
     if (prefersReduced()) { // movimiento reducido: aparece de golpe
       setMsgs((m) => [...m, { kind: "them", text }]);
       setLive(null);
-      if (queueRef.current.length > 0) pumpTyping(); // fin de mensaje: los "..." salen YA (la espera 1-3s va dentro de pumpTyping)
-      else finishStep();
+      if (queueRef.current.length > 0) pumpTyping(); else finishStep();
       return;
     }
     let i = 0;
@@ -62,63 +83,76 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       i++;
       setLive(text.slice(0, i));
       if (i < text.length) { timerRef.current = window.setTimeout(tick, TYPE_STEP); return; }
-      setMsgs((m) => [...m, { kind: "them", text }]); // completo: lo fija
+      setMsgs((m) => [...m, { kind: "them", text }]);
       setLive(null);
-      if (queueRef.current.length > 0) pumpTyping(); // fin de mensaje: los "..." salen YA (la espera 1-3s va dentro de pumpTyping)
-      else finishStep();
+      if (queueRef.current.length > 0) pumpTyping(); else finishStep(); // "..." al instante; la espera va dentro
     };
     timerRef.current = window.setTimeout(tick, TYPE_STEP);
   }
-
-  // Muestra "Escribiendo..." una espera aleatoria de 1-3 s y luego teclea el siguiente mensaje de la cola.
   function pumpTyping() {
     if (queueRef.current.length === 0) { setTyping(false); finishStep(); return; }
     const next = queueRef.current.shift()!;
     setTyping(true);
     timerRef.current = window.setTimeout(() => { setTyping(false); typeMessage(next); }, randWait());
   }
-
-  // `live=false`: mensajes que ELLA DEJÓ (ya están cuando entras) → aparecen de golpe, SIN typing ni "...".
-  // `live=true`: estamos CHATEANDO (tras responderle) → el contacto responde con "..." + typewriter.
-  function startDelivery(incoming: string[], live: boolean) {
+  function startLive(incoming: string[]) {
     clearTimer();
-    if (!live) {
-      setMsgs((m) => [...m, ...incoming.map((text) => ({ kind: "them" as const, text }))]);
-      deliveringRef.current = false;
-      setDelivering(false);
-      return;
-    }
     queueRef.current = [...incoming];
-    deliveringRef.current = true;
-    setDelivering(true);
-    setLive(null);
-    setTyping(false);
+    deliveringRef.current = true; setDelivering(true);
+    setLive(null); setTyping(false);
     pumpTyping();
   }
 
-  // Al montar: los mensajes que el contacto YA dejó aparecen de golpe (sin typing). Limpia el timer al desmontar.
-  useEffect(() => { startDelivery(SCRIPT[0].incoming, false); return clearTimer;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // auto-scroll al fondo con cada cambio (mensaje nuevo, tecleo en curso o "Escribiendo...")
-  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [msgs, live, typing]);
-
   const current = step < SCRIPT.length ? SCRIPT[step] : null;
+
+  // persiste la elección (RPC atómica; realtime sincroniza al resto). Fire-and-forget: el estado local ya se
+  // ha reflejado de forma optimista, y al recargar se leerá de la DB.
+  const persistChoice = async (stepIdx: number, pick: number) => {
+    try { await ensureSession(); await supabase.rpc("fax_choose", { p_step: stepIdx, p_pick: pick }); } catch { /* realtime/recarga reconcilian */ }
+  };
 
   const choose = (which: "A" | "B") => {
     if (pausedRef.current || deliveringRef.current) return; // no elegir mientras el contacto escribe
     const s = stepRef.current;
     if (s >= SCRIPT.length) return;
     const cur = SCRIPT[s];
-    const next = SCRIPT[s + 1];
     const sel: 0 | 1 = which === "A" ? 0 : 1;
-    stepRef.current = s + 1;
+    const next = SCRIPT[s + 1];
     playSfx("/audio/terminal-simple-button.mp3");
-    setStep(s + 1);
-    setMsgs((m) => [...m, { kind: "pick", a: cur.a, b: cur.b, sel }]); // NO se manda: registra la elección (recuadros bloqueados)
-    if (next) startDelivery(next.incoming, true);        // CHATEANDO: el contacto responde con "..." + typewriter
+    setMsgs((m) => [...m, { kind: "pick", a: cur.a, b: cur.b, sel }]); // optimista: bloquea los recuadros
+    renderedRef.current = [...renderedRef.current, sel];
+    stepRef.current = s + 1; setStep(s + 1);
+    void persistChoice(s, sel);
+    if (next) startLive(next.incoming); else finishStep(); // CHATEANDO: la respuesta llega con "..." + typewriter
   };
+
+  // carga la fila 'live' (fax_picks), reconstruye, marca leído y se suscribe a realtime (estado compartido)
+  useEffect(() => {
+    let alive = true;
+    let ch: ReturnType<typeof supabase.channel> | null = null;
+    const apply = (picks: number[]) => { if (!sameArr(picks, renderedRef.current)) rebuild(picks); }; // reconcilia (remoto/reset)
+    ensureSession().then(() => {
+      if (!alive) return;
+      supabase.from("game_state").select("fax_picks").eq("id", "live").single().then(({ data }) => {
+        if (!alive) return;
+        const picks = Array.isArray((data as { fax_picks?: number[] } | null)?.fax_picks) ? (data as { fax_picks: number[] }).fax_picks : [];
+        rebuild(picks);
+        setReady(true);
+        supabase.rpc("fax_mark_read").then(() => {}, () => {}); // marca leído al abrir (para el futuro aviso)
+      });
+      ch = supabase.channel("gs-fax")
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_state" }, (p) => {
+          const n = p.new as { fax_picks?: number[] };
+          if (n && Array.isArray(n.fax_picks)) apply(n.fax_picks); // ignora payloads sin fax_picks (redactados)
+        })
+        .subscribe();
+    }).catch(() => {});
+    return () => { alive = false; clearTimer(); if (ch) supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // auto-scroll al fondo con cada cambio (mensaje nuevo, tecleo en curso o "...")
+  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [msgs, live, typing]);
 
   useImperativeHandle(ref, () => ({
     handleKey: (k: string) => { const u = k.toLowerCase(); if (u === "a") choose("A"); else if (u === "b") choose("B"); },
@@ -126,7 +160,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
 
-  const showChoices = !delivering && current !== null;
+  const showChoices = ready && !delivering && current !== null;
 
   return (
     <div className="fax win98">
