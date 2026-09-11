@@ -56,7 +56,7 @@ export const PUZZLES: Puzzle[] = [
   // ── Almacén de tienda (inicio; tronco) ──
   { n: 1, room: "hub-almacen", roomName: "Almacén de tienda", titulo: "Cuadro eléctrico", kind: "letters", combo: "OPMEIT", // TIEMPO al revés (la "RESPUESTA" de la tarjeta FÍSICA va en espejo). El acertijo NO va en la app: está en la tarjeta
     leer: "El cuadro de luces es un señuelo: al abrir la portezuela no hay interruptores, sino el frontal de una caja metálica empotrada en la pared, cerrada con un candado. Al lado, clavada con una chincheta en el yeso, hay una pequeña nota.",
-    descripcion: "Al fondo, tras una columna, hay un cuadro eléctrico. Una tapa de plástico cerrada, con algo escrito a rotulador en el centro: «Interruptores de la librería · No apagar».",
+    descripcion: "Al fondo, tras una columna, hay un cuadro eléctrico. Una tapa de plástico cerrada, con algo escrito a rotulador en el centro: \"Interruptores de la librería · No apagar\".",
     da: "+1 llave (con ella se elige ruta norte/sur)", nota: "" },
 
   // ── Biblioteca privada (norte) ──
