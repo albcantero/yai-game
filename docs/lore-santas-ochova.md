@@ -114,7 +114,7 @@ Siguiendo la lógica planteada por el usuario, el archivador debería presentar 
 - [ ] ¿Qué significan las siglas G. P. dentro de la ficción del juego (ver sección 5)?
 - [ ] ¿Destinatario de la carta del siglo XVI?
 - [ ] ¿Relación de la infiltrada gubernamental con la persecución histórica de las Ochova?
-- [ ] Fecha exacta de la desaparición oficial de Higgins, posterior a 1996 (ver sección 14).
+- [x] Fecha de la desaparición oficial de Higgins: **2025** (dispara la obsesión de Miquela; ver sección 14 y §3.1).
 - [ ] ¿Cómo se llamaba realmente la librería anónima de 1956 donde trabajaba Ruby (si necesita nombre para algún documento del archivador), o se mantiene completamente sin nombre?
 - [ ] ¿Se usa el año 1966 (estreno de la película censurada) como pista física explícita en el archivador?
 - [ ] ¿Qué situación concreta vive Santas Ochova S.A. en 2056 (bajo control del Gobierno) que empuja a B a viajar?
@@ -128,9 +128,19 @@ Siguiendo la lógica planteada por el usuario, el archivador debería presentar 
 | **Higgins** | Antiguo empleado de Santas Ochova S.A. en su año de origen; viajero del tiempo; autor del guion original (1956) y de la novelización (1975) de *La jauría humana*; fundador de Santas Ochova S.A. en 1996, con casi 60 años. Tipo "Hoid". Alias: H. F. → Horton Foote. | Objetivo/enigma central. Escribió el guion con Ruby como personaje real; vendió los derechos y se enriqueció; su posterior novelización y censura son el origen de su misión. Fundó la empresa como in memoriam viviente. |
 | **Ruby Hawes** | Trabajadora de una librería anónima en **1956**. Amor de Higgins; aparece como personaje real y directo en su guion y, más tarde, en la novelización de 1975. **Borrada temporalmente** por el Gobierno junto a sus dos amigas, en algún momento **entre 1956 y 1966**, antes del estreno (desexistida del registro y de la memoria colectiva, ver sección 0). | Motivo emocional central de la fortuna de Higgins, de la fundación de la empresa (nombrada en su homenaje décadas después), del guion y de la novelización. |
 | **Las dos amigas de Ruby (sin nombre aún)** | Trabajadoras de la misma librería anónima en 1956, junto a Ruby. Asesinadas junto a ella. | Completan el trío homenajeado en "Santas Ochova". Nombres y personalidad: **pendiente**. |
-| **El informante** | Trabajador (actual o antiguo) de Santas Ochova S.A. Personaje moralmente ambiguo (ver sección 15). | Contacta a las 6 por chat/audio mientras están encerradas en el almacén. Ofrece ayudarlas a salir a cambio de un libro — *La jauría humana*. Identidad y motivos reales: **pendiente**. |
+| **El informante = Miquela Quirós** | Ex-agente del Cuerpo de Investigación (Gobierno de Helmántica): infiltrada en Santas Ochova en 2023, expulsada en 2025. Personaje moralmente ambiguo (ver sección 15 y §3.1). | Contacta a las 6 por chat/audio mientras están encerradas en el almacén. Ofrece sacarlas a cambio de un libro: *La jauría humana*. Identidad y motivos: **ASENTADO**, ver §3.1. |
 | **La encargada de la librería** (NPC) | Superior jerárquica de las 6. | Detenida por la policía militar tras el detonante; antes de irse, encierran a las 6 en el almacén (ver sección 15). |
 | **El Gobierno** | Régimen totalitario. **Borró temporalmente** a Ruby y sus amigas entre **1956 y 1966**, antes del estreno (su objetivo primario es censurar los viajes en el tiempo, ver sección 0); censuró el guion antes de rodarla (estreno de **1966** ya con "Calder"/"Cadler"); y en **1976** censuró también la novelización de 1975, imponiendo una "primera edición" reescrita. En **2056**, su control sobre Santas Ochova S.A. ya es total. | Antagonista de fondo de Higgins durante toda su vida, y de B en 2056. |
+
+### 3.1. Miquela Quirós — la informante — ASENTADO (sep 2026)
+
+La informante (sección 15) tiene nombre e identidad: **Miquela Quirós**, ex-agente del Cuerpo de Investigación del Gobierno de Helmántica. Su arco tiene **dos épocas**, y la diferencia entre "las dos Miquelas" es el **año** de sus informes:
+
+- **2023 · oficial.** Se infiltra en Santas Ochova como informante del Gobierno para buscar libros y datos sobre *La jauría humana*. Sus informes de esta época son **oficiales y entregados**: llevan todos los campos (Expediente, Nº de caso, Sujeto, fecha, firma). Ej.: los de *La jauría humana* (expediente HF-27/2019, caso 161720-B, firmados "Miquela Quirós").
+- **2025 · inédita.** Higgins desaparece ese año (ver sección 14) y ella se **obsesiona** con él y su historia. La **expulsan** del Cuerpo. Sus documentos de 2025 son **inéditos, nunca presentados**, y quedaron **escondidos por la librería**: van **sin expediente, sin nº de caso, sin sujeto ni página**, con anotaciones a mano ("me estoy volviendo loca", "¿Dónde estás H...?"). Ej.: el informe del Compendio (la conexión "¿H. F = H. F?").
+- **El detonante · su oportunidad.** Cuando ve que la revolucionaria **publica *La jauría humana* en la web** (sección 10), Miquela ve su ocasión de cerrar la historia. Como ya no trabaja allí, no puede volver a indagar por la librería (una desconocida colándose por el almacén cantaría), así que **contacta a las 6 y las usa como sus manos dentro**: las saca del almacén a cambio de ese libro.
+
+**Pista diegética para las jugadoras**: distinguir los informes **de 2023 (con todos los datos oficiales)** de los **de 2025 (en blanco + anotaciones de locura)** revela que hubo un antes y un después en la investigadora, y que la de 2025 es la que las está ayudando.
 
 ---
 
@@ -371,7 +381,7 @@ Control mediante placer voluntario; sistema de castas; supresión del pasado; el
 - [ ] Diseñar las páginas falsificadas en Photoshop (portada y colofón de 1976 con "Ruby Cadler" y "Primera edición")
 - [ ] Decidir si se incorpora material físico de época de 1966 (cartel de cine, entrada, crítica de prensa)
 - [ ] Diseñar los fake recortes de periódico sobre la desaparición de Higgins
-- [ ] Resolver la identidad y motivación real del informante
+- [x] Identidad y motivación del informante: **Miquela Quirós**, ex-agente en dos épocas (2023 oficial / 2025 inédita), ver §3.1
 - [ ] Asignar nombres, personalidad y motivaciones de fondo a las 6 jugadoras
 - [ ] Definir el mecanismo exacto de ventaja informativa de B
 - [ ] Definir el contenido de la lista de libros de la empleada nº3
@@ -396,7 +406,7 @@ Inspirado en la estructura de *Dark* (la desaparición de Mikkel como hecho fund
 
 ### Preguntas abiertas
 
-- [ ] ¿Qué fecha exacta se fija como la desaparición oficial, posterior a 1996?
+- [x] Fecha de la desaparición oficial: **2025** (el año en que Miquela se obsesiona y la expulsan, ver §3.1).
 - [ ] ¿Qué contienen exactamente los recortes de periódico?
 - [ ] ¿Quién denuncia su desaparición?
 
