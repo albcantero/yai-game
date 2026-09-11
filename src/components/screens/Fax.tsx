@@ -102,24 +102,21 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
         <span className="fax-status">En línea</span>
       </header>
       <div className="fax-thread sunken-panel" ref={threadRef}>
-        {msgs.map((m, i) => (<div key={i} className={"fax-msg " + m.from}>{m.text}</div>))}
-        {typing && (
-          <div className="fax-msg them fax-typing">
-            Escribiendo<span className="fax-dots"><i>.</i><i>.</i><i>.</i></span>
+        {msgs.map((m, i) => (
+          <div key={i} className={"fax-msg " + m.from}>
+            <span className="fax-from">{m.from === "them" ? "???" : "Nosotras"}:</span>
+            <span className="fax-text">{m.text}</span>
           </div>
+        ))}
+        {typing && (
+          <div className="fax-typing">??? está escribiendo<span className="fax-dots"><i>.</i><i>.</i><i>.</i></span></div>
         )}
       </div>
-      {/* abajo: DOS columnas con las opciones A y B (solo cuando el contacto ha terminado de escribir) */}
+      {/* abajo: las dos respuestas (una a la izquierda, otra a la derecha). Sin letras A/B: solo el texto. */}
       {showChoices && (
         <div className="fax-choices">
-          <button type="button" className="fax-choice" onClick={() => choose("A")}>
-            <span className="fax-key">A</span>
-            <span className="fax-opt">{current!.a}</span>
-          </button>
-          <button type="button" className="fax-choice" onClick={() => choose("B")}>
-            <span className="fax-key">B</span>
-            <span className="fax-opt">{current!.b}</span>
-          </button>
+          <div className="fax-choice left" onClick={() => choose("A")}>{current!.a}</div>
+          <div className="fax-choice right" onClick={() => choose("B")}>{current!.b}</div>
         </div>
       )}
     </div>

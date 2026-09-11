@@ -1,38 +1,38 @@
-/* FAX ELECTRÓNICO (pantalla `registro`): mensajería tipo Lifeline con estética Win98 (98.css, scopeado bajo
-   .win98). La ventana exterior (barra de título "Fax Electrónico" + X) la pinta el armazón; aquí va SOLO el
-   contenido: superficie gris, hilo en panel HUNDIDO (sunken) con burbujas biseladas, y abajo DOS botones
-   Win98 con las opciones A y B. Sigue dentro del tubo CRT (scanlines/warp del monitor). v1. */
+/* FAX ELECTRÓNICO (pantalla `registro`): mensajería estilo MSN Messenger (Windows XP) con marco Win98. La
+   ventana exterior (barra de título "Fax Electrónico" + X) la pinta el armazón; aquí va SOLO el contenido:
+   superficie gris, historial en panel HUNDIDO (sunken) con mensajes A LO ANCHO (formato MSN "Nombre:" +
+   texto, sin burbujas izquierda/derecha) y, abajo, las dos respuestas (una a la izquierda, otra a la
+   derecha) como texto, NO como botones. Fuente Determination Mono; tamaño de texto = var(--ui-text). Sigue
+   dentro del tubo CRT. v1. Ref. de UI: MSN 7.5 (manz, CodePen) y clon Windows Live Messenger (garcia-clara). */
 .fax{ position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;gap:7px;
   padding:8px;background:silver;color:#222;
-  font-family:"Pixelated MS Sans Serif",Arial,sans-serif;-webkit-font-smoothing:none;text-shadow:none }
+  font-family:'Determination Mono','Determination Sans',monospace;text-shadow:none }
 
 /* cabecera: contacto (???) + estado */
 .fax-head{ flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px }
-.fax-contact{ font-weight:700;font-size:13px;letter-spacing:1px }
-.fax-status{ font-size:11px;color:#3a3a3a }
+.fax-contact{ font-weight:700;font-size:var(--ui-text);letter-spacing:1px }
+.fax-status{ font-size:calc(var(--ui-text) - 3px);color:#3a3a3a }
 
-/* hilo: panel HUNDIDO (la clase .sunken-panel de 98.css da el borde recesado + fondo blanco); scroll propio */
-.fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:8px }
+/* historial: panel HUNDIDO (la clase .sunken-panel de 98.css da el borde recesado + fondo blanco); scroll propio */
+.fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:9px;padding:8px 10px }
 
-/* mensajes: cajas biseladas (bisel de ventana, en relieve). Entrantes a la izquierda (gris), propios a la derecha (blanco) */
-.fax-msg{ max-width:82%;padding:5px 8px;font-size:12px;line-height:1.35;white-space:pre-wrap;color:#222;
-  background:silver;box-shadow:inset -1px -1px #0a0a0a,inset 1px 1px #dfdfdf,inset -2px -2px grey,inset 2px 2px #fff }
-.fax-msg.them{ align-self:flex-start }
-.fax-msg.me{ align-self:flex-end;background:#fff }
+/* mensaje: a lo ANCHO, sin burbuja. Formato MSN: "Nombre:" (en color) arriba + texto debajo */
+.fax-msg{ font-size:var(--ui-text);line-height:1.35;color:#222;white-space:pre-wrap }
+.fax-from{ display:block;font-weight:700;margin-bottom:1px }
+.fax-msg.them .fax-from{ color:#14459e }   /* contacto (???): azul */
+.fax-msg.me .fax-from{ color:#9e2b14 }      /* nosotras: granate */
 
-/* "Escribiendo..." con puntos animados (mismo estilo de burbuja entrante) */
-.fax-typing{ color:#3a3a3a }
-.fax-dots{ display:inline-flex }
+/* "??? está escribiendo..." (línea tenue a lo ancho, con puntos animados) */
+.fax-typing{ font-size:var(--ui-text);color:#3a3a3a;font-style:italic }
 .fax-dots i{ font-style:normal;opacity:.2;animation:faxdot 1.2s infinite }
 .fax-dots i:nth-child(2){ animation-delay:.2s }
 .fax-dots i:nth-child(3){ animation-delay:.4s }
 @keyframes faxdot{ 0%,70%,100%{opacity:.2} 35%{opacity:1} }
 
-/* abajo: DOS columnas con los botones Win98 A y B (multi-línea; anulo el truco color:transparent de 98.css) */
-.fax-choices{ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px }
-.fax .fax-choice{ display:flex;flex-direction:column;gap:4px;align-items:flex-start;
-  min-height:52px;padding:7px 10px;text-align:left;cursor:pointer;color:#222;text-shadow:none;
-  background:silver;box-shadow:inset -1px -1px #0a0a0a,inset 1px 1px #fff,inset -2px -2px grey,inset 2px 2px #dfdfdf }
-.fax .fax-choice:disabled{ color:grey }
-.fax-key{ font-weight:700;font-size:11px;color:#222 }   /* la letra A / B */
-.fax-opt{ font-size:12px;line-height:1.25 }             /* el texto de la respuesta */
+/* abajo: las dos respuestas (izquierda / derecha). Como mensajes (mismo tamaño), NO como botones. */
+.fax-choices{ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:6px 4px 0;
+  border-top:1px solid #808080 }
+.fax-choice{ padding:5px 6px;cursor:pointer;color:#222;font-size:var(--ui-text);line-height:1.3 }
+.fax-choice.left{ text-align:left }
+.fax-choice.right{ text-align:right }
+.fax-choice:hover{ text-decoration:underline }
