@@ -27,11 +27,11 @@
 | Puzzle 8 | Proyecto de sala de lectura | — | — | — | — | +1 llave | — | — |
 | Puzzle 9 | Proyecto de sala de lectura | — | — | — | — | +1 llave | — | — |
 | Puzzle 10 | Proyecto de sala de lectura | — | — | — | — | +1 llave | — | **info de otra sala** (por definir) |
-| Puzzle 11 | Sala de Máquinas | — | — | — | — | +1 llave | — | — |
+| Puzzle 11 | Sala de Máquinas | — | — | **rotary** · sol. = Habitación 7 (cuadernillo) | Sobre 2 | +1 llave | — | — |
 | Puzzle 12 | Sala de Máquinas | — | — | — | — | +1 llave | — | — |
-| Puzzle 13 | Despacho | — | — | — | — | +1 llave | — | — |
+| Puzzle 13 | Despacho | — | — | **rotary** · sol. = Habitación 8 (cuadernillo) | Sobre 2 | +1 llave | — | — |
 | Puzzle 14 | Despacho | — | — | — | — | +1 llave | — | **info del Sótano** (revela la puerta secreta a la Antesala) |
-| Puzzle 15 | Sótano | — | — | — | — | +1 llave + **ITEM Tarjeta de seguridad** + info para el Despacho | — | — |
+| Puzzle 15 | Sótano | — | — | **rotary** · sol. = Habitación 4 (cuadernillo) | Sobre 2 | +1 llave + **ITEM Tarjeta de seguridad** + info para el Despacho | — | — |
 | Puzzle 16 | Librería | — | — | — | — | +1 llave + **info** para puzzles bloqueados | — | Librería por ITEM Tarjeta |
 | Puzzle 17 | Librería | — | — | — | — | +1 llave + **info** | — | — |
 | Puzzle 18 | Librería | — | — | — | — | +1 llave + **info** | — | — |
@@ -43,6 +43,8 @@
 de la Llave Maestra**. Fuerza a resolver los 21 puzzles antes de acabar → voto. La puerta **Despacho→Antesala** es
 SECRETA: se revela al resolver el último puzzle del Despacho.
 
+> **Sobre 2 (cuadernillo de arquitecto)** → sus 3 problemas grapados son candados **rotary**: *Habitación 7* = Sala de Máquinas (nº 7), *Habitación 8* = Despacho (nº 8), *Habitación 4* = Sótano (nº 4); las jugadoras deducen el match por el número de habitación. En Máquinas y Despacho (2 puzzles c/u) el rotary está **provisionalmente** en el primero (11 y 13): confirmar cuál de los dos. El "123 = 0 1 23" escrito a bolígrafo indica cómo meter la respuesta en el dial.
+
 ## Tabla 2 — Objetos / pistas / herramientas (piezas físicas)
 
 | Objeto | Qué es (físico) | Tipo | Cómo se consigue (sobre nº · o "al resolver X") | Sala | Notas |
@@ -50,7 +52,10 @@ SECRETA: se revela al resolver el último puzzle del Despacho.
 | Tarjeta de seguridad del Almacén | — | item especial | al resolver Puzzle 15 (Sótano) | Sótano | bloquea/desbloquea la compuerta de seguridad: abre Almacén → Librería |
 | Copia de la Llave Maestra de la Librería | — | item especial | al resolver Puzzle 21 (La Cámara) | La Cámara | abre la salida final (junto al candado de llaves libres) → voto |
 | La jauría humana (1975, "Hawes") | libro físico real (Plaza y Janés, 1975) | objeto/pista clave | en La Cámara | La Cámara | el "libro perdido"; núcleo del lore |
-| — | — | — | — | — | (añadir pistas/herramientas/objetos según se diseñen los puzzles) |
+| Cuadernillo de bocetos de arquitecto | fotocopia de los planos de Santas Ochova (portada/planos) + 3 problemas grapados: **Habitación 7, 8 y 4** | objeto/herramienta (sirve a VARIOS puzzles) | Sobre 2 (se entrega pronto) | — | muestra que existe la cámara oculta (La Cámara); cada "Habitación N" resuelve el **rotary de la sala nº N** (7=Máquinas, 8=Despacho, 4=Sótano) |
+| Expediente Miquela Quirós 2023: *La jauría humana* | 3 informes OFICIALES (con expediente/caso/firma): Cap. IV pág. 8 ("Calder"+"Ruby"), portada pág. 9 ("no es el ejemplar"), créditos pág. 10 (© Ediciones G. P. 1976) | documento/pista | Sobre 1 | — | prueba que la ed. de **1976 lleva "Calder"**: NO es el ejemplar buscado (el de **1975 con "Hawes"**). Material numérico: ISBN, depósito legal, caso 161720-B |
+| Informe Miquela Quirós 2025: portada del *Compendio* (Horace Faulkner) | informe INÉDITO (sin expediente/caso/sujeto), notas a mano: "¿Dónde está H...?", "¿H. F. = H. F.?", "me estoy volviendo loca" | documento/pista | Sobre 3 | — | conexión **Horace Faulkner = Horton Foote = firma H.F. de Higgins** (ver lore §3.1); contrasta con los oficiales de 2023 |
+| — | — | — | — | — | (añadir más piezas según se diseñen los puzzles) |
 
 ## Notas de uso
 
