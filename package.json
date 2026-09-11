@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "reset": "node scripts/reset.mjs",
+    "audio:normalize": "node scripts/normalize-audio.mjs",
     "db:push": "supabase db push",
     "db:pull": "supabase db pull"
   },
