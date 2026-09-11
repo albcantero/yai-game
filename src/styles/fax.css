@@ -10,7 +10,7 @@
   src:url('/fonts/PixelOperator.ttf') format('truetype');
   font-display:swap;
 }
-.fax{ --fax-size:18px;   /* tamaño de texto del chat (independiente del --ui-text global) */
+.fax{ --fax-size:20px;   /* tamaño de texto del chat (independiente del --ui-text global) */
   position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;gap:7px;
   padding:8px;background:silver;color:#222;letter-spacing:-.5px;   /* kerning un pelín negativo */
   font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;text-shadow:none }
@@ -32,12 +32,13 @@
 .fax-msg{ background:rgba(0,0,128,.1);padding:6px 10px;font-size:var(--fax-size);line-height:1.35;color:#222;white-space:pre-wrap }
 .fax-from{ display:block;font-weight:700;margin-bottom:1px;color:#9e2b14 }   /* "Nosotras:" en granate */
 
-/* indicador de tecleo: solo los puntos animados "...", SIN franja azul */
-.fax-typing{ padding:2px 10px;font-size:var(--fax-size);color:#3a3a3a }
-.fax-dots i{ font-style:normal;opacity:.2;animation:faxdot 1.2s infinite }
-.fax-dots i:nth-child(2){ animation-delay:.2s }
-.fax-dots i:nth-child(3){ animation-delay:.4s }
-@keyframes faxdot{ 0%,70%,100%{opacity:.2} 35%{opacity:1} }
+/* indicador de tecleo: tres CUADRADOS (SVG) animados, SIN franja azul (los puntos de la fuente son diminutos) */
+.fax-typing{ padding:4px 10px;color:#3a3a3a }
+.fax-dots{ display:inline-block;height:6px;width:auto;vertical-align:middle }
+.fax-dots rect{ fill:#3a3a3a;opacity:.25;animation:faxdot 1.2s infinite }
+.fax-dots rect:nth-child(2){ animation-delay:.2s }
+.fax-dots rect:nth-child(3){ animation-delay:.4s }
+@keyframes faxdot{ 0%,70%,100%{opacity:.25} 35%{opacity:1} }
 
 /* abajo: las dos respuestas (izquierda / derecha). Como mensajes (mismo tamaño), NO como botones. */
 .fax-choices{ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:6px 4px 0;

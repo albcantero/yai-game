@@ -170,9 +170,9 @@ body{
   background:radial-gradient(120% 100% at 50% 45%, #0a0b0a 0%, #040504 80%) }
 
 /* Chrome Windows 98: fuente con acentos (Determination Sans) y SIN aberración (es UI del SO, no fósforo) */
-.win98{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,sans-serif;color:#222;text-shadow:none }  /* text-shadow:none = el chrome Win98 (header/diálogo/sidebar) NO hereda la aberración cromática animada de .crt. El verde del terminal (.crt-body, sin .win98) la conserva */
+.win98{ font-family:'Determination Mono',"Pixelated MS Sans Serif",Tahoma,monospace;color:#222;text-shadow:none }  /* text-shadow:none = el chrome Win98 (header/diálogo/sidebar) NO hereda la aberración cromática animada de .crt. El verde del terminal (.crt-body, sin .win98) la conserva */
 /* sobrescribe la font-family que 98.css fija en cada componente (para que use Determination Sans, con acentos) */
-.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Sans',"Pixelated MS Sans Serif",Tahoma,Arial,sans-serif }  /* solo la fuente (acentos); tamaño NATIVO de 98.css (quitado el 16px forzado) */
+.win98 .title-bar,.win98 .window,.win98 button,.win98 input,.win98 label,.win98 option,.win98 select,.win98 table,.win98 textarea{ font-family:'Determination Mono',"Pixelated MS Sans Serif",Tahoma,Arial,monospace }  /* solo la fuente (acentos); tamaño NATIVO de 98.css (quitado el 16px forzado) */
 .win98 .title-bar-text{ letter-spacing:.5px;font-size:var(--ui-text) }  /* Determination en negrita sintética queda muy junta; la soltamos un poco. Tamaño normal (--ui-text) */
 
 /* ---------- Diálogo de confirmación Windows 98 ---------- */
