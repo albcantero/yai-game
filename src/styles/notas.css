@@ -1,22 +1,8 @@
-/* NOTAS (pantalla `notas`): el archivador. Superficie Win98 gris; lista de notas (botones biselados) en panel
-   hundido. Al tocar una nota se abre en un POPUP Win98 (ventana con franja de título + X). */
-.notas{ position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;padding:8px;background:silver;color:#222 }
-
-/* lista */
-.notas-list{ flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px }
-.notas-empty{ margin:auto;color:#3a3a3a;font-size:var(--ui-text) }
-.notas .notas-item{ display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
-  padding:8px 10px;min-height:0;cursor:pointer;color:#222;text-shadow:none;background:silver;
-  box-shadow:inset -1px -1px #0a0a0a,inset 1px 1px #fff,inset -2px -2px grey,inset 2px 2px #dfdfdf }
-.notas-item-title{ font-size:var(--ui-text);font-weight:700 }
-.notas-item-src{ font-size:calc(var(--ui-text) - 3px);color:#3a3a3a }
-
-/* popup de la nota: backdrop oscuro + ventana Win98 centrada, con cuerpo scrollable */
-.notas-overlay{ position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
-  padding:14px;box-sizing:border-box;background:rgba(0,0,0,.45) }
-.notas-popup{ box-sizing:border-box;width:min(94%,460px);max-height:84%;display:flex;flex-direction:column }
-.notas-popup .title-icon{ width:16px;height:16px;flex:none;image-rendering:pixelated;margin:0 5px 0 1px;align-self:center }
-.notas-popup .title-bar-text{ overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
-.notas-popup-body{ flex:1;min-height:0;overflow-y:auto }
-.notas-doc-src{ margin:0 0 10px;font-size:calc(var(--ui-text) - 2px);color:#666 }
-.notas-doc-body{ font-size:var(--ui-text);line-height:1.5;color:#222;white-space:pre-wrap }
+/* NOTAS (pantalla `notas`): un bloc de notas estilo Win98. Panel blanco hundido con una lista NUMERADA de
+   líneas que va creciendo. La ventana exterior (título + X) la pinta el armazón. */
+.notas{ position:absolute;inset:0;box-sizing:border-box;display:flex;padding:8px;background:silver;color:#222 }
+.notas-pad{ flex:1;min-height:0;overflow-y:auto;background:#fff;padding:12px 14px }
+.notas-empty{ margin:0;color:#3a3a3a;font-size:var(--ui-text) }
+.notas-lines{ margin:0;padding-left:1.7em;display:flex;flex-direction:column;gap:10px;
+  font-size:var(--ui-text);line-height:1.45;color:#222 }
+.notas-lines li{ padding-left:4px }
