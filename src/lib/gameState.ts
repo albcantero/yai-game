@@ -14,8 +14,9 @@ export type GameState = {
   solved: string[];
   items: string[];
   started: boolean;
-  fax_picks: number[];
+  fax_picks: number[];                       // (obsoleto: sustituido por fax_progress)
   fax_read: boolean;
+  fax_progress: Record<string, number[]>;    // picks del Fax POR BLOQUE (id_de_bloque -> [0/1,...])
 };
 
 let state: GameState | null = null;
