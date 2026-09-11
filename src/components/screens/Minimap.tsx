@@ -7,7 +7,9 @@ import { LOCK_PATH } from "../../lib/icons";
 import { supabase, ensureSession } from "../../lib/supabase";
 
 // fila 'live' de game_state (estado compartido de la partida). Espejo del esquema de supabase/migrations.
-type GameState = { id: string; keys: number; open_paths: string[]; current: string; solved: string[]; started: boolean };
+type GameState = { id: string; keys: number; open_paths: string[]; current: string; solved: string[]; items: string[]; started: boolean };
+// qué ITEM otorga cada puzzle al resolverse (asentado: Sótano -> Tarjeta, La Cámara -> Copia de la Llave Maestra)
+const ITEM_BY_PUZZLE: Record<string, string> = { "r5#0": "tarjeta", "r8#0": "llave-maestra" };
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
@@ -168,9 +170,6 @@ function marksFor(current: string, disc: Set<string>) {
 type Mark = ReturnType<typeof marksFor>[number];
 const INITIAL_DISCOVERED = Object.keys(NODE).filter((id) => NODE[id].discovered); // nodos despejados al empezar (solo el Almacén)
 const TOTAL_PUZZLES = ROOMS.reduce((s, r) => s + (r.puzzles ?? 0), 0); // total de puzzles del juego (contador del HUD)
-const START_KEYS = 99; // TEMPORAL (pruebas): 99 llaves para ver los costes en vivo. Volver a 0 para jugar
-const START_TARJETAS = 1; // TEMPORAL (pruebas): 1 Tarjeta para verla en el HUD. En juego se consigue en el Sótano (0 al empezar)
-const START_LLAVE_MAESTRA = 1; // TEMPORAL (pruebas): ver la Llave Maestra (roja) en el HUD. En juego se consigue en La Cámara
 const REVEAL_KEYS = 1; // llaves del candado BLANCO que desoculta la salida (placeholder de "llaves libres")
 
 // ---------- Cámara del mapa (pan/zoom) ----------
@@ -256,14 +255,14 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const [frozenH, setFrozenH] = useState<number | null>(null); // alto FIJO del mapa (pantalla sin teclado)
   const [locked, setLocked] = useState<Mark | null>(null); // candado con el popup de "camino bloqueado" abierto
   const [revealOpen, setRevealOpen] = useState(false); // popup del candado BLANCO (desocultar salida)
-  const [tarjetas] = useState(START_TARJETAS); // item "Tarjeta" (abre la Librería; no se gasta). TODO: inventario en DB
-  const [llaveMaestra] = useState(START_LLAVE_MAESTRA); // Copia de la Llave Maestra (item final). TODO: inventario en DB
-
   // ESTADO COMPARTIDO en la DB (game_state fila 'live'): todas leen/mutan lo mismo. Las acciones van por RPC
   // atómica (solve/unlock/move) y realtime sincroniza. Aquí solo derivamos lo que pinta el mapa.
   const [gs, setGs] = useState<GameState | null>(null);
   const keys = gs?.keys ?? 0;                                       // llaves del grupo
   const openPaths = gs?.open_paths ?? [];
+  const items = gs?.items ?? [];                                    // inventario compartido
+  const tarjetas = items.includes("tarjeta") ? 1 : 0;              // Tarjeta del Almacén (0/1); abre la Librería
+  const llaveMaestra = items.includes("llave-maestra") ? 1 : 0;   // Copia de la Llave Maestra (0/1); abre la salida
   const current = gs?.current ?? START_ROOM;                        // posición compartida del grupo
   const salidaRevealed = openPaths.includes("salida-revealed");     // el candado BLANCO ya desocultó la salida
   const discovered = new Set<string>([...INITIAL_DISCOVERED, ...openPaths]); // niebla: base + nodos abiertos (DB)
@@ -306,7 +305,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
     if (!error && data) setGs(data as GameState);
   };
   // resolver un puzzle: +1 llave (idempotente en la DB: una sola vez por puzzle). id = "sala#índice".
-  const solvePuzzle = (id: string) => { if (!solved.has(id)) void applyRpc("solve", { p_puzzle: id }); };
+  const solvePuzzle = (id: string) => { if (!solved.has(id)) void applyRpc("solve", { p_puzzle: id, p_item: ITEM_BY_PUZZLE[id] ?? null }); };
   // mover al grupo a un nodo (posición compartida)
   const move = (dest: string) => { void applyRpc("move", { p_node: dest }); };
   // desbloquear una puerta: gasta llaves (o requiere un ITEM, p.ej. la Tarjeta) y descubre la sala vecina + reveals
