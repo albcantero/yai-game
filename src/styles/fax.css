@@ -46,4 +46,3 @@
 .fax-choice{ background:rgba(0,0,128,.1);padding:10px;cursor:pointer;color:#222;text-align:center;
   display:flex;align-items:center;justify-content:center;   /* centra el texto vertical y horizontalmente (los dos recuadros igualan altura) */
   font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:var(--fax-size);line-height:1 }
-.fax-choice:hover{ background:rgba(0,0,128,.2) }
