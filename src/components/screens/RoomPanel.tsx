@@ -28,7 +28,7 @@ export type RoomPanelProps = {
 
 export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onResolve, onClose }: RoomPanelProps) {
   // una opción por puzzle de la sala (placeholder hasta tener los nombres reales)
-  const puzzleOptions = Array.from({ length: puzzles }, (_, i) => `Puzzle ${puzzleBase + i + 1}`);
+  const puzzleOptions = Array.from({ length: puzzles }, (_, i) => puzzleByN(puzzleBase + i + 1)?.titulo ?? `Puzzle ${puzzleBase + i + 1}`);
   // puzzle SELECCIONADO en el desplegable (índice). Se reinicia al primero al cambiar de sala.
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   useEffect(() => { setPuzzleIdx(0); }, [roomId]);
@@ -121,7 +121,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
           <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="title-bar">
               <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
-              <div className="title-bar-text">Nota</div>
+              <div className="title-bar-text">{content?.titulo ?? "Nota"}</div>
               <div className="title-bar-controls"><button type="button" aria-label="Close" onClick={() => setReadOpen(false)}></button></div>
             </div>
             <div className="window-body">

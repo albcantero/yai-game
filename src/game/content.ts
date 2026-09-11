@@ -24,6 +24,7 @@ export type Puzzle = {
   n: number;            // nº global 1..21 (= "Puzzle N" del minimap)
   room: string;         // id de sala (casa con Minimap ROOMS: hub-almacen, r1..r8, libreria)
   roomName: string;     // nombre legible (solo referencia; el canónico está en Minimap ROOMS)
+  titulo?: string;      // nombre visible del puzzle en el desplegable de "Llaves" (si no, "Puzzle N")
   kind: LockKind;       // tipo de candado. DEFAULT "number"; se ajusta al diseñar cada puzzle
   combo: Combo;         // solución. POR RELLENAR ([] / "")
   leer: string;         // enunciado del botón "Leer" (popup). POR RELLENAR
@@ -53,9 +54,9 @@ const p = (n: number, room: string, roomName: string, da: string, dependeDe?: st
 
 export const PUZZLES: Puzzle[] = [
   // ── Almacén de tienda (inicio; tronco) ──
-  { n: 1, room: "hub-almacen", roomName: "Almacén de tienda", kind: "letters", combo: "OPMEIT", // TIEMPO al revés (la "RESPUESTA" de la tarjeta va en espejo)
-    leer: "Vuela sin tener alas, y corre sin tener pies. Más fuerte que el acero, y más viejo que el ciprés. Todo lo cura y lo mata, todo lo puede vencer. Nadie lo agarra ni ata, y a todos hace envejecer. ¿Qué cosa, qué cosa es?",
-    descripcion: "El cuadro de luces de la pared es falso: al abrir su portezuela aparece una puerta con un candado. Clavada al lado con una chincheta, una tarjeta con un acertijo escrito.",
+  { n: 1, room: "hub-almacen", roomName: "Almacén de tienda", titulo: "Cuadro eléctrico", kind: "letters", combo: "OPMEIT", // TIEMPO al revés (la "RESPUESTA" de la tarjeta FÍSICA va en espejo). El acertijo NO va en la app: está en la tarjeta
+    leer: "El cuadro de luces es un señuelo: al abrir la portezuela no hay interruptores, sino el frontal de una caja metálica empotrada en la pared, cerrada con un candado. Al lado, clavada con una chincheta en el yeso, hay una pequeña nota.",
+    descripcion: "Al fondo, tras una columna, hay un cuadro eléctrico. Una tapa de plástico cerrada, con algo escrito a rotulador en el centro: «Interruptores de la librería · No apagar».",
     da: "+1 llave (con ella se elige ruta norte/sur)", nota: "" },
 
   // ── Biblioteca privada (norte) ──
