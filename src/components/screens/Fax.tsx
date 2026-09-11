@@ -137,7 +137,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
           <div className="fax-msg them"><span className="fax-text">{live}</span></div>
         )}
         {typing && (
-          <div className="fax-typing">Escribiendo<span className="fax-dots"><i>.</i><i>.</i><i>.</i></span></div>
+          <div className="fax-typing"><span className="fax-dots"><i>.</i><i>.</i><i>.</i></span></div>
         )}
       </div>
       {/* abajo: las dos respuestas (una a la izquierda, otra a la derecha). Sin letras A/B: solo el texto. */}
