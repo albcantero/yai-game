@@ -14,11 +14,11 @@ import type { GameState } from "../lib/gameState";
 
 export type Note = { id: string; trigger: GameTrigger; texto: string };
 
+// El token {contacto} se sustituye al pintar por "???" o "Miquela Quirós" según la flag de revelación (ver fax.ts).
 export const NOTES: Note[] = [
-  // ── líneas de arranque (borrador; disponibles desde el principio) ──
-  { id: "encierro", trigger: { type: "start" }, texto: "Nos han encerrado en el almacén y se han llevado a la encargada." },
-  { id: "llamada", trigger: { type: "start" }, texto: "Una voz por el altavoz dice que puede sacarnos, a cambio de un libro." },
-  { id: "salida", trigger: { type: "start" }, texto: "La única salida son las salas ocultas de la librería." },
+  // ── ÍNDICE de notas: cada objeto es UNA nota (una entrada). Se irán añadiendo más con sus triggers. ──
+  { id: "encierro", trigger: { type: "start" },
+    texto: "Nos han encerrado en el almacén. {contacto} nos ha llamado: puede sacarnos a cambio de un libro, y dice que la única salida son las salas ocultas de la librería." },
 ];
 
 // Líneas visibles con el estado actual (en el orden de este array).

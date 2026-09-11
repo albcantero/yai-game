@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { useGameState, getGameState, applyRpc, type GameState } from "../../lib/gameState";
-import { BLOCKS, triggerMet, unlockedCount, type FaxBlock, type FaxNode } from "../../game/fax";
+import { BLOCKS, triggerMet, unlockedCount, contactName, type FaxBlock, type FaxNode } from "../../game/fax";
 
 // FAX ELECTRÓNICO (pantalla `registro`): chat con el informante ("???", aún sin revelar que es Miquela).
 // Conversación en BLOQUES (src/game/fax.ts), cada uno con su trigger y su mini-grafo ramificado.
@@ -214,7 +214,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
       <header className="fax-head">
         <div className="fax-avatar" aria-hidden="true" />
         <div className="fax-id">
-          <span className="fax-contact">???</span>
+          <span className="fax-contact">{contactName(gs)}</span>
           <span className="fax-status">Conectado</span>
         </div>
       </header>

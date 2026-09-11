@@ -99,3 +99,15 @@ export function unlockedCount(gs: GameState): number {
 export function faxUnread(gs: GameState): boolean {
   return unlockedCount(gs) > (gs.fax_seen ?? 0);
 }
+
+// ── IDENTIDAD DEL INFORMANTE ────────────────────────────────────────────────────────────────────────────
+// El contacto se muestra como "???" hasta que las jugadoras descubran (por los informes) que es Miquela Quirós.
+// La revelación es un TRIGGER sobre el game_state (compartido): al cumplirse, "???" pasa a "Miquela Quirós" en
+// todas partes (cabecera del Fax, notas con el token {contacto}...). PLACEHOLDER: cambia MIQUELA_REVEAL por el
+// trigger real cuando exista el puzzle/nota de los informes que destapa su identidad.
+export const CONTACT_ALIAS = "???";
+export const CONTACT_NAME = "Miquela Quirós";
+export const MIQUELA_REVEAL: FaxTrigger = { type: "solved", puzzle: "___reveal-miquela___" };
+export const isMiquelaRevealed = (gs: GameState): boolean => triggerMet(MIQUELA_REVEAL, gs);
+export const contactName = (gs: GameState | null): string =>
+  gs && isMiquelaRevealed(gs) ? CONTACT_NAME : CONTACT_ALIAS;
