@@ -94,6 +94,7 @@
 .minimap-panel .crt-select-list li.is-selected,
 .minimap-panel .crt-select-list li:hover{ background:navy;color:#fff }   /* resaltado Win98 */
 .minimap-panel .room-info{ flex:1;min-height:0 }   /* panel de descripción: ocupa el resto */
+.room-leer{ margin:0 0 10px;line-height:1.4;font-style:italic }   /* enunciado del puzzle en el popup "Leer" */
 /* pager de puzzles (bajo la Descripción): "Atrás" a la izquierda, "Siguiente" a la derecha (margin-left:auto lo empuja
    al borde aunque "Atrás" no exista, así el único botón de cada extremo cae en su lado) */
 .minimap-panel .room-pager{ flex:none;display:flex;margin-top:8px }

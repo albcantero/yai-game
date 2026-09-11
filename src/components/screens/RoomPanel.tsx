@@ -3,6 +3,7 @@
 // (o cualquier pantalla) lo reutiliza sin duplicar markup. Los estilos viven en styles/minimap.css.
 import { useEffect, useState } from "react";
 import Win98Select from "./Win98Select";
+import { puzzleByN } from "../../game/content";
 
 const TABS = ["Información", "Llaves"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab.
@@ -34,6 +35,10 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
   const idx = puzzleIdx < puzzleOptions.length ? puzzleIdx : 0; // índice válido (por si el reinicio va un frame por detrás)
   const puzzleId = roomId + "#" + idx;
   const puzzleSolved = solved.has(puzzleId);
+  const [readOpen, setReadOpen] = useState(false); // popup "Leer" (enunciado del puzzle)
+  const content = puzzleByN(puzzleBase + idx + 1); // contenido del puzzle seleccionado (game/content.ts)
+  const puzzleDesc = content?.descripcion ?? "";   // "Descripción" del panel: dónde/qué es el puzzle
+  const puzzleLeer = content?.leer ?? "";          // "Leer": el enunciado (la nota/acertijo de la pieza física)
   // icono del hueco derecho: en "Llaves", si el puzzle seleccionado está RESUELTO → check; si no, la llave (TAB_BIG[1])
   const bigIcon = tab === 1 && puzzleSolved ? "/icons/check-0.png" : TAB_BIG[tab];
   // "Resolver": abre el candado del puzzle seleccionado. Si se acierta la combinación, se resuelve (+1 llave)
@@ -84,7 +89,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
                         value={puzzleOptions[idx] ?? ""} onChange={(_, i) => setPuzzleIdx(i)} />
                     </div>
                     <p className="room-field-label">Descripción:</p>
-                    <div className="sunken-panel room-info" />
+                    <div className="sunken-panel room-info">{puzzleDesc && <p>{puzzleDesc}</p>}</div>
                     {/* pager entre puzzles: "Atrás" pegado a la izquierda (si no es el primero), "Siguiente" a la derecha (si no es el último) */}
                     {puzzleOptions.length > 1 && (
                       <div className="room-pager">
@@ -101,7 +106,7 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
             {tab === 1 && (isCurrent ? (
               <div className="aside-actions">
                 <button type="button" onClick={resolveSelected} disabled={puzzleSolved || puzzleOptions.length === 0}>Abrir</button>
-                <button type="button" disabled={puzzleSolved}>Leer</button>
+                <button type="button" onClick={() => setReadOpen(true)} disabled={puzzleSolved || !puzzleLeer}>Leer</button>
               </div>
             ) : (
               <p className="aside-note">¡Demasiado lejos para abrir un puzzle!</p>
@@ -110,6 +115,22 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
           </div>
         </div>
       </div>
+      {/* popup "Leer": muestra el enunciado del puzzle (la nota/acertijo de la pieza física) */}
+      {readOpen && (
+        <div className="confirm-overlay win98" onClick={() => setReadOpen(false)}>
+          <div className="window confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="title-bar">
+              <img className="title-icon" src="/icons/help_question_mark-1.png" alt="" />
+              <div className="title-bar-text">Nota</div>
+              <div className="title-bar-controls"><button type="button" aria-label="Close" onClick={() => setReadOpen(false)}></button></div>
+            </div>
+            <div className="window-body">
+              <p className="room-leer">{puzzleLeer}</p>
+              <div className="confirm-buttons"><button type="button" onClick={() => setReadOpen(false)}>Cerrar</button></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

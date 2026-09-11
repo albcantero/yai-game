@@ -5,6 +5,7 @@ import RoomPanel from "./RoomPanel";
 import { wordToCombo } from "../locks/Padlock";
 import { LOCK_PATH } from "../../lib/icons";
 import { supabase, ensureSession } from "../../lib/supabase";
+import { puzzleByN } from "../../game/content";
 
 // fila 'live' de game_state (estado compartido de la partida). Espejo del esquema de supabase/migrations.
 type GameState = { id: string; keys: number; open_paths: string[]; current: string; solved: string[]; items: string[]; started: boolean };
@@ -23,7 +24,7 @@ const ROOMS: Room[] = [
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho", puzzles: 2 }, // 2 puzzles; uno necesita info del Sótano (backtracking). Fin de la 1ª mitad
   { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 1 }, // callejón; 1 puzzle: da la Tarjeta + info para el Despacho
   { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 2 }, // 2 puzzles; uno necesita info de la Librería
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", description: "El almacén de la trastienda: aquí os han encerrado tras el cierre. Miquela dice que la librería esconde varias salas a las que solo se entra desde aquí, y que os guiará hacia la salida por ellas. El propietario dejó una forma secreta de acceder.", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 4 }, // nudo de rutas; al menos 1 necesita info de otra sala
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 1 }, // 1 puzzle (necesita info de Librería): da la Copia de la Llave Maestra
@@ -196,28 +197,17 @@ const BB = ROOMS.reduce(
 // array define cuántos diales tiene el candado: respuesta 30 → [3,0] → 2 diales; [6,3,7,5] → 4; [8,7,5,9,0] → 5.
 // Los puzzles sin combinación definida usan el placeholder. Se irán rellenando al diseñar cada puzzle.
 const PLACEHOLDER_COMBO = [6, 3, 7, 5];
-const PUZZLE_COMBOS: Record<number, number[]> = {
-  // 2: [8, 7, 5, 9, 0], // Puzzle 2 (numérico): respuesta 87590 → 5 diales
-};
-// Puzzles con candado de LETRAS: respuesta como PALABRA en MAYÚSCULAS (la longitud = nº de diales).
-const PUZZLE_WORDS: Record<number, string> = {
-  // 2: "PALABRA", // Puzzle 2 (Biblioteca privada): candado de LETRAS. Palabra real por definir al diseñar/cablear el puzzle
-};
-// Puzzles con candado de FIGURAS: combinación de índices de forma (0..5). La longitud = nº de ruedas.
-const PUZZLE_GEOMETRY: Record<number, number[]> = {
-  // 1: [0, 4, 2, 5], // Puzzle 1 (Almacén): FIGURAS = estrella, cuadrado, chispa, número. Real; se cablea al diseñar el puzzle
-};
-// Puzzles con candado ROTATORIO (dial de combinación tipo taquilla): secuencia de números 0..39 a alinear EN ORDEN.
-const PUZZLE_ROTARY: Record<number, number[]> = {
-  // 3: [20, 5, 30], // Puzzle 3 (Biblioteca privada, 2º): ROTATORIO. Real; se cablea al diseñar el puzzle
-};
-// config del candado del puzzle roomId#idx según su número global (letras / figuras / rotatorio / números)
+// config del candado del puzzle roomId#idx: lee game/content.ts por su número global. Si aún no tiene
+// combinación, usa el placeholder (candado numérico 6375). Letras → wordToCombo; el resto → índices.
 const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "number" | "letters" | "geometry" | "rotary" } => {
   const n = (puzzleBaseOf[roomId] ?? 0) + idx + 1;
-  if (PUZZLE_WORDS[n]) return { combo: wordToCombo(PUZZLE_WORDS[n]), kind: "letters" };
-  if (PUZZLE_GEOMETRY[n]) return { combo: PUZZLE_GEOMETRY[n], kind: "geometry" };
-  if (PUZZLE_ROTARY[n]) return { combo: PUZZLE_ROTARY[n], kind: "rotary" };
-  return { combo: PUZZLE_COMBOS[n] ?? PLACEHOLDER_COMBO, kind: "number" };
+  const pz = puzzleByN(n);
+  const filled = pz ? (typeof pz.combo === "string" ? pz.combo.length > 0 : pz.combo.length > 0) : false;
+  if (pz && filled) {
+    const combo = pz.kind === "letters" ? wordToCombo(pz.combo as string) : (pz.combo as number[]);
+    return { combo, kind: pz.kind };
+  }
+  return { combo: PLACEHOLDER_COMBO, kind: "number" };
 };
 
 // Popup Win98 de un candado del MAPA ("camino bloqueado"): shell idéntico para los dos casos (puerta normal y

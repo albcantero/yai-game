@@ -53,7 +53,10 @@ const p = (n: number, room: string, roomName: string, da: string, dependeDe?: st
 
 export const PUZZLES: Puzzle[] = [
   // ── Almacén de tienda (inicio; tronco) ──
-  p(1, "hub-almacen", "Almacén de tienda", "+1 llave (con ella se elige ruta norte/sur)"),
+  { n: 1, room: "hub-almacen", roomName: "Almacén de tienda", kind: "letters", combo: "OPMEIT", // TIEMPO al revés (la "RESPUESTA" de la tarjeta va en espejo)
+    leer: "Vuela sin tener alas, y corre sin tener pies. Más fuerte que el acero, y más viejo que el ciprés. Todo lo cura y lo mata, todo lo puede vencer. Nadie lo agarra ni ata, y a todos hace envejecer. ¿Qué cosa, qué cosa es?",
+    descripcion: "El cuadro de luces de la pared es falso: al abrir su portezuela aparece una puerta con un candado. Clavada al lado con una chincheta, una tarjeta con un acertijo escrito.",
+    da: "+1 llave (con ella se elige ruta norte/sur)", nota: "" },
 
   // ── Biblioteca privada (norte) ──
   p(2, "r3", "Biblioteca privada", "+1 llave"),
