@@ -9,7 +9,7 @@
   font-family:'Determination Mono','Determination Sans',monospace;text-shadow:none }
 
 /* cabecera: nombre + estado a la izquierda; rectángulo de "imagen de perfil" (marco hundido) a la derecha */
-.fax-head{ flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px 4px }
+.fax-head{ flex:none;display:flex;align-items:center;gap:10px;padding:0 2px 4px }
 .fax-id{ display:flex;flex-direction:column;gap:2px }
 .fax-contact{ font-weight:700;font-size:var(--ui-text);letter-spacing:1px }
 .fax-status{ font-size:calc(var(--ui-text) - 3px);color:#3a3a3a }

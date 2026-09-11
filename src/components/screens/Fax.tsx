@@ -120,11 +120,11 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
   return (
     <div className="fax win98">
       <header className="fax-head">
+        <div className="fax-avatar" aria-hidden="true" />
         <div className="fax-id">
           <span className="fax-contact">???</span>
           <span className="fax-status">Conectado</span>
         </div>
-        <div className="fax-avatar" aria-hidden="true" />
       </header>
       <div className="fax-thread sunken-panel" ref={threadRef}>
         {msgs.map((m, i) => (
