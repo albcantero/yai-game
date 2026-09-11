@@ -18,7 +18,7 @@
 
 /* historial: panel HUNDIDO (la clase .sunken-panel de 98.css da el borde recesado + fondo blanco); scroll propio */
 /* sin padding lateral: cada franja de mensaje llega de lado a lado; 3px de separación entre mensajes */
-.fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;padding:3px 0 }
+.fax-thread{ flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 0 }
 
 /* mensaje: cada uno en su franja a lo ANCHO con fondo azulado Win98 (opacidad) sobre el blanco. Los del
    contacto van SIN etiqueta (el chat es solo con él); los nuestros se marcan "Nosotras:" (formato MSN). */
