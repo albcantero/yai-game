@@ -130,6 +130,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       setBusy(true); // las flechas de avanzar el dial quedan (y PERMANECEN) disabled
       busyRef.current = true;
       playSfx("/audio/lock-online-1.mp3", 0.6); // sonido de ACIERTO (común a los 4 candados)
+      onSolved(); // suma la llave + marca resuelto YA (en el CORRECTO), no al pulsar Salir
       // en DOS tiempos: 1º se agita TODO (en verde, igual que el incorrecto); 2º al acabar, caen Resolver/Cancelar
       // (misma animación que pad/letterlock) y luego aparece "Salir" (que cierra + resuelve).
       const dropButtons = () => {
@@ -178,7 +179,7 @@ export default function GeometryLock({ combo, playSfx, onSolved, onClose }: Geom
       {/* tras acertar: los botones caen y aparece "Salir" (fade-in), que cierra + resuelve el puzzle */}
       {exit && (
         <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={() => { onSolved(); panelRef.current?.close(onClose); }}>Salir</button>
+          <button type="button" onClick={() => panelRef.current?.close(onClose)}>Salir</button>
         </div>
       )}
     </LockPanel>

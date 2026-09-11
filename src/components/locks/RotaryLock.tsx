@@ -136,6 +136,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
       openRef.current = true;
       setOpen(true); // el arco se eleva (CSS) + OTP en verde; carets/dial disabled permanente
       playSfx("/audio/lock-online-1.mp3", 0.6); // sonido de ACIERTO (común a los 4 candados)
+      onSolved(); // suma la llave + marca resuelto YA (en el CORRECTO), no al pulsar Salir
       // en DOS tiempos (igual que geometry): 1º agita TODO mientras sube el arco; 2º al acabar, PERMANECEN 0,5s
       // disabled y LUEGO caen Resolver/Cancelar (misma animación que pad/letter) y aparece "Salir".
       const dropButtons = () => {
@@ -210,7 +211,7 @@ export default function RotaryLock({ combo, playSfx, onSolved, onClose }: Rotary
       {/* tras acertar: los botones caen y aparece "Salir" (fade-in), que cierra + resuelve el puzzle */}
       {exit && (
         <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={() => { onSolved(); panelRef.current?.close(onClose); }}>Salir</button>
+          <button type="button" onClick={() => panelRef.current?.close(onClose)}>Salir</button>
         </div>
       )}
     </LockPanel>

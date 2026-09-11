@@ -197,6 +197,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
       playSfx("/audio/lock-online-1.mp3", 0.6); // ACIERTO: al TERMINAR la animación (candado abierto en verde), no al aparecer el texto
       // CORRECTO + combinación ENTRAN y PERSISTEN (sin fade-out); tras X seg aparece "Salir"
       setResponse("CORRECTO");
+      onSolved(); // suma la llave + marca resuelto YA (en el CORRECTO), no al pulsar Salir
       if (responseRef.current) responseRef.current.style.color = OK_GREEN;
       await animate(responseRef.current!, { y: 30, opacity: 1 }, { duration: 0.5, ease: E_OUT }).finished;
       await wait(EXIT_DELAY_MS);
@@ -254,7 +255,7 @@ export default function Padlock({ combo, kind = "number", playSfx, onSolved, onC
       {/* tras CORRECTO: botón "Salir" (aparece con fade-in; CORRECTO + combinación persisten arriba) */}
       {exit && (
         <div className="lock-exit win98" ref={exitRef} style={{ opacity: 0 }}>
-          <button type="button" onClick={() => { onSolved(); panelRef.current?.close(onClose); }}>Salir</button>
+          <button type="button" onClick={() => panelRef.current?.close(onClose)}>Salir</button>
         </div>
       )}
     </LockPanel>
