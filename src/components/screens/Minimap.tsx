@@ -207,6 +207,9 @@ const lockConfigFor = (roomId: string, idx: number): { combo: number[]; kind: "n
     const combo = pz.kind === "letters" ? wordToCombo(pz.combo as string) : (pz.combo as number[]);
     return { combo, kind: pz.kind };
   }
+  // A1 de la auditoría: NO fallar en silencio. Si un puzzle no tiene combinación real, avisa por consola
+  // (antes se colaba el candado 6375 sin rastro). Rellenar el combo en game/content.ts antes de la versión final.
+  console.warn(`[fax/lock] Puzzle ${n} (${roomId}#${idx}) SIN combinación real: usando placeholder ${PLACEHOLDER_COMBO.join("")}. Rellénalo en content.ts.`);
   return { combo: PLACEHOLDER_COMBO, kind: "number" };
 };
 
