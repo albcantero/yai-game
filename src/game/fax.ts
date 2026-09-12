@@ -28,6 +28,7 @@ export type FaxTrigger =
   | { type: "solved"; puzzle: string }   // resuelto un puzzle ("r1#0")
   | { type: "item"; item: string }       // conseguido un item ("tarjeta", "llave-maestra")
   | { type: "reached"; node: string }    // LLEGADO a una sala/nodo (open_paths, acumulativo)
+  | { type: "reachedAny"; nodes: string[] } // llegado a CUALQUIERA de estos nodos (OR)
   | { type: "keys"; min: number };       // llaves >= min
 
 export type FaxBlock = { id: string; trigger: FaxTrigger; start: string; nodes: Record<string, FaxNode> };
@@ -40,6 +41,7 @@ export function triggerMet(t: FaxTrigger, gs: GameState): boolean {
     case "solved": return (gs.solved ?? []).includes(t.puzzle);
     case "item": return (gs.items ?? []).includes(t.item);
     case "reached": return (gs.open_paths ?? []).includes(t.node);
+    case "reachedAny": return t.nodes.some((n) => (gs.open_paths ?? []).includes(n));
     case "keys": return (gs.keys ?? 0) >= t.min;
   }
 }
@@ -75,18 +77,14 @@ export const BLOCKS: FaxBlock[] = [
     },
   },
 
-  // ── BLOQUE 2 (RELLENO/placeholder): se desbloquea al LLEGAR a una sala. Sustituir sala y contenido. ──
+  // ── BLOQUE 2: reacción al SALIR del Almacén (2ª sala: Biblioteca r3 o Sala de Máquinas r1). Terminal: dos
+  //    mensajes y ya, SIN respuesta nuestra (nodo sin a/b). {sala2} = el nombre de la sala a la que fueron. ──
   {
-    id: "primera-sala",
-    trigger: { type: "reached", node: "r3" },
+    id: "segunda-sala",
+    trigger: { type: "reachedAny", nodes: ["r3", "r1"] },
     start: "s0",
     nodes: {
-      s0: {
-        incoming: ["¿Ya estáis dentro de una de las salas?", "Contadme qué veis."],
-        a: { text: "Estanterías y libros hasta el techo.", next: "fin" },
-        b: { text: "Todavía no sabemos qué buscar.", next: "fin" },
-      },
-      fin: { incoming: ["Cada sala esconde una llave.", "Id sumándolas. Yo os guío desde aquí."] }, // terminal
+      s0: { incoming: ["Hm, veo que habéis decidido ir por {sala2}.", "Seguid avanzando e investigando. Estamos en contacto."] },
     },
   },
 ];
@@ -111,3 +109,22 @@ export const MIQUELA_REVEAL: FaxTrigger = { type: "solved", puzzle: "___reveal-m
 export const isMiquelaRevealed = (gs: GameState): boolean => triggerMet(MIQUELA_REVEAL, gs);
 export const contactName = (gs: GameState | null): string =>
   gs && isMiquelaRevealed(gs) ? CONTACT_NAME : CONTACT_ALIAS;
+
+// Nombre de la SEGUNDA sala (la 1ª ruta elegida desde el Almacén), para el token {sala2}. open_paths guarda el
+// orden de desbloqueo, así que el que aparezca ANTES es el que se alcanzó primero (aunque luego se abran las dos).
+export function secondRoomName(gs: GameState | null): string {
+  const open = gs?.open_paths ?? [];
+  const iBiblio = open.indexOf("r3");    // Biblioteca (ruta norte)
+  const iMaquinas = open.indexOf("r1");  // Sala de Máquinas (ruta sur)
+  if (iBiblio === -1 && iMaquinas === -1) return "";
+  if (iMaquinas === -1) return "la Biblioteca";
+  if (iBiblio === -1) return "la Sala de Máquinas";
+  return iBiblio < iMaquinas ? "la Biblioteca" : "la Sala de Máquinas";
+}
+
+// Sustituye los tokens de un texto (mensajes del Fax, notas): {contacto} -> "???"/Miquela ; {sala2} -> 2ª sala.
+export function resolveTokens(text: string, gs: GameState | null): string {
+  return text
+    .replace(/\{contacto\}/g, contactName(gs))
+    .replace(/\{sala2\}/g, secondRoomName(gs));
+}

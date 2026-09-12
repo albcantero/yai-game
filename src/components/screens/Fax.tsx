@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { useGameState, getGameState, applyRpc, type GameState } from "../../lib/gameState";
-import { BLOCKS, triggerMet, unlockedCount, contactName, type FaxBlock, type FaxNode } from "../../game/fax";
+import { BLOCKS, triggerMet, unlockedCount, contactName, resolveTokens, type FaxBlock, type FaxNode } from "../../game/fax";
 
 // FAX ELECTRÓNICO (pantalla `registro`): chat con el informante ("???", aún sin revelar que es Miquela).
 // Conversación en BLOQUES (src/game/fax.ts), cada uno con su trigger y su mini-grafo ramificado.
@@ -25,14 +25,14 @@ const sameArr = (a: number[], b: number[]) => a.length === b.length && a.every((
 const progressOf = (g: GameState): Record<string, number[]> => (g.fax_progress ?? {}) as Record<string, number[]>;
 
 // Recorre un bloque aplicando sus elecciones: historial (mensajes + picks) + nodo actual pendiente.
-function traceBlock(block: FaxBlock, picks: number[]): { entries: Entry[]; curId: string | null } {
+function traceBlock(block: FaxBlock, picks: number[], gs: GameState | null): { entries: Entry[]; curId: string | null } {
   const entries: Entry[] = [];
   let id: string | null = block.start;
   for (let i = 0; i < picks.length; i++) {
     if (id === null) break;
     const node: FaxNode | undefined = block.nodes[id];
     if (!node) { id = null; break; }
-    for (const t of node.incoming) entries.push({ kind: "them", text: t });
+    for (const t of node.incoming) entries.push({ kind: "them", text: resolveTokens(t, gs) });
     const sel: 0 | 1 = picks[i] === 1 ? 1 : 0;
     entries.push({ kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel });
     id = (sel === 0 ? node.a?.next : node.b?.next) ?? null;
@@ -55,7 +55,7 @@ function computeSession(g: GameState | null): Session {
   for (const block of BLOCKS) {
     if (!triggerMet(block.trigger, g)) continue; // no desbloqueado: sáltalo (se mantiene el orden)
     const picks = prog[block.id] ?? [];
-    const { entries, curId } = traceBlock(block, picks);
+    const { entries, curId } = traceBlock(block, picks, g);
     const node = curId !== null ? block.nodes[curId] : null;
     const complete = !node || (!node.a && !node.b);
     if (complete) { history.push(...entries); continue; }
@@ -95,7 +95,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
   function rebuildBlock(picks: number[]) {
     clearTimer(); setLive(null); setTyping(false);
     const block = blockRef.current;
-    const tr = block ? traceBlock(block, picks) : { entries: [] as Entry[], curId: null };
+    const tr = block ? traceBlock(block, picks, getGameState()) : { entries: [] as Entry[], curId: null };
     setShown([...historyRef.current, ...tr.entries]);
     curIdRef.current = tr.curId; setCurId(tr.curId);
     deliveringRef.current = false; setDelivering(false);
@@ -163,7 +163,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     curIdRef.current = nextId; setCurId(nextId);
     persistChoice(b.id, stepIdx, sel);
     const nextNode = nextId !== null ? b.nodes[nextId] : null;
-    if (nextNode) startLive(nextNode.incoming); else finishStep(); // ella responde con "..." + typewriter (o fin del bloque)
+    if (nextNode) startLive(nextNode.incoming.map((t) => resolveTokens(t, getGameState()))); else finishStep(); // ella responde con "..." + typewriter (o fin del bloque)
   };
 
   // carga inicial (si gs llegó tras montar) y reconciliación del BLOQUE ACTIVO (avance remoto / reset). Los
