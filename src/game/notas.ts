@@ -19,6 +19,10 @@ export const NOTES: Note[] = [
   // ── ÍNDICE de notas: cada objeto es UNA nota (una entrada). Se irán añadiendo más con sus triggers. ──
   { id: "encierro", trigger: { type: "start" },
     texto: "Nos han encerrado en el almacén. {contacto} nos ha llamado: puede sacarnos a cambio de un libro, y dice que la única salida son las salas ocultas de la librería." },
+
+  // Aparece al resolver el mecanismo del Despacho (r6#final): destapa los cuatro mecanismos ocultos y sus salas.
+  { id: "mecanismos", trigger: { type: "solved", puzzle: "r6#final" },
+    texto: "El mecanismo del Despacho escondía una nota: los otros cuatro están en la Sala de Máquinas, el Almacén, la Librería y la Cámara. Con los cuatro activados se abre la cámara acorazada." },
 ];
 
 // Líneas visibles con el estado actual (en el orden de este array).

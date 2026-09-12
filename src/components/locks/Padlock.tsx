@@ -28,16 +28,16 @@ const HOLD_MS = 1500; // lo que el MENSAJE (CORRECTO/INCORRECTO) aguanta antes d
 const TRIED_HOLD_MS = 1500; // lo que la COMBINACIÓN aguanta antes del fade-out
 const EXIT_DELAY_MS = 1000; // tras CORRECTO, cuánto tarda en aparecer "Salir" (antes que el aguante del mensaje)
 const DIAL_OUT = 200; // px que caen las ruedas al salir (original: inputs +200, el doble que el botón). BTN_OUT (100) en lockAnim
-const ROW = 28; // alto/separación de cada símbolo de la rueda (px); DEBE coincidir con .{prefix}-num en su CSS
 const RENDER = 4; // slots renderizados a cada lado del centro (< 9: el cilindro no da la vuelta ni se solapa)
 
 // Config por TIPO de candado: qué símbolos ruedan, cuánto se curva el cilindro (a más ángulo, más cerrado) y qué
 // prefijo de clases usa (padlock-*/letterlock-*, cada uno con su hoja CSS). radius sale de ITEM_ANGLE + ROW.
-type DialCfg = { symbols: string[]; itemAngle: number; radius: number; prefix: string };
-const radiusFor = (angle: number) => Math.round((ROW / 2) / Math.tan((angle / 2) * Math.PI / 180)); // radio del cilindro (px)
+// row = alto/separación de cada símbolo (px), POR TIPO (DEBE coincidir con .{prefix}-num en su CSS)
+type DialCfg = { symbols: string[]; itemAngle: number; radius: number; row: number; prefix: string };
+const radiusFor = (angle: number, row: number) => Math.round((row / 2) / Math.tan((angle / 2) * Math.PI / 180)); // radio del cilindro (px)
 const CFG: Record<LockKind, DialCfg> = {
-  number: { symbols: "0123456789".split(""), itemAngle: 40, radius: radiusFor(40), prefix: "padlock" },   // 40°: cilindro más cerrado
-  letters: { symbols: ALPHABET, itemAngle: 32, radius: radiusFor(32), prefix: "letterlock" },             // 32°: más abierto → se ven más letras
+  number: { symbols: "0123456789".split(""), itemAngle: 40, row: 24, radius: radiusFor(40, 24), prefix: "padlock" },   // 40°: cilindro más cerrado; row 24: números más juntos
+  letters: { symbols: ALPHABET, itemAngle: 32, row: 28, radius: radiusFor(32, 28), prefix: "letterlock" },             // 32°: más abierto → se ven más letras
 };
 // valor inicial de cada rueda: números arrancan a 0 (p.ej. 0000); letras a A, B, C, D... (índices crecientes, no "AAAAA")
 const initialDigits = (kind: LockKind, combo: number[]) =>
@@ -48,7 +48,7 @@ const initialDigits = (kind: LockKind, combo: number[]) =>
 // con la fila del GeometryLock); aquí solo el render 3D del cilindro.
 function Dial({ value, disabled, onChange, tick, cfg }: { value: number; disabled: boolean; onChange: (v: number) => void; tick: () => void; cfg: DialCfg }) {
   const N = cfg.symbols.length;
-  const { anim, pos, onDown, onMove, finish } = useCarousel({ axis: "y", size: ROW, count: N, value, onCommit: onChange, onTick: tick, disabled });
+  const { anim, pos, onDown, onMove, finish } = useCarousel({ axis: "y", size: cfg.row, count: N, value, onCommit: onChange, onTick: tick, disabled });
   const c = Math.round(pos); // índice central actual
   return (
     <div className={cfg.prefix + "-dial"} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={finish} onPointerCancel={finish}>

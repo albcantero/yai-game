@@ -56,7 +56,7 @@ export const BLOCKS: FaxBlock[] = [
       s0: {
         incoming: ["A ver, hmm. ¡Probando!", "¿Hola...? ¿Hay alguien ahí?", "Espero que funcione este cacharro."],
         a: { text: "Te recibimos, ¿y tú a nosotras? Gracias por ayudarnos.", next: "recibido" },
-        b: { text: "Funciona. Pero ¿quién eres?", next: "quien" },
+        b: { text: "¿Quién eres?", next: "quien" },
       },
       recibido: {
         incoming: ["¡Menos mal!", "Os leo perfectamente."],

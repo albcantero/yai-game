@@ -97,7 +97,7 @@ export const PUZZLES: Puzzle[] = [
   p(20, "r7", "Antesala", "+1 llave", "info de la Librería"),
 
   // ── La Cámara (sur; callejón; meta). Da el ITEM final. ──
-  p(21, "r8", "La Cámara", "+1 llave · ITEM Copia de la Llave Maestra + la verdad de Higgins/Ruby", "info de la Librería", ["llave-maestra"]),
+  p(21, "r8", "La Cámara", "+1 llave · la verdad de Higgins/Ruby (la Copia de la Llave Maestra la dan los 4 mecanismos finales, ver finalLocks.ts)", "info de la Librería"),
 ];
 
 // Helpers para cuando cablemos el minimap a este modelo (día 5).

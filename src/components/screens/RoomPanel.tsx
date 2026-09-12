@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Win98Select from "./Win98Select";
 import { puzzleByN } from "../../game/content";
+import type { FinalLock } from "../../game/finalLocks";
 
 const TABS = ["Información", "Llaves"];
 // Icono GRANDE del hueco derecho, por pestaña. Cambia al cambiar de tab.
@@ -18,27 +19,31 @@ export type RoomPanelProps = {
   isCurrent: boolean; // el grupo está EN esta sala (si no, la pestaña "Llaves" va desactivada)
   puzzles: number; // nº de puzzles de la sala
   puzzleBase?: number; // offset para la numeración global "Puzzle N"
+  finalLocks?: FinalLock[]; // candados finales VISIBLES de la sala (capa aparte; se añaden al final del desplegable)
   description?: string; // texto de la descripción (si no hay, se usa un lorem de relleno)
   tab: number;
   onTab: (i: number) => void;
   solved: Set<string>; // puzzles resueltos del juego
   onResolve: (id: string) => void; // pedir abrir el candado de un puzzle (al acertar la combinación: +1 llave)
   onRead: (text: string) => void; // abrir el panel "Leer" (mismo marco que un candado; lo monta el armazón)
+  onCollect?: () => void; // "Recoger objeto" (pestaña Información): muestra una notificación. undefined = nada que recoger (botón disabled)
   onClose: () => void;
 };
 
-export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, description, tab, onTab, solved, onResolve, onRead, onClose }: RoomPanelProps) {
-  // una opción por puzzle de la sala (placeholder hasta tener los nombres reales)
-  const puzzleOptions = Array.from({ length: puzzles }, (_, i) => puzzleByN(puzzleBase + i + 1)?.titulo ?? `Puzzle ${puzzleBase + i + 1}`);
+export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, finalLocks = [], description, tab, onTab, solved, onResolve, onRead, onCollect, onClose }: RoomPanelProps) {
+  // desplegable: primero los puzzles normales de la sala, luego los candados finales VISIBLES (capa aparte)
+  const normalOptions = Array.from({ length: puzzles }, (_, i) => puzzleByN(puzzleBase + i + 1)?.titulo ?? `Puzzle ${puzzleBase + i + 1}`);
+  const puzzleOptions = [...normalOptions, ...finalLocks.map((l) => l.titulo)];
   // puzzle SELECCIONADO en el desplegable (índice). Se reinicia al primero al cambiar de sala.
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   useEffect(() => { setPuzzleIdx(0); }, [roomId]);
   const idx = puzzleIdx < puzzleOptions.length ? puzzleIdx : 0; // índice válido (por si el reinicio va un frame por detrás)
-  const puzzleId = roomId + "#" + idx;
+  const finalLock = idx >= puzzles ? finalLocks[idx - puzzles] : null; // si el índice cae en la zona de candados finales
+  const content = finalLock ? null : puzzleByN(puzzleBase + idx + 1); // contenido del puzzle normal seleccionado (game/content.ts)
+  const puzzleId = finalLock ? finalLock.id : roomId + "#" + idx;
   const puzzleSolved = solved.has(puzzleId);
-  const content = puzzleByN(puzzleBase + idx + 1); // contenido del puzzle seleccionado (game/content.ts)
-  const puzzleDesc = content?.descripcion ?? "";   // "Descripción" del panel: dónde/qué es el puzzle
-  const puzzleLeer = content?.leer ?? "";          // "Leer": el enunciado (la nota/acertijo de la pieza física)
+  const puzzleDesc = finalLock ? "Un mecanismo empotrado en la pared, con varias ruedas de símbolos grabados." : (content?.descripcion ?? ""); // "Descripción" del panel: dónde/qué es el puzzle
+  const puzzleLeer = finalLock ? "" : (content?.leer ?? "");          // "Leer": el enunciado (la nota/acertijo de la pieza física); los candados finales no tienen (la pista es física)
   // icono del hueco derecho: en "Llaves", si el puzzle seleccionado está RESUELTO → check; si no, la llave (TAB_BIG[1])
   const bigIcon = tab === 1 && puzzleSolved ? "/icons/check-0.png" : TAB_BIG[tab];
   // "Resolver": abre el candado del puzzle seleccionado. Si se acierta la combinación, se resuelve (+1 llave)
@@ -102,6 +107,14 @@ export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzz
               </div>
             </div>
           <div className="minimap-panel-aside">
+            {/* pestaña "Información": botón "Recoger objeto" (disabled si la sala no tiene objeto); lejos → aviso rojo, igual que en "Llaves" */}
+            {tab === 0 && (isCurrent ? (
+              <div className="aside-actions">
+                <button type="button" onClick={onCollect} disabled={!onCollect}>Recoger<br />objeto</button>
+              </div>
+            ) : (
+              <p className="aside-note">Estás demasiado lejos para recoger el objeto...</p>
+            ))}
             {/* pestaña "Llaves": en la sala → botones Abrir/Leer; lejos → el aviso SUSTITUYE a los botones (no disabled) */}
             {tab === 1 && (isCurrent ? (
               <div className="aside-actions">

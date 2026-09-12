@@ -10,7 +10,10 @@ import Padlock from "./locks/Padlock";
 import GeometryLock from "./locks/GeometryLock";
 import RotaryLock from "./locks/RotaryLock";
 import ReadPanel from "./locks/ReadPanel";
-import { startGameState } from "../lib/gameState";
+import Notice from "./Notice";
+import { startGameState, useGameState } from "../lib/gameState";
+import { despachoSolved } from "../game/finalLocks";
+import { unlockedCount } from "../game/fax";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -29,7 +32,6 @@ const BUZZ_MS = 10;
 // Reiniciar una pantalla = salir de su vista → el hijo se desmonta y React lo limpia todo.
 export default function Computer() {
   const [confirmClose, setConfirmClose] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false); // popup de "Información" (botón "?" de la barra de título)
   const [lock, setLock] = useState<LockConfig | null>(null); // candado abierto (oscurece + pausa la pantalla)
   const [read, setRead] = useState<string | null>(null); // panel "Leer" abierto (mismo marco que un candado); guarda el texto
   const [showKeyboard, setShowKeyboard] = useState(false); // arranca OCULTO en cada carga (se muestra con el botón del mentón)
@@ -37,6 +39,8 @@ export default function Computer() {
   const [shiftMode, setShiftMode] = useState<ShiftMode>("off"); // off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
   const [view, setView] = useState<ScreenId>("home"); // pantalla activa; arranca en "home" (todas son screens del registro)
+  const [notice, setNotice] = useState<string | null>(null); // aviso informativo transitorio (nuevos puzzles / mensaje del Fax); mismo diálogo msg_information
+  const gs = useGameState(); // estado compartido (para disparar el aviso de nuevos puzzles)
 
   const shiftModeRef = useRef<ShiftMode>("off");
   const holdTimerRef = useRef<number | null>(null);
@@ -69,6 +73,8 @@ export default function Computer() {
   const openLock = (config: LockConfig) => setLock(config);
   // Abrir el panel de LECTURA ("Leer" de un puzzle): mismo marco/animación que un candado (oscurece + pausa).
   const openRead = (text: string) => setRead(text);
+  // Mostrar una NOTIFICACIÓN (diálogo "Información" con "Cerrar"): la pantalla activa pasa el texto por openNotice.
+  const openNotice = (text: string) => setNotice(text);
   // El armazón pone el CLIC de tecla (keyTick) una vez por pulsación y luego delega en la pantalla activa.
   const dispatchKey = (k: string) => {
     keyTick(); // el TECLADO es INDEPENDIENTE: SIEMPRE suena, aunque haya menú/diálogo abierto o un loader
@@ -78,7 +84,7 @@ export default function Computer() {
       setShiftState(cur === "off" ? "shift" : cur === "shift" ? "caps" : "off");
       return;
     }
-    if (confirmClose || infoOpen || lock || read !== null) return; // diálogo/info/candado/lectura abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
+    if (confirmClose || notice !== null || lock || read !== null) return; // diálogo/info/candado/lectura abiertos = pantalla en PAUSA: las teclas suenan y el Mayús va, pero NO llegan al contenido ni navegan
     screenRef.current?.handleKey(k); // delega en la pantalla activa (home incluido: su menú navega con flechas + OK)
   };
   dispatchRef.current = dispatchKey;
@@ -86,8 +92,8 @@ export default function Computer() {
   // Diálogo de cierre abierto => PAUSA la pantalla activa (congela boot/typeLine/spinners, esté como
   // esté). Al cerrarlo, reanuda donde iba. Vía screenRef.setPaused.
   useEffect(() => {
-    screenRef.current?.setPaused(confirmClose || infoOpen || lock !== null || read !== null);
-  }, [confirmClose, infoOpen, lock, read]);
+    screenRef.current?.setPaused(confirmClose || notice !== null || lock !== null || read !== null);
+  }, [confirmClose, notice, lock, read]);
 
   // El candado pertenece a la pantalla activa: si cambia la vista (cerrar el programa con la "X", navegar...),
   // la pantalla que lo abrió se desmonta, así que el candado debe cerrarse también (si no, se queda en el DOM).
@@ -96,6 +102,26 @@ export default function Computer() {
   // Carga el estado compartido (game_state) al ABRIR la app, no al abrir cada pantalla: así Minimap/Fax ya
   // salen con los datos (sin el parpadeo de estado vacío -> cargado). Idempotente.
   useEffect(() => { startGameState(); }, []);
+
+  // AVISO "Han aparecido nuevos puzzles": al resolver el mecanismo del Despacho (r6#final) se destapan los cuatro
+  // mecanismos. Se detecta la TRANSICIÓN (no-resuelto -> resuelto) para dispararlo una vez, no en cada carga.
+  const prevDespachoRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    const now = despachoSolved(gs);
+    if (prevDespachoRef.current === null) { prevDespachoRef.current = now; return; } // línea base al cargar (no dispara)
+    if (now && !prevDespachoRef.current) setNotice("Han aparecido nuevos puzzles");
+    prevDespachoRef.current = now;
+  }, [gs]);
+
+  // AVISO del Fax: al DESBLOQUEARSE un bloque nuevo (se cumple un trigger del Fax) sube el nº de bloques
+  // disponibles. Se detecta el INCREMENTO para avisar una vez (además del badge "!" del menú).
+  const prevFaxCountRef = useRef<number | null>(null);
+  useEffect(() => {
+    const n = gs ? unlockedCount(gs) : 0;
+    if (prevFaxCountRef.current === null) { prevFaxCountRef.current = n; return; } // línea base al cargar (no dispara)
+    if (n > prevFaxCountRef.current) setNotice("En la bandeja de entrada del Fax hay una notificación nueva.");
+    prevFaxCountRef.current = n;
+  }, [gs]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
   // como el teclado): si hay un loader, la pantalla activa ignora las teclas, pero el botón suena igual.
@@ -224,7 +250,6 @@ export default function Computer() {
                 <img className="title-icon" src={SCREENS[view].icon} alt="" />
                 <div className="title-bar-text">{SCREENS[view].title}</div>
                 <div className="title-bar-controls">
-                  <button type="button" aria-label="Información" onClick={() => setInfoOpen(true)}>i</button>
                   <button type="button" aria-label="Close" onClick={() => setConfirmClose(true)}></button>
                 </div>
               </div>
@@ -240,6 +265,7 @@ export default function Computer() {
             navigate={navigate}
             openLock={openLock}
             openRead={openRead}
+            openNotice={openNotice}
           />
           {/* CANDADO: oscurece la pantalla interior (menos el header) y muestra el candado centrado. Mismo
               proceso que la "X" (oscurecer + pausa). Va ANTES de los diálogos de X/Información para que estos
@@ -286,28 +312,8 @@ export default function Computer() {
               </div>
             </div>
           )}
-          {infoOpen && (
-            <div className="win98 confirm-overlay">
-              <div className="window confirm-dialog">
-                <div className="title-bar">
-                  <img className="title-icon" src="/icons/msg_information-2.png" alt="" />
-                  <div className="title-bar-text">Información</div>
-                  <div className="title-bar-controls">
-                    <button type="button" aria-label="Close" onClick={() => setInfoOpen(false)}></button>
-                  </div>
-                </div>
-                <div className="window-body">
-                  <div className="confirm-row">
-                    <img className="confirm-icon" src="/icons/msg_information-0.png" alt="" />
-                    <p>Santas Ochova · La Mejor Librería</p>
-                  </div>
-                  <div className="confirm-buttons">
-                    <button type="button" onClick={() => setInfoOpen(false)}>Cerrar</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* NOTIFICACIÓN reutilizable (info "i", nuevos puzzles, Fax, "Recoger objeto"...): texto por props */}
+          {notice !== null && <Notice text={notice} onClose={() => setNotice(null)} />}
           </div>
         </div>
         <div className="curve-overlay"></div>

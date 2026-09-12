@@ -13,7 +13,7 @@ import { E_OUT, E_INOUT, BTN_OUT, SHAKE } from "./lockAnim";
 export const SHAPES: { name: string; el: ReactNode }[] = [
   { name: "estrella", el: <path d="M13 3h2v4h8v4h-2v2h-2v3h2v6h-5v-2h-2v-2h-4v2H8v2H3v-6h2v-3H3v-2H1V7h8V3h2V1h2v2Z" /> },
   { name: "luna", el: <path d="M14 4h-2v2h-2v6h2v2h6v-2h2v-2h2v8h-2v2h-2v2H8v-2H6v-2H4v-2H2V6h2V4h2V2h8v2Z" /> },
-  { name: "chispa", el: <path d="M13 9h2v2h7v2h-7v2h-2v7h-2v-7H9v-2H2v-2h7V9h2V2h2v7Zm-4 8H7v-2h2v2Zm8 0h-2v-2h2v2Zm-6-4h2v-2h-2v2ZM9 9H7V7h2v2Zm8 0h-2V7h2v2Z" /> },
+  { name: "chispa", el: <path d="M14 9h8v4h-2v2h-2v2h-2v2h-2v2h-2v2h-2v-8H2v-4h2V9h2V7h2V5h2V3h2V1h2v8Z" /> },
   { name: "triángulo", el: <path d="M13 4h2v4h2v4h2v4h2v6H3v-6h2v-4h2V8h2V4h2V2h2v2Z" /> },
   { name: "cuadrado", el: <path d="M22 22H2V2h20v20Z" /> },
   { name: "número", el: <path d="M18 4h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V6h2V4h2V2h12v2ZM8 7v2h2v8h2V9h2v6h2V9h2V7H8Zm8 8v2h2v-2h-2ZM6 9v2h2V9H6Z" /> },

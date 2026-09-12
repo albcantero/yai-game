@@ -6,25 +6,29 @@ import { wordToCombo } from "../locks/Padlock";
 import { LOCK_PATH } from "../../lib/icons";
 import { useGameState, applyRpc } from "../../lib/gameState";
 import { puzzleByN } from "../../game/content";
+import { FINAL_LOCKS, finalLocksInRoom, solvingCompletesMechanisms, RED_KEY_ITEM } from "../../game/finalLocks";
 
 // El estado compartido (game_state, fila 'live') se lee del store cargado al abrir la app (lib/gameState),
 // no se pide a la DB aquí: así al abrir el minimapa ya sale con los datos (sin parpadeo).
 // qué ITEM otorga cada puzzle al resolverse (asentado: Sótano -> Tarjeta, La Cámara -> Copia de la Llave Maestra)
-const ITEM_BY_PUZZLE: Record<string, string> = { "r5#0": "tarjeta", "r8#0": "llave-maestra" };
+// La Copia de la Llave Maestra (llave ROJA) ya NO la da el puzzle normal de la Cámara: la otorgan los CUATRO
+// mecanismos finales al completarse (ver finalLocks.ts / solveFinalLock). Aquí solo queda la Tarjeta del Sótano.
+const ITEM_BY_PUZZLE: Record<string, string> = { "r5#0": "tarjeta" };
 
 // Minimapa del edificio, DATA-DRIVEN: las salas y las conexiones son datos, y esta MISMA estructura es
 // la que el motor del juego leerá para la topología (qué sala conecta con cuál = grafo del backtracking).
 // Coordenadas en un viewBox 0..100, calcadas del plano PNG (pendiente de afinar a mano con Alberto).
 // name = nombre amable (barra de título del panel); puzzles = nº de puzzles de la sala (contador del panel).
-type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; num?: number; name?: string; puzzles?: number; description?: string };
+type Room = { id: string; x: number; y: number; w: number; h: number; discovered: boolean; num?: number; name?: string; puzzles?: number; description?: string; objeto?: string };
+// objeto = texto de la notificación al pulsar "Recoger objeto" (pestaña Información). Sin objeto -> botón disabled.
 // Estado inicial del juego: TODO en niebla menos el Almacén (sala de inicio). Se irá descubriendo al jugar.
 const ROOMS: Room[] = [
-  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada", puzzles: 2 }, // nudo norte
+  { id: "r3", x: 52.4, y: 6.4, w: 20.0, h: 23.1, discovered: false, num: 5, name: "Biblioteca privada", description: "Una biblioteca privada vieja y sucia: estanterías de madera oscura con apenas unos pocos libros, todo cubierto por una gruesa capa de polvo. Contra una de las estanterías sigue apoyada una escalera de mano muy alta.", objeto: "Puedes recoger el Sobre 12.", puzzles: 2 }, // nudo norte
   { id: "r4", x: 19.0, y: 6.3, w: 11.7, h: 20.1, discovered: false, num: 3, name: "Depósito", puzzles: 3 }, // sus 3 puzzles necesitan info de otras salas (por definir cuáles)
   { id: "r6", x: 79.9, y: 6.3, w: 15.0, h: 17.0, discovered: false, num: 8, name: "Despacho", puzzles: 2 }, // 2 puzzles; uno necesita info del Sótano (backtracking). Fin de la 1ª mitad
   { id: "r5", x: 5.3, y: 31.1, w: 13.0, h: 15.0, discovered: false, num: 4, name: "Sótano", puzzles: 1 }, // callejón; 1 puzzle: da la Tarjeta + info para el Despacho
   { id: "r7", x: 80.9, y: 29.4, w: 13.0, h: 19.0, discovered: false, num: 9, name: "Antesala", puzzles: 2 }, // 2 puzzles; uno necesita info de la Librería
-  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", description: "Un cuarto pequeño y polvoriento en la trastienda: cajas de cartón apiladas, libros sin catalogar y estanterías metálicas hasta el techo. El almacén de la librería.", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
+  { id: "hub-almacen", x: 39.9, y: 41.6, w: 13.0, h: 26.2, discovered: true, num: 2, name: "Almacén de tienda", description: "Un cuarto pequeño y polvoriento en la trastienda: cajas de cartón apiladas, libros sin catalogar y estanterías metálicas hasta el techo. El almacén de la librería.", objeto: "Puedes recoger el Sobre 5.", puzzles: 1 }, // inicio; 1 puzzle: con esa llave eliges ruta (norte o sur)
   { id: "r2", x: 56.1, y: 45.7, w: 18.9, h: 12.2, discovered: false, num: 6, name: "Proyecto de sala de lectura", puzzles: 4 }, // nudo de rutas; al menos 1 necesita info de otra sala
   { id: "r1", x: 57.7, y: 63.0, w: 19.8, h: 25.5, discovered: false, num: 7, name: "Sala de Máquinas", puzzles: 2 },
   { id: "r8", x: 81.3, y: 54.7, w: 15.0, h: 21.9, discovered: false, num: 10, name: "La Cámara", puzzles: 1 }, // 1 puzzle (necesita info de Librería): da la Copia de la Llave Maestra
@@ -241,7 +245,7 @@ function LockPopup({ onClose, children }: { onClose: () => void; children: React
   );
 }
 
-const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock, openRead }, ref) {
+const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ openLock, openRead, openNotice }, ref) {
   const [selected, setSelected] = useState<string | null>(null); // sala con el panel de info abierto
   const [tab, setTab] = useState(0); // pestaña activa del panel
   const [view, setView] = useState<View>(FIT); // transform de la cámara
@@ -260,6 +264,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const salidaRevealed = openPaths.includes("salida-revealed");     // el candado BLANCO ya desocultó la salida
   const discovered = new Set<string>([...INITIAL_DISCOVERED, ...openPaths]); // niebla: base + nodos abiertos (DB)
   const solved = new Set<string>(gs?.solved ?? []);                // puzzles resueltos (DB)
+  const solvedNormal = [...solved].filter((id) => !id.endsWith("#final")).length; // contador "N/21": excluye los candados finales (capa aparte)
   useImperativeHandle(ref, () => ({ handleKey: () => {}, setPaused: () => {} }), []);
 
   const rootRef = useRef<HTMLDivElement>(null); // .minimap-screen: viewport que recorta (encoge con el teclado)
@@ -279,6 +284,9 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
   const junctionPatches = JUNCTIONS.filter((j) => discovered.has(j.id) && j.id !== "salida");
   // resolver un puzzle: +1 llave (idempotente en la DB: una sola vez por puzzle). id = "sala#índice".
   const solvePuzzle = (id: string) => { if (!solved.has(id)) void applyRpc("solve", { p_puzzle: id, p_item: ITEM_BY_PUZZLE[id] ?? null }); };
+  // resolver un candado FINAL: NO da llave (solve_final). Si con él se completan los cuatro mecanismos, otorga
+  // la Llave Roja de una vez (independiente del orden). El del Despacho (mecanismo:false) nunca la otorga.
+  const solveFinalLock = (id: string) => { if (!solved.has(id)) void applyRpc("solve_final", { p_puzzle: id, p_item: solvingCompletesMechanisms(id, gs) ? RED_KEY_ITEM : null }); };
   // mover al grupo a un nodo (posición compartida)
   const move = (dest: string) => { void applyRpc("move", { p_node: dest }); };
   // desbloquear una puerta: gasta llaves (o requiere un ITEM, p.ej. la Tarjeta) y descubre la sala vecina + reveals
@@ -600,7 +608,7 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
         )}
       </div>
       <div className="minimap-hud-right">
-        <span className="hud-count">{solved.size}/{TOTAL_PUZZLES}</span>
+        <span className="hud-count">{solvedNormal}/{TOTAL_PUZZLES}</span>
         <svg className="hud-icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18 4H20V6H22V18H20V20H18V22H6V20H4V18H2V6H4V4H6V2H18V4ZM11 18H13V16H11V18ZM11 15H13V13H15V11H11V15ZM15 11H17V8H15V11ZM7 10H9V8H7V10ZM9 8H15V6H9V8Z" /></svg>
       </div>
       {/* panel de sala: overlay en la MITAD INFERIOR (no refluye el mapa; el mapa se desplaza por debajo).
@@ -613,12 +621,18 @@ const Minimap = forwardRef<ScreenHandle, ScreenServices>(function Minimap({ open
           isCurrent={selected === current}
           puzzles={selRoom.puzzles ?? 0}
           puzzleBase={puzzleBaseOf[selRoom.id] ?? 0}
+          finalLocks={finalLocksInRoom(selRoom.id, gs)}
           description={selRoom.description}
           tab={tab}
           onTab={setTab}
           solved={solved}
-          onResolve={(id) => { const h = id.indexOf("#"); const cfg = lockConfigFor(id.slice(0, h), Number(id.slice(h + 1))); openLock({ ...cfg, onSolved: () => solvePuzzle(id) }); }}
+          onResolve={(id) => {
+            const fl = FINAL_LOCKS.find((l) => l.id === id); // ¿es un candado final? -> geometryLock con su combo, sin llave
+            if (fl) { openLock({ combo: fl.combo, kind: "geometry", onSolved: () => solveFinalLock(id) }); return; }
+            const h = id.indexOf("#"); const cfg = lockConfigFor(id.slice(0, h), Number(id.slice(h + 1))); openLock({ ...cfg, onSolved: () => solvePuzzle(id) });
+          }}
           onRead={openRead}
+          onCollect={selRoom.objeto ? () => openNotice(selRoom.objeto!) : undefined}
           onClose={() => setSelected(null)}
         />
       )}
