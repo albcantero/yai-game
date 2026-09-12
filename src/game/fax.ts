@@ -78,13 +78,13 @@ export const BLOCKS: FaxBlock[] = [
   },
 
   // ── BLOQUE 2: reacción al SALIR del Almacén (2ª sala: Biblioteca r3 o Sala de Máquinas r1). Terminal: dos
-  //    mensajes y ya, SIN respuesta nuestra (nodo sin a/b). {sala2} = el nombre de la sala a la que fueron. ──
+  //    mensajes y ya, SIN respuesta nuestra (nodo sin a/b). {sala-elegida} = el nombre de la sala a la que fueron. ──
   {
     id: "segunda-sala",
     trigger: { type: "reachedAny", nodes: ["r3", "r1"] },
     start: "s0",
     nodes: {
-      s0: { incoming: ["Hm, veo que habéis decidido ir por {sala2}.", "Seguid avanzando e investigando. Estamos en contacto."] },
+      s0: { incoming: ["Hm, veo que habéis decidido ir por {sala-elegida}. Yo habría ido por el otro sitio.", "Seguid avanzando e investigando. Estamos en contacto."] },
     },
   },
 ];
@@ -122,9 +122,9 @@ export function secondRoomName(gs: GameState | null): string {
   return iBiblio < iMaquinas ? "la Biblioteca" : "la Sala de Máquinas";
 }
 
-// Sustituye los tokens de un texto (mensajes del Fax, notas): {contacto} -> "???"/Miquela ; {sala2} -> 2ª sala.
+// Sustituye los tokens de un texto (mensajes del Fax, notas): {contacto} -> "???"/Miquela ; {sala-elegida} -> 2ª sala.
 export function resolveTokens(text: string, gs: GameState | null): string {
   return text
     .replace(/\{contacto\}/g, contactName(gs))
-    .replace(/\{sala2\}/g, secondRoomName(gs));
+    .replace(/\{sala-elegida\}/g, secondRoomName(gs));
 }
