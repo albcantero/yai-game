@@ -39,7 +39,7 @@ function traceBlock(block: FaxBlock, picks: number[], gs: GameState | null): { e
   }
   if (id !== null) {
     const node: FaxNode | undefined = block.nodes[id];
-    if (node) for (const t of node.incoming) entries.push({ kind: "them", text: t });
+    if (node) for (const t of node.incoming) entries.push({ kind: "them", text: resolveTokens(t, gs) });
     else id = null;
   }
   return { entries, curId: id };
