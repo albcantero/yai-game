@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { useGameState } from "../../lib/gameState";
 import { unlockedNotes } from "../../game/notas";
-import { contactName } from "../../game/fax";
+import { resolveTokens } from "../../game/fax";
 
 // NOTAS (pantalla `notas`): un bloc de notas estilo Win98. Lista NUMERADA de líneas desbloqueadas (según los
 // triggers sobre el game_state compartido) que va creciendo. Sin estado en DB: se deriva de game_state.
@@ -11,8 +11,8 @@ const Notas = forwardRef<ScreenHandle, ScreenServices>(function Notas(_props, re
   useImperativeHandle(ref, () => ({ handleKey: () => {}, setPaused: () => {} }), []);
 
   const notes = unlockedNotes(gs);
-  // sustituye {contacto} por "???" o "Miquela Quirós" según la flag de revelación
-  const fill = (t: string) => t.replace(/\{contacto\}/g, contactName(gs));
+  // sustituye los tokens ({contacto} ???→Miquela, {hf} H. F.→Higgins, {sala-elegida}) según las flags de revelación
+  const fill = (t: string) => resolveTokens(t, gs);
   return (
     <div className="notas win98">
       <div className="notas-pad sunken-panel">

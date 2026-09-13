@@ -138,6 +138,17 @@ export default function Computer() {
     prevFaxCountRef.current = n;
   }, [gs]);
 
+  // AVISO al RESOLVER un puzzle con notificación asociada (ON_SOLVE_NOTICE, p. ej. TIEMPO -> Sobre 15, Caja -> Sobre 8).
+  // Detecta los puzzles NUEVOS en solved[]. Va ANTES que el aviso de nota: primero sale "Sobre X" y luego "has tomado nota".
+  const prevSolvedRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!gs) return;
+    const solved = new Set(gs.solved ?? []);
+    if (prevSolvedRef.current === null) { prevSolvedRef.current = solved; return; } // línea base (no dispara en recarga)
+    for (const id of solved) if (!prevSolvedRef.current.has(id) && ON_SOLVE_NOTICE[id]) notify(ON_SOLVE_NOTICE[id]);
+    prevSolvedRef.current = solved;
+  }, [gs]);
+
   // AVISO de NOTA nueva: cuando aparece una nota en el bloc (sube el nº de notas desbloqueadas). Texto base común
   // a TODAS las notas. Misma línea base (esperar a que el estado cargue) para no dispararlo en cada recarga.
   const prevNotesRef = useRef<number | null>(null);
@@ -147,17 +158,6 @@ export default function Computer() {
     if (prevNotesRef.current === null) { prevNotesRef.current = n; return; }
     if (n > prevNotesRef.current) notify("Habéis tomado nota sobre esto.");
     prevNotesRef.current = n;
-  }, [gs]);
-
-  // AVISO al RESOLVER un puzzle con notificación asociada (ON_SOLVE_NOTICE, p. ej. el TIEMPO -> "Abrir Sobre 15").
-  // Detecta los puzzles que aparecen NUEVOS en solved[]. El aviso se encola y sale al cerrar el candado.
-  const prevSolvedRef = useRef<Set<string> | null>(null);
-  useEffect(() => {
-    if (!gs) return;
-    const solved = new Set(gs.solved ?? []);
-    if (prevSolvedRef.current === null) { prevSolvedRef.current = solved; return; } // línea base (no dispara en recarga)
-    for (const id of solved) if (!prevSolvedRef.current.has(id) && ON_SOLVE_NOTICE[id]) notify(ON_SOLVE_NOTICE[id]);
-    prevSolvedRef.current = solved;
   }, [gs]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,

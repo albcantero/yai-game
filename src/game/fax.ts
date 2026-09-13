@@ -159,6 +159,16 @@ export const isMiquelaRevealed = (gs: GameState): boolean => triggerMet(MIQUELA_
 export const contactName = (gs: GameState | null): string =>
   gs && isMiquelaRevealed(gs) ? CONTACT_NAME : CONTACT_ALIAS;
 
+// El fundador se firma "H. F." hasta que las jugadoras descubran que es Higgins. MISMO mecanismo que ???→Miquela:
+// un TRIGGER (HIGGINS_REVEAL) que, al cumplirse, cambia "H. F." por "Higgins" allí donde se use el token {hf}
+// (notas, Fax...). PLACEHOLDER: cambia HIGGINS_REVEAL por el trigger real cuando exista el puzzle/nota que lo destapa.
+export const SIGNER_ALIAS = "H. F.";
+export const SIGNER_NAME = "Higgins";
+export const HIGGINS_REVEAL: FaxTrigger = { type: "solved", puzzle: "___reveal-higgins___" };
+export const isHigginsRevealed = (gs: GameState): boolean => triggerMet(HIGGINS_REVEAL, gs);
+export const signerName = (gs: GameState | null): string =>
+  gs && isHigginsRevealed(gs) ? SIGNER_NAME : SIGNER_ALIAS;
+
 // Nombre de la SEGUNDA sala (la 1ª ruta elegida desde el Almacén), para el token {sala2}. open_paths guarda el
 // orden de desbloqueo, así que el que aparezca ANTES es el que se alcanzó primero (aunque luego se abran las dos).
 export function secondRoomName(gs: GameState | null): string {
@@ -171,9 +181,10 @@ export function secondRoomName(gs: GameState | null): string {
   return iBiblio < iMaquinas ? "la Biblioteca" : "la Sala de Máquinas";
 }
 
-// Sustituye los tokens de un texto (mensajes del Fax, notas): {contacto} -> "???"/Miquela ; {sala-elegida} -> 2ª sala.
+// Sustituye los tokens de un texto (mensajes del Fax, notas): {contacto} -> "???"/Miquela ; {hf} -> "H. F."/Higgins ; {sala-elegida} -> 2ª sala.
 export function resolveTokens(text: string, gs: GameState | null): string {
   return text
     .replace(/\{contacto\}/g, contactName(gs))
+    .replace(/\{hf\}/g, signerName(gs))
     .replace(/\{sala-elegida\}/g, secondRoomName(gs));
 }

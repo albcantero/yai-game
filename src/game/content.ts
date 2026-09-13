@@ -74,11 +74,13 @@ export const PUZZLES: Puzzle[] = [
   p(6, "r4", "Depósito", "+1 llave · (conjunto) abre el Despacho", "info de la Librería (backtracking)"),
 
   // ── Proyecto de sala de lectura (sur; nudo) ──
-  { n: 7, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Acceso a Salas Directivas", kind: "number", combo: [], // placeholder (combo/textos por definir)
-    leer: "", descripcion: "", da: "+1 llave", nota: "" },
-  p(8, "r2", "Proyecto de sala de lectura", "+1 llave"),
-  { n: 9, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Caja de herramientas", kind: "number", combo: [], // placeholder (combo/textos por definir)
-    leer: "", descripcion: "", da: "+1 llave", nota: "" },
+  { n: 7, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Acceso a Salas Directivas", kind: "number", combo: [1, 9, 9, 8], // 1998 = fin del proyecto (mismo mecanismo que la Puerta cerrada de la Biblioteca, Puzzle 3)
+    leer: "Un cartel rojo, impreso y atornillado junto a la placa: \"ZONA DIRECTIVA. Acceso reservado a la dirección de la librería. La combinación provisional del candado es el año de entrega de las obras; se sustituirá tras la inauguración.\"",
+    descripcion: "Al fondo, una puerta metálica más sólida que el resto, con una placa: \"Acceso a Salas Directivas\". Está cerrada con un candado numérico.", da: "+1 llave", nota: "" },
+  { n: 8, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Taquilla azul", kind: "rotary", combo: [3], // A+B=3 (puzzle de dados "Propuesta Habitación 6": caras opuestas suman 7)
+    leer: "", descripcion: "En una de las estanterías hay una taquilla azul muy llamativa con un candado rotatorio.", da: "+1 llave", nota: "" },
+  { n: 9, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Caja de herramientas", kind: "letters", combo: "TIEMPO", // sopa de letras: la palabra oculta es TIEMPO (tal cual, no en espejo)
+    leer: "En la parte de abajo de la caja hay una pegatina gastada. Seguramente fuera la marca de las herramientas. Algunas letras están borradas, pero con las demás parece que puede formarse una palabra.", descripcion: "La caja de herramientas está cerrada.", da: "+1 llave", nota: "" },
   p(10, "r2", "Proyecto de sala de lectura", "+1 llave", "≥1 de los del Proyecto necesita info de otra sala (por definir cuál)"),
 
   // ── Sala de Máquinas (sur) ──
@@ -114,4 +116,5 @@ export const puzzlesInRoom = (room: string): Puzzle[] => PUZZLES.filter((x) => x
 // ENCOLA y lo muestra al cerrar el candado (no se pisa con la pantalla de "ABIERTO"). Se irán añadiendo por puzzle.
 export const ON_SOLVE_NOTICE: Record<string, string> = {
   "hub-almacen#0": "Habéis obtenido el Sobre 15. Podéis abrirlo.", // Puzzle 1 (acertijo del TIEMPO): el candado abre la caja; dentro, el parte de horas
+  "r2#2": "Habéis obtenido el Sobre 8. Podéis abrirlo.", // Caja de herramientas (Proyecto): dentro, el acta de suspensión de obra
 };
