@@ -56,9 +56,9 @@ const LINKS: Link[] = [
   { from: "cross-north", to: "r4", pts: [[44, 15], [24, 15]], offFrom: 2, offTo: 3 }, // Intersección→R4: +2; R4→Intersección: +3
   { from: "r6", to: "r7", pts: [[88.9, 21.9], [88.9, 31.1]], keys: 1, offFrom: 3, offTo: 3 }, // Despacho→Antesala: 1 llave. (Diseño: se pensó "secreta, revelada al resolver el Despacho", pero esa mecánica de revelado por puzzle aún NO existe; hoy es una puerta de niebla normal. El único `secret` es el de la salida.)
   { from: "r7", to: "r8", pts: [[86.1, 47.9], [86.1, 57.1]], keys: 2, offFrom: 3, offTo: 3 }, // Antesala→Cámara: 2 llaves
-  { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 2, offFrom: 6, offTo: 0 }, // Proyecto↔Despacho: 2 llaves
+  { from: "r2", to: "r6", pts: [[68.5, 48.9], [77.2, 24.4], [91.4, 15.8]], keys: 2, offFrom: 6, offTo: 0 }, // Proyecto↔Despacho: 2 llaves (red de seguridad: sales de Fase 1 con 2-3 → siempre puedes pagarlo, juegues como juegues)
   { from: "r2", to: "r3", pts: [[62.8, 49.0], [62.6, 28.3]], keys: 1, offFrom: 5, offTo: 5 }, // Biblioteca↔Proyecto (conector)
-  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], keys: 2, offFrom: 4, offTo: 3 }, // Máquinas↔Proyecto: 2 llaves
+  { from: "r1", to: "r2", pts: [[74.0, 64.2], [67.2, 56.2]], keys: 1, offFrom: 4, offTo: 3 }, // Máquinas↔Proyecto: 1 llave (red de seguridad + hace jugable la ruta sur lineal Almacén→Máquinas→Proyecto)
   { from: "r1", to: "hub-almacen", pts: [[60.8, 84.9], [44, 77], [44, 64]], keys: 1, offFrom: 2, offTo: 6 }, // Sala de Máquinas→Almacén: +2; Almacén→S.Máquinas: +6
 ];
 // Las DOS rutas del recorrido (pertenencia de salas), norte y sur. Metadata de diseño/balanceo (y futura UI):

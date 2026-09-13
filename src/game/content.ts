@@ -70,9 +70,9 @@ export const PUZZLES: Puzzle[] = [
   // ── Depósito (norte): los 3 dan llave PERO están info-bloqueados hasta después del Sótano (backtracking).
   //    Como conjunto, el Depósito da "lo necesario para abrir el Despacho" (qué puzzle exactamente: por definir). ──
   { n: 4, room: "r4", roomName: "Depósito", titulo: "Ficha de archivo", kind: "letters", combo: "RUBY", // sopa de letras con RUBY; muro de info BLANDO: RUBY solo se reconoce si has leído las cartas de la Sala de Máquinas
-    leer: "Entre los papeles del archivo hay una hoja cuadriculada, llena de letras sin orden aparente. Mirando con calma, quizá pueda formarse una palabra.", descripcion: "En una de las estanterías, una caja de archivo abierta, con fichas y papeles amarillentos.", da: "+1 llave", dependeDe: "cartas de H. F. a Ruby (Sala de Máquinas): RUBY", nota: "" },
+    leer: "Las fichas del archivo llevan etiquetas con letras sueltas, revueltas sin orden. Rebuscando con calma entre ellas, quizá pueda ordenarse una palabra.", descripcion: "En una de las estanterías, una caja de archivo abierta, con fichas y papeles amarillentos.", da: "+1 llave", dependeDe: "cartas de H. F. a Ruby (Sala de Máquinas): RUBY", nota: "" },
   { n: 5, room: "r4", roomName: "Depósito", titulo: "Reloj de pie", kind: "number", combo: [1, 5], // candado de 2 cifras = 15; el acertijo del viajero temporal va en el prop FÍSICO, NO en la app
-    leer: "El reloj está parado a una hora concreta. Sujeta al cristal de la esfera hay una cuartilla escrita a mano, una especie de relato; conviene leerla despacio, porque la hora buena quizá no sea la que marcan las agujas.",
+    leer: "El reloj está parado a una hora concreta. Sujeta al cristal de la esfera hay una cuartilla escrita a mano, una especie de relato.",
     descripcion: "En un rincón, arrimado a la pared, se alza un reloj de pie altísimo, de madera oscura y esfera amarillenta. El péndulo está quieto. La portezuela de la caja, a la altura del péndulo, está cerrada con un candado.",
     da: "+1 llave", nota: "" },
   p(6, "r4", "Depósito", "+1 llave · (conjunto) abre el Despacho", "info de la Librería (backtracking)"),

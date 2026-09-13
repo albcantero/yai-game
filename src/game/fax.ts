@@ -27,6 +27,7 @@ export type FaxTrigger =
   | { type: "start" }                    // disponible desde el principio
   | { type: "started" }                  // tras la llamada inicial (flag started)
   | { type: "solved"; puzzle: string }   // resuelto un puzzle ("r1#0")
+  | { type: "solvedAll"; puzzles: string[] } // resueltos TODOS estos puzzles a la vez (AND)
   | { type: "item"; item: string }       // conseguido un item ("tarjeta", "llave-maestra")
   | { type: "reached"; node: string }    // LLEGADO a una sala/nodo (open_paths, acumulativo)
   | { type: "reachedAny"; nodes: string[] } // llegado a CUALQUIERA de estos nodos (OR)
@@ -41,6 +42,7 @@ export function triggerMet(t: FaxTrigger, gs: GameState): boolean {
     case "start": return true;
     case "started": return gs.started;
     case "solved": return (gs.solved ?? []).includes(t.puzzle);
+    case "solvedAll": return t.puzzles.every((p) => (gs.solved ?? []).includes(p));
     case "item": return (gs.items ?? []).includes(t.item);
     case "reached": return (gs.open_paths ?? []).includes(t.node);
     case "reachedAny": return t.nodes.some((n) => (gs.open_paths ?? []).includes(n));
@@ -128,6 +130,29 @@ export const BLOCKS: FaxBlock[] = [
         a: { text: "El escritor, ¿quién es exactamente?", next: "quien-hf" },
         b: { text: "¿Quién es H. F.?", next: "quien-hf" }
       },
+    },
+  },
+
+  // ── BLOQUE 4: quién es Ruby + qué pasa con La Jauría humana. Se desbloquea al resolver TODO lo OBLIGATORIO
+  //    de Fase 1 (los 7 puzzles no-taquilla: Almacén, Máquinas, Biblioteca, Depósito y Proyecto). El aviso de
+  //    "mensajes nuevos" del Fax salta solo (unlockedCount sube al cumplirse el trigger). BASE: primer mensaje;
+  //    el árbol lo desarrolla Alberto a partir del nodo "ruby-quien". ──
+  {
+    id: "ruby",
+    trigger: { type: "solvedAll", puzzles: ["hub-almacen#0", "r1#0", "r3#1", "r4#0", "r4#1", "r2#0", "r2#2"] },
+    start: "s0",
+    nodes: {
+      s0: {
+        incoming: [
+          "Habéis avanzado mucho ahí dentro. Y, por lo que me habéis ido contando, ya habéis encontrado las cartas.",
+          "Creo que ha llegado el momento de que os hable de Ruby.",
+        ],
+        a: { text: "¿Quién es Ruby?", next: "ruby-quien" },
+        b: { text: "¿Qué tiene que ver con La Jauría humana?", next: "ruby-quien" },
+      },
+      // SIGUE ALBERTO desde aquí: desarrolla el relato (quién fue Ruby, su relación con {hf} y qué pasó con
+      // La Jauría humana). De momento es terminal provisional para que el bloque tenga final mientras lo montas.
+      "ruby-quien": { incoming: ["Dejadme que os cuente quién fue Ruby."] },
     },
   },
 ];
