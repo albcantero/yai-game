@@ -144,15 +144,9 @@ export const BLOCKS: FaxBlock[] = [
     nodes: {
       s0: {
         incoming: [
-          "Habéis avanzado mucho ahí dentro. Y, por lo que me habéis ido contando, ya habéis encontrado las cartas.",
-          "Creo que ha llegado el momento de que os hable de Ruby.",
+          "FIINNNN",
         ],
-        a: { text: "¿Quién es Ruby?", next: "ruby-quien" },
-        b: { text: "¿Qué tiene que ver con La Jauría humana?", next: "ruby-quien" },
       },
-      // SIGUE ALBERTO desde aquí: desarrolla el relato (quién fue Ruby, su relación con {hf} y qué pasó con
-      // La Jauría humana). De momento es terminal provisional para que el bloque tenga final mientras lo montas.
-      "ruby-quien": { incoming: ["Dejadme que os cuente quién fue Ruby."] },
     },
   },
 ];
