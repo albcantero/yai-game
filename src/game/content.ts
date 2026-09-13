@@ -84,8 +84,10 @@ export const PUZZLES: Puzzle[] = [
   p(10, "r2", "Proyecto de sala de lectura", "+1 llave", "≥1 de los del Proyecto necesita info de otra sala (por definir cuál)"),
 
   // ── Sala de Máquinas (sur) ──
-  p(11, "r1", "Sala de Máquinas", "+1 llave"),
-  p(12, "r1", "Sala de Máquinas", "+1 llave"),
+  { n: 11, room: "r1", roomName: "Sala de Máquinas", titulo: "Caldera", kind: "letters", combo: "C", // acertijo de válvulas (valvulas.pdf): solo una afirmación es verdadera -> válvula C
+    leer: "La caldera tiene un manómetro con tres marcas: Baja, Normal y Peligro. De ella salen tres válvulas: A, B y C; solo una libera presión, las otras dos no hacen nada. El manómetro marca \"Peligro\". En una placa se lee: A dice \"Si B es la válvula correcta, yo también lo soy\"; B dice \"C no es la válvula correcta\"; C dice \"A está mintiendo\". Solo una de las tres afirmaciones es verdadera. ¿Qué válvula abres para que la presión vuelva a Normal?", descripcion: "La caldera vibra y el manómetro marca \"Peligro\". De ella salen tres válvulas, marcadas A, B y C; solo una libera la presión, y un candado de letras cierra el acceso.", da: "+1 llave", nota: "" },
+  { n: 12, room: "r1", roomName: "Sala de Máquinas", titulo: "Taquilla azul", kind: "rotary", combo: [3, 0, 0], // rotary "3 0 0" = 300 (boceto de la hab. 7, Sobre 12)
+    leer: "", descripcion: "Al fondo, entre dos tuberías, hay una taquilla azul muy llamativa con un candado rotatorio.", da: "+1 llave", nota: "" },
 
   // ── Despacho (sur; fin de la 1ª mitad). Además de los 2 puzzles, hay un "cajón": código físico → golpe de
   //    llaves de una vez (mecánica aparte, no puzzle). El último puzzle revela la puerta SECRETA a la Antesala. ──
@@ -117,4 +119,5 @@ export const puzzlesInRoom = (room: string): Puzzle[] => PUZZLES.filter((x) => x
 export const ON_SOLVE_NOTICE: Record<string, string> = {
   "hub-almacen#0": "Habéis obtenido el Sobre 15. Podéis abrirlo.", // Puzzle 1 (acertijo del TIEMPO): el candado abre la caja; dentro, el parte de horas
   "r2#2": "Habéis obtenido el Sobre 8. Podéis abrirlo.", // Caja de herramientas (Proyecto): dentro, el acta de suspensión de obra
+  "r1#0": "Habéis obtenido el Sobre 11. Podéis abrirlo.", // Caldera (acertijo de válvulas): desbloquea el Sobre 11
 };

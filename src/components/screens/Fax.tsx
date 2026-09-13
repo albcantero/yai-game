@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Fragment, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import { useGameState, getGameState, applyRpc, type GameState } from "../../lib/gameState";
 import { BLOCKS, triggerMet, unlockedCount, contactName, resolveTokens, type FaxBlock, type FaxNode } from "../../game/fax";
@@ -66,21 +66,25 @@ function collectChain(block: FaxBlock, startId: string | null, gs: GameState | n
 
 // Sesión = al abrir: bloques desbloqueados EN ORDEN; los completos van al historial; el primer incompleto es el
 // ACTIVO (con el que se chatea). Se para en el primero incompleto (guard: no se muestran los siguientes).
-type Session = { history: Entry[]; block: FaxBlock | null; picks: number[]; entries: Entry[]; curId: string | null };
+type Session = { history: Entry[]; block: FaxBlock | null; picks: number[]; entries: Entry[]; curId: string | null; newFrom: number | null };
 function computeSession(g: GameState | null): Session {
-  if (!g) return { history: [], block: null, picks: [], entries: [], curId: null };
+  if (!g) return { history: [], block: null, picks: [], entries: [], curId: null, newFrom: null };
   const prog = progressOf(g);
+  const seen = g.fax_seen ?? 0;       // nº de bloques vistos la última vez que se abrió el Fax
   const history: Entry[] = [];
+  let j = 0;                          // bloques desbloqueados ya procesados
+  let newFrom: number | null = null;  // índice (en history+entries) donde empiezan los mensajes NUEVOS (o null)
   for (const block of BLOCKS) {
     if (!triggerMet(block.trigger, g)) continue; // no desbloqueado: sáltalo (se mantiene el orden)
+    if (j === seen && newFrom === null) newFrom = history.length; // este bloque (0-based j) es el 1º NUEVO
     const picks = prog[block.id] ?? [];
     const { entries, curId } = traceBlock(block, picks, g);
     const node = curId !== null ? block.nodes[curId] : null;
     const complete = !node || (!node.a && !node.b);
-    if (complete) { history.push(...entries); continue; }
-    return { history, block, picks, entries, curId };
+    if (complete) { history.push(...entries); j++; continue; }
+    return { history, block, picks, entries, curId, newFrom };
   }
-  return { history, block: null, picks: [], entries: [], curId: null };
+  return { history, block: null, picks: [], entries: [], curId: null, newFrom };
 }
 
 const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, setBusy }, ref) {
@@ -94,6 +98,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, set
   const [delivering, setDelivering] = useState(false);    // llegando mensajes en vivo: opciones ocultas
   const [curId, setCurId] = useState<string | null>(boot.curId);
   const [ready, setReady] = useState(getGameState() !== null);
+  const [newFrom, setNewFrom] = useState<number | null>(boot.newFrom); // separador "Mensajes nuevos": índice donde empiezan los no vistos
 
   const historyRef = useRef<Entry[]>(boot.history);   // historial de bloques completos (fijo en la sesión)
   const blockRef = useRef<FaxBlock | null>(boot.block); // bloque ACTIVO de esta sesión (fijo)
@@ -194,7 +199,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, set
       const s = computeSession(gs);
       historyRef.current = s.history; blockRef.current = s.block;
       curIdRef.current = s.curId; renderedRef.current = s.picks.slice();
-      setShown([...s.history, ...s.entries]); setCurId(s.curId); setReady(true);
+      setShown([...s.history, ...s.entries]); setCurId(s.curId); setNewFrom(s.newFrom); setReady(true);
       return;
     }
     const b = blockRef.current;
@@ -244,15 +249,21 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, set
       </header>
       <div className="fax-thread sunken-panel" ref={threadRef}>
         {shown.map((m, i) => (
-          m.kind === "them" ? (
-            <div key={i} className="fax-msg them"><span className="fax-text">{m.text}</span></div>
-          ) : (
-            /* elección resuelta: los dos recuadros BLOQUEADOS (la elegida con borde negro, la otra atenuada) */
-            <div key={i} className="fax-choices locked">
-              <div className={"fax-choice" + (m.sel === 0 ? " picked" : " dim")}>{m.a}</div>
-              <div className={"fax-choice" + (m.sel === 1 ? " picked" : " dim")}>{m.b}</div>
-            </div>
-          )
+          <Fragment key={i}>
+            {/* separador entre los mensajes ya vistos y los NUEVOS (solo si hay algo antes) */}
+            {newFrom !== null && newFrom > 0 && i === newFrom && (
+              <div className="fax-newmsgs"><span>Mensajes nuevos</span></div>
+            )}
+            {m.kind === "them" ? (
+              <div className="fax-msg them"><span className="fax-text">{m.text}</span></div>
+            ) : (
+              /* elección resuelta: los dos recuadros BLOQUEADOS (la elegida con borde negro, la otra atenuada) */
+              <div className="fax-choices locked">
+                <div className={"fax-choice" + (m.sel === 0 ? " picked" : " dim")}>{m.a}</div>
+                <div className={"fax-choice" + (m.sel === 1 ? " picked" : " dim")}>{m.b}</div>
+              </div>
+            )}
+          </Fragment>
         ))}
         {live !== null && (
           <div className="fax-msg them"><span className="fax-text">{live}</span></div>

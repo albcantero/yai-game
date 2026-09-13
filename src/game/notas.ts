@@ -30,6 +30,10 @@ export const NOTES: Note[] = [
   { id: "obra-suspension", trigger: { type: "solved", puzzle: "r2#2" },
     texto: "Las obras de la sala de lectura nunca llegaron a terminarse. En una caja de herramientas encontramos el acta de suspensión de 1998; pero, escrito a bolígrafo, alguien advierte que el acta es falsa y que fue el Gobierno quien canceló las obras. {hf} la firmó como \"no conforme\"." },
 
+  // Nota: al resolver la Caldera (r1#0, Sala de Máquinas). Nota manuscrita de 1996 de {hf} a Ruby (junto al Compendio).
+  { id: "carta-ruby", trigger: { type: "solved", puzzle: "r1#0" },
+    texto: "Hemos encontrado dos notas manuscritas de {hf} para Ruby. En una le envía sus páginas favoritas del libro de acertijos que está escribiendo; en la otra le pregunta si no ha recibido ninguna de sus cartas y le confiesa que va a empezar algo grande, y que ojalá pudiera estar allí con él." },
+
   // Aparece al resolver el mecanismo del Despacho (r6#final): destapa los cuatro mecanismos ocultos y sus salas.
   { id: "mecanismos", trigger: { type: "solved", puzzle: "r6#final" },
     texto: "El mecanismo del Despacho escondía una nota: los otros cuatro están en la Sala de Máquinas, el Almacén, la Librería y la Cámara. Con los cuatro activados se abre la cámara acorazada." },

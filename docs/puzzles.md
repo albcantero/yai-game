@@ -55,11 +55,54 @@ SECRETA: se revela al resolver el último puzzle del Despacho.
 | Contrato de construcción + bocetos de arquitecto | contrato de obra de Santas Ochova (año **1996**, firmado **H. F.**, precio **100K**) + bocetos con las habitaciones **5, 7 y 8** | documento/pista | **Sobre 12** (Recoger objeto en la Biblioteca) | Biblioteca | el boceto de la "habitación simple" da el **Puzzle 2** (candado **rotary**, "10 8" = 108); el año **1996** del contrato + 24 meses de obra = **1998** = clave del **Puzzle 3** (puerta cerrada, número); **100K = lore** (pago del guión al autor de *La jauría humana*), H. F. = lore. Estos bocetos (hab. **5/7/8**) son la ÚNICA fuente de esos rotary (ya no hay "cuadernillo Sobre 2"): 5 = Biblioteca, 7 = Máquinas, 8 = Despacho. El Sótano (hab. 4) queda SIN boceto: **pendiente**. |
 | Boceto de arquitecto (hab. 6) + guía del candado rotatorio + sopa de letras | el boceto/propuesta de la **habitación 6** (los dados) + instrucciones del candado rotatorio + una **sopa de letras** | pista + herramienta | **Sobre 9** (Recoger objeto en el Proyecto de sala de lectura) | Proyecto de sala de lectura | boceto hab. 6 (dados, **A+B=3**) → **Taquilla azul** (Puzzle 8); la guía ayuda a setear los rotary; la sopa de letras (palabra **TIEMPO**) → **Caja de herramientas** (Puzzle 9) |
 | Acta de suspensión de obra | acta (membrete Gobierno de Helmántica) de la reforma de la sala de lectura: año 1998, motivo "falta de presupuesto" + nota a mano que lo desmiente | documento/pista de lore | **Sobre 8** (al resolver la Caja de herramientas, Puzzle 9 / r2#2) | Proyecto de sala de lectura | el acta es **falsa** (nota a bolígrafo): la obra la **canceló el Gobierno**, y H. F. la firmó **"no conforme"**. Siembra el conflicto Higgins vs Gobierno |
+| Problema de las válvulas | acertijo de lógica: tres válvulas (A/B/C), tres afirmaciones y solo una verdadera; ¿cuál abrir para volver a "Normal"? | documento/pista | **Sobre 2** (Recoger objeto en la Sala de Máquinas) | Sala de Máquinas | da el **Puzzle 11 (Caldera)**: la válvula correcta es **C** (letterlock) |
+| Compendio de problemas lógicos (4 págs.) + 2 cartas de 1996 | las páginas del *Compendio de problemas selectos de ingenio* (firma **H. F.**) + **dos notas manuscritas de 1996** de H. F. a Ruby: (1) "empezar algo grande / ¿no has recibido mis cartas?" y (2) la que acompaña las páginas ("cuatro páginas... mis favoritas") | documento/pista de lore | **Sobre 11** (al resolver la Caldera, Puzzle 11 / r1#0) | Sala de Máquinas | **post-borrado de Ruby**: escribe a alguien que ya no puede responder; conecta H. F.=Higgins, Ruby y la fundación de la librería (1996). Las páginas del Compendio son clave para la **fase final** |
+| Carta de amor de H. F. a Ruby | carta manuscrita ("Mi Ruby...") de **H. F. (Higgins) a Ruby**: esperanzada; habla de la "visita Oficial" del próximo mes y de que "cuando el Gobierno valide todo esto, estaremos juntos"; firmada H. F. | documento/pista de lore | **Sobre 3** (obtención por definir) | — | **pre-borrado de Ruby**: Higgins aún confía en que el Gobierno "valide"; enlaza H. F.=Higgins con Ruby y siembra la sombra del Gobierno |
 | — | — | — | — | — | (añadir más piezas según se diseñen los puzzles) |
 
 > **Almacén — flujo y numeración (CERRADO):** el "Recoger objeto" al ENTRAR = la tarjeta del acertijo del **TIEMPO** = **Sobre 1**. Al **resolver el Puzzle 1** salta la notificación **"Abrir sobre 15"** → el parte de horas (**Sobre 15**). El *Expediente Miquela 2023*, que antes ocupaba el Sobre 1, queda **pendiente de reasignar** (la numeración se irá sobreescribiendo).
 >
 > **Fax bloque 2 (PENDIENTE de cablear):** tras los dos mensajes de Miquela ("Yo habría ido por el otro sitio... Estamos en contacto"), añadir una respuesta nuestra de 2 opciones: **"De acuerdo."** / **"En el Almacén encontré un parte de horas de 2023"**. Si eligen la 2ª, Miquela responde: *"Hm, interesante... Guárdalo por el momento. Puede que contenga información relevante para otro momento. Seguid informándome."*
+
+> **Sobre 3 — carta completa de H. F. a Ruby (texto tal cual):**
+>
+> Mi Ruby:
+>
+> Hay días en los que todo me parece extraordinario y, sin embargo, no puedo disfrutarlo del todo porque tú no estás aquí.
+>
+> Pienso en ti más de lo que debería admitir. En tu voz, en tu manera de mirarme, en las pequeñas cosas que haces sin darte cuenta y que echo de menos cuando estoy lejos.
+>
+> Todo esto está a punto de terminar. El próximo mes tenemos agendada la visita Oficial. Estoy nervioso. Pero cuando el Gobierno valide todo esto, estaremos juntos. ¿Verdad que sí? Todo saldrá bien.
+>
+> Te quiero más de lo que estas pocas líneas pueden decir.
+>
+> Siempre tuyo,
+> H. F.
+
+> **Sobre 11 — carta 1 de H. F. a Ruby (texto tal cual):**
+>
+> Querida Ruby:
+>
+> ¿No has recibido todavía ninguna de mis cartas? Empiezo a pensar que se están perdiendo por el camino.
+>
+> Estoy emocionado de empezar algo grande. Ojalá pudieras estar aquí conmigo y verlo con tus propios ojos. He esperado mucho tiempo para esto y, por alguna razón, sentí que este era el tiempo adecuado.
+>
+> Desearía que pudieras acompañarme.
+>
+> Siempre tuyo,
+> H. F.
+
+> **Sobre 11 — carta 2 de H. F. a Ruby (la que acompaña las páginas del Compendio):**
+>
+> Querida Ruby:
+>
+> Te envío desde muy lejos cuatro páginas del libro en el que estoy trabajando. Son, hasta ahora, mis favoritas, aunque probablemente cambie de opinión mañana.
+>
+> Me gustaría saber qué te parecen cuando tengas un momento para leerlas. No tengas reparos en decirme si algo no funciona.
+>
+> Espero que estés bien.
+>
+> H. F.
 
 ## Notas de uso
 

@@ -48,3 +48,7 @@
 .fax-choices.locked .fax-choice{ cursor:default }   /* elección ya resuelta: no clicable */
 .fax-choice.picked{ border:1px solid #000 }          /* la opción elegida: borde negro */
 .fax-choice.dim{ opacity:.65 }                        /* la NO elegida: atenuada al 65% */
+
+/* separador "Mensajes nuevos": franja entre los mensajes ya vistos y los NUEVOS. Centrado, tenue, sin fondo. */
+.fax-newmsgs{ text-align:center }
+.fax-newmsgs span{ opacity:.45;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:calc(var(--fax-size) - 4px);color:#222 }
