@@ -75,6 +75,7 @@ export const PUZZLES: Puzzle[] = [
     leer: "El reloj está parado a una hora concreta. Sujeta al cristal de la esfera hay una cuartilla escrita a mano, una especie de relato.",
     descripcion: "En un rincón, arrimado a la pared, se alza un reloj de pie altísimo, de madera oscura y esfera amarillenta. El péndulo está quieto. La portezuela de la caja, a la altura del péndulo, está cerrada con un candado.",
     da: "+1 llave", nota: "" },
+  // OCULTO: sin diseñar. El contador `puzzles` de r4 (Minimap ROOMS) está a 2, así que este slot no se muestra. NO borrar.
   p(6, "r4", "Depósito", "+1 llave · (conjunto) abre el Despacho", "info de la Librería (backtracking)"),
 
   // ── Proyecto de sala de lectura (sur; nudo) ──
@@ -85,6 +86,7 @@ export const PUZZLES: Puzzle[] = [
     leer: "", descripcion: "En una de las estanterías hay una taquilla azul muy llamativa con un candado rotatorio.", da: "+1 llave", nota: "" },
   { n: 9, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Caja de herramientas", kind: "letters", combo: "TIEMPO", // sopa de letras: la palabra oculta es TIEMPO (tal cual, no en espejo)
     leer: "En la parte de abajo de la caja hay una pegatina gastada. Seguramente fuera la marca de las herramientas. Algunas letras están borradas, pero con las demás parece que puede formarse una palabra.", descripcion: "La caja de herramientas está cerrada.", da: "+1 llave", nota: "" },
+  // OCULTO: sin diseñar. El contador `puzzles` de r2 (Minimap ROOMS) está a 3, así que este slot no se muestra. NO borrar.
   p(10, "r2", "Proyecto de sala de lectura", "+1 llave", "≥1 de los del Proyecto necesita info de otra sala (por definir cuál)"),
 
   // ── Sala de Máquinas (sur) ──

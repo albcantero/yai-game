@@ -3,7 +3,7 @@
 // (o cualquier pantalla) lo reutiliza sin duplicar markup. Los estilos viven en styles/minimap.css.
 import { useEffect, useState } from "react";
 import Win98Select from "./Win98Select";
-import { puzzleByN } from "../../game/content";
+import { puzzlesInRoom } from "../../game/content";
 import type { FinalLock } from "../../game/finalLocks";
 
 const TABS = ["Información", "Llaves"];
@@ -31,15 +31,18 @@ export type RoomPanelProps = {
 };
 
 export default function RoomPanel({ title, num, roomId, isCurrent, puzzles, puzzleBase = 0, finalLocks = [], description, tab, onTab, solved, onResolve, onRead, onCollect, onClose }: RoomPanelProps) {
-  // desplegable: primero los puzzles normales de la sala, luego los candados finales VISIBLES (capa aparte)
-  const normalOptions = Array.from({ length: puzzles }, (_, i) => puzzleByN(puzzleBase + i + 1)?.titulo ?? `Puzzle ${puzzleBase + i + 1}`);
+  // desplegable: primero los puzzles normales de la sala, luego los candados finales VISIBLES (capa aparte).
+  // Los puzzles se indexan POR SALA (puzzlesInRoom), NO por N global: así bajar el contador `puzzles` de una
+  // sala oculta sus ÚLTIMOS puzzles (los que sobran del contador) sin desalinear el contenido de las demás.
+  const roomPuzzles = puzzlesInRoom(roomId);
+  const normalOptions = Array.from({ length: puzzles }, (_, i) => roomPuzzles[i]?.titulo ?? `Puzzle ${roomPuzzles[i]?.n ?? (puzzleBase + i + 1)}`);
   const puzzleOptions = [...normalOptions, ...finalLocks.map((l) => l.titulo)];
   // puzzle SELECCIONADO en el desplegable (índice). Se reinicia al primero al cambiar de sala.
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   useEffect(() => { setPuzzleIdx(0); }, [roomId]);
   const idx = puzzleIdx < puzzleOptions.length ? puzzleIdx : 0; // índice válido (por si el reinicio va un frame por detrás)
   const finalLock = idx >= puzzles ? finalLocks[idx - puzzles] : null; // si el índice cae en la zona de candados finales
-  const content = finalLock ? null : puzzleByN(puzzleBase + idx + 1); // contenido del puzzle normal seleccionado (game/content.ts)
+  const content = finalLock ? null : (roomPuzzles[idx] ?? null); // contenido del puzzle normal seleccionado (indexado por sala)
   const puzzleId = finalLock ? finalLock.id : roomId + "#" + idx;
   const puzzleSolved = solved.has(puzzleId);
   const puzzleDesc = finalLock ? "Un mecanismo empotrado en la pared, con varias ruedas de símbolos grabados." : (content?.descripcion ?? ""); // "Descripción" del panel: dónde/qué es el puzzle
