@@ -107,6 +107,29 @@ export const BLOCKS: FaxBlock[] = [
       fin: { incoming: ["Seguid."] },
     },
   },
+
+  // ── BLOQUE 3: al encontrar el Compendio + las cartas a Ruby (resolver la Caldera, r1#0). BASE: dos vías. ──
+  {
+    id: "compendio",
+    trigger: { type: "solved", puzzle: "r1#0" },
+    start: "s0",
+    nodes: {
+      s0: {
+        incoming: ["¿Alguna novedad por ahí dentro?"],
+        a: { text: "¿Quién es {hf}?", next: "quien-hf" },
+        b: { text: "Hemos encontrado unas páginas sobre acertijos de lógica, de un tal \"H. F.\"", next: "acertijos" },
+      },
+      "quien-hf": { incoming: ["H. F... H. F...", "Ese hombre es... el autor del libro que quiero encontrar."],
+        a: { text: "¿Estás buscando un libro sobre puzzles?", next: "fin" },
+        b: { text: "¿Qué tiene de especial?", next: "fin"},
+      },
+      fin: { incoming: ["Cuando lo encontréis, llegaréis a la respuesta vosotras por vuestra propia cuenta."], },
+      acertijos: { incoming: ["Sí. Lo conozco.", "¿Qué pasa con él?"],
+        a: { text: "El escritor, ¿quién es exactamente?", next: "quien-hf" },
+        b: { text: "¿Quién es H. F.?", next: "quien-hf" }
+      },
+    },
+  },
 ];
 
 // nº de bloques desbloqueados con el estado actual (sus triggers cumplidos)

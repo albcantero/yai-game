@@ -127,19 +127,8 @@ export default function Computer() {
     prevDespachoRef.current = now;
   }, [gs]);
 
-  // AVISO del Fax: al DESBLOQUEARSE un bloque nuevo (se cumple un trigger del Fax) sube el nº de bloques
-  // disponibles. Se detecta el INCREMENTO para avisar una vez (además del badge "!" del menú).
-  const prevFaxCountRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!gs) return; // aún sin estado cargado: NO fijar línea base con el null inicial (si no, 0 -> 1 dispara en cada recarga)
-    const n = unlockedCount(gs);
-    if (prevFaxCountRef.current === null) { prevFaxCountRef.current = n; return; } // línea base con el estado YA cargado de la DB
-    if (n > prevFaxCountRef.current) notify("En la bandeja de entrada del Fax hay una notificación nueva.");
-    prevFaxCountRef.current = n;
-  }, [gs]);
-
   // AVISO al RESOLVER un puzzle con notificación asociada (ON_SOLVE_NOTICE, p. ej. TIEMPO -> Sobre 15, Caja -> Sobre 8).
-  // Detecta los puzzles NUEVOS en solved[]. Va ANTES que el aviso de nota: primero sale "Sobre X" y luego "has tomado nota".
+  // Detecta los puzzles NUEVOS en solved[]. Va 1º: primero sale "Sobre X".
   const prevSolvedRef = useRef<Set<string> | null>(null);
   useEffect(() => {
     if (!gs) return;
@@ -150,7 +139,7 @@ export default function Computer() {
   }, [gs]);
 
   // AVISO de NOTA nueva: cuando aparece una nota en el bloc (sube el nº de notas desbloqueadas). Texto base común
-  // a TODAS las notas. Misma línea base (esperar a que el estado cargue) para no dispararlo en cada recarga.
+  // a TODAS las notas. Va 2º: "has tomado nota" (tras el sobre).
   const prevNotesRef = useRef<number | null>(null);
   useEffect(() => {
     if (!gs) return;
@@ -158,6 +147,17 @@ export default function Computer() {
     if (prevNotesRef.current === null) { prevNotesRef.current = n; return; }
     if (n > prevNotesRef.current) notify("Habéis tomado nota sobre esto.");
     prevNotesRef.current = n;
+  }, [gs]);
+
+  // AVISO del Fax: al DESBLOQUEARSE un bloque nuevo (se cumple un trigger del Fax) sube el nº de bloques
+  // disponibles. Va ÚLTIMO: primero el sobre y la nota, luego "hay una notificación en el Fax".
+  const prevFaxCountRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!gs) return; // aún sin estado cargado: NO fijar línea base con el null inicial (si no, 0 -> 1 dispara en cada recarga)
+    const n = unlockedCount(gs);
+    if (prevFaxCountRef.current === null) { prevFaxCountRef.current = n; return; } // línea base con el estado YA cargado de la DB
+    if (n > prevFaxCountRef.current) notify("En la bandeja de entrada del Fax hay una notificación nueva.");
+    prevFaxCountRef.current = n;
   }, [gs]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,

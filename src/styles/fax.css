@@ -49,6 +49,7 @@
 .fax-choice.picked{ border:1px solid #000 }          /* la opción elegida: borde negro */
 .fax-choice.dim{ opacity:.65 }                        /* la NO elegida: atenuada al 65% */
 
-/* separador "Mensajes nuevos": franja entre los mensajes ya vistos y los NUEVOS. Centrado, tenue, sin fondo. */
-.fax-newmsgs{ text-align:center }
-.fax-newmsgs span{ opacity:.45;font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:calc(var(--fax-size) - 4px);color:#222 }
+/* separador "Mensajes nuevos": LÍNEA horizontal a cada lado del texto centrado (──── Mensajes nuevos ────). Tenue, sin fondo. */
+.fax-newmsgs{ display:flex;align-items:center;gap:8px;opacity:.45 }
+.fax-newmsgs::before,.fax-newmsgs::after{ content:"";flex:1;height:1px;background:#222 }   /* las dos líneas */
+.fax-newmsgs span{ font-family:'Pixel Operator','Determination Sans',Arial,sans-serif;letter-spacing:-.5px;font-size:calc(var(--fax-size) - 4px);color:#222;white-space:nowrap }

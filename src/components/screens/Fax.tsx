@@ -37,7 +37,7 @@ function traceBlock(block: FaxBlock, picks: number[], gs: GameState | null): { e
     if (node.a || node.b) {                                   // nodo de decisión (dos respuestas)
       if (p >= picks.length) return { entries, curId: id };   // decisión pendiente (aún sin elegir)
       const sel: 0 | 1 = picks[p] === 1 ? 1 : 0; p++;
-      entries.push({ kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel });
+      entries.push({ kind: "pick", a: resolveTokens(node.a?.text ?? "", gs), b: resolveTokens(node.b?.text ?? "", gs), sel });
       id = (sel === 0 ? node.a?.next : node.b?.next) ?? null;
       continue;
     }
@@ -180,7 +180,7 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, set
     if (!chosen) return;
     const sel: 0 | 1 = which === "A" ? 0 : 1;
     playSfx("/audio/my-message.mp3", 0.6); // sonido al mandar NUESTRA respuesta
-    setShown((s) => [...s, { kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel }]); // bloquea los recuadros
+    setShown((s) => [...s, { kind: "pick", a: resolveTokens(node.a?.text ?? "", getGameState()), b: resolveTokens(node.b?.text ?? "", getGameState()), sel }]); // bloquea los recuadros
     const stepIdx = renderedRef.current.length;
     renderedRef.current = [...renderedRef.current, sel];
     const nextId = chosen.next ?? null;
@@ -280,8 +280,8 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, set
         {/* justo debajo del último mensaje, DENTRO del panel: las dos respuestas (dos recuadros al 50%) */}
         {showChoices && curNode && (
           <div className="fax-choices">
-            <div className="fax-choice" onClick={() => choose("A")}>{curNode.a!.text}</div>
-            <div className="fax-choice" onClick={() => choose("B")}>{curNode.b!.text}</div>
+            <div className="fax-choice" onClick={() => choose("A")}>{resolveTokens(curNode.a!.text, gs)}</div>
+            <div className="fax-choice" onClick={() => choose("B")}>{resolveTokens(curNode.b!.text, gs)}</div>
           </div>
         )}
       </div>

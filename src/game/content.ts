@@ -69,7 +69,8 @@ export const PUZZLES: Puzzle[] = [
 
   // ── Depósito (norte): los 3 dan llave PERO están info-bloqueados hasta después del Sótano (backtracking).
   //    Como conjunto, el Depósito da "lo necesario para abrir el Despacho" (qué puzzle exactamente: por definir). ──
-  p(4, "r4", "Depósito", "+1 llave", "info de la Librería (se resuelve en el backtracking)"),
+  { n: 4, room: "r4", roomName: "Depósito", titulo: "Ficha de archivo", kind: "letters", combo: "RUBY", // sopa de letras con RUBY; muro de info BLANDO: RUBY solo se reconoce si has leído las cartas de la Sala de Máquinas
+    leer: "Este candado se resuelve con la sopa de letras.", descripcion: "En una de las estanterías, una caja de archivo abierta, con fichas y papeles amarillentos.", da: "+1 llave", dependeDe: "cartas de H. F. a Ruby (Sala de Máquinas): RUBY", nota: "" },
   p(5, "r4", "Depósito", "+1 llave", "info de la Librería (se resuelve en el backtracking)"),
   p(6, "r4", "Depósito", "+1 llave · (conjunto) abre el Despacho", "info de la Librería (backtracking)"),
 
@@ -84,8 +85,8 @@ export const PUZZLES: Puzzle[] = [
   p(10, "r2", "Proyecto de sala de lectura", "+1 llave", "≥1 de los del Proyecto necesita info de otra sala (por definir cuál)"),
 
   // ── Sala de Máquinas (sur) ──
-  { n: 11, room: "r1", roomName: "Sala de Máquinas", titulo: "Caldera", kind: "letters", combo: "C", // acertijo de válvulas (valvulas.pdf): solo una afirmación es verdadera -> válvula C
-    leer: "La caldera tiene un manómetro con tres marcas: Baja, Normal y Peligro. De ella salen tres válvulas: A, B y C; solo una libera presión, las otras dos no hacen nada. El manómetro marca \"Peligro\". En una placa se lee: A dice \"Si B es la válvula correcta, yo también lo soy\"; B dice \"C no es la válvula correcta\"; C dice \"A está mintiendo\". Solo una de las tres afirmaciones es verdadera. ¿Qué válvula abres para que la presión vuelva a Normal?", descripcion: "La caldera vibra y el manómetro marca \"Peligro\". De ella salen tres válvulas, marcadas A, B y C; solo una libera la presión, y un candado de letras cierra el acceso.", da: "+1 llave", nota: "" },
+  { n: 11, room: "r1", roomName: "Sala de Máquinas", titulo: "Caldera", kind: "letters", combo: "C", // el ENUNCIADO (acertijo de válvulas) va en el prop FÍSICO (Sobre 2), NO en la app
+    leer: "Junto a las válvulas hay una placa metálica vieja, con algo grabado. Habría que leerla con calma para saber cuál de las tres abrir.", descripcion: "Una caldera enorme y vieja domina el rincón: hierro oxidado, remaches gruesos, un manómetro empañado y un runrún constante. Suelta vapor por las juntas.", da: "+1 llave", nota: "" },
   { n: 12, room: "r1", roomName: "Sala de Máquinas", titulo: "Taquilla azul", kind: "rotary", combo: [3, 0, 0], // rotary "3 0 0" = 300 (boceto de la hab. 7, Sobre 12)
     leer: "", descripcion: "Al fondo, entre dos tuberías, hay una taquilla azul muy llamativa con un candado rotatorio.", da: "+1 llave", nota: "" },
 
