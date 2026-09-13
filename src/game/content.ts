@@ -56,12 +56,16 @@ export const PUZZLES: Puzzle[] = [
   // ── Almacén de tienda (inicio; tronco) ──
   { n: 1, room: "hub-almacen", roomName: "Almacén de tienda", titulo: "Cuadro eléctrico", kind: "letters", combo: "OPMEIT", // TIEMPO al revés (la "RESPUESTA" de la tarjeta FÍSICA va en espejo). El acertijo NO va en la app: está en la tarjeta
     leer: "El cuadro de luces es un señuelo: al abrir la portezuela no hay interruptores, sino el frontal de una caja metálica empotrada en la pared, cerrada con un candado. Al lado, clavada con una chincheta en el yeso, hay una pequeña nota.",
-    descripcion: "Al fondo, tras una columna, hay un cuadro eléctrico. Una tapa de plástico cerrada, con algo escrito a rotulador en el centro: \"Interruptores de la librería · No apagar\".",
+    descripcion: "Al fondo, tras una columna, hay un cuadro eléctrico. Una tapa de plástico cerrada, con algo escrito a rotulador en el centro: \"Interruptores de la librería\". Y justo debajo: \"Nunca apagar\".",
     da: "+1 llave (con ella se elige ruta norte/sur)", nota: "" },
 
   // ── Biblioteca privada (norte) ──
-  p(2, "r3", "Biblioteca privada", "+1 llave"),
-  p(3, "r3", "Biblioteca privada", "+1 llave"),
+  { n: 2, room: "r3", roomName: "Biblioteca privada", titulo: "Taquilla azul", kind: "rotary", combo: [10, 8], // rotary "10 8" = 108 (6 × 18; boceto de arquitecto, "habitación simple", en el Sobre 12)
+    leer: "", descripcion: "En una de las estanterías hay una taquilla azul muy llamativa con un candado rotatorio.", da: "+1 llave", nota: "" },
+  { n: 3, room: "r3", roomName: "Biblioteca privada", titulo: "Puerta cerrada", kind: "number", combo: [1, 9, 9, 8], // 1996 + 24 meses de obra = 1998 (año de fin del proyecto; contrato del Sobre 12)
+    leer: "En la ventanilla hay pegado un cartel en rojo, del tamaño de un folio, en el que se puede leer: \"Sala cerrada a todo personal no autorizado hasta fecha de fin del proyecto. Nota: la clave temporal es el año actual, pero la actualizaremos cuando se termine la obra de la librería.\"",
+    descripcion: "En la pared de la derecha, entre dos estanterías, se abre una puerta de madera oscura con una pequeña ventanilla enrejada a la altura de los ojos. Del tirador cuelga un candado.",
+    da: "+1 llave", nota: "" },
 
   // ── Depósito (norte): los 3 dan llave PERO están info-bloqueados hasta después del Sótano (backtracking).
   //    Como conjunto, el Depósito da "lo necesario para abrir el Despacho" (qué puzzle exactamente: por definir). ──
@@ -70,9 +74,11 @@ export const PUZZLES: Puzzle[] = [
   p(6, "r4", "Depósito", "+1 llave · (conjunto) abre el Despacho", "info de la Librería (backtracking)"),
 
   // ── Proyecto de sala de lectura (sur; nudo) ──
-  p(7, "r2", "Proyecto de sala de lectura", "+1 llave"),
+  { n: 7, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Acceso a Salas Directivas", kind: "number", combo: [], // placeholder (combo/textos por definir)
+    leer: "", descripcion: "", da: "+1 llave", nota: "" },
   p(8, "r2", "Proyecto de sala de lectura", "+1 llave"),
-  p(9, "r2", "Proyecto de sala de lectura", "+1 llave"),
+  { n: 9, room: "r2", roomName: "Proyecto de sala de lectura", titulo: "Caja de herramientas", kind: "number", combo: [], // placeholder (combo/textos por definir)
+    leer: "", descripcion: "", da: "+1 llave", nota: "" },
   p(10, "r2", "Proyecto de sala de lectura", "+1 llave", "≥1 de los del Proyecto necesita info de otra sala (por definir cuál)"),
 
   // ── Sala de Máquinas (sur) ──
@@ -103,3 +109,9 @@ export const PUZZLES: Puzzle[] = [
 // Helpers para cuando cablemos el minimap a este modelo (día 5).
 export const puzzleByN = (n: number): Puzzle | undefined => PUZZLES.find((x) => x.n === n);
 export const puzzlesInRoom = (room: string): Puzzle[] => PUZZLES.filter((x) => x.room === room);
+
+// Notificaciones al RESOLVER un puzzle (clave = id "sala#idx"). Al resolverlo salta este aviso; el armazón lo
+// ENCOLA y lo muestra al cerrar el candado (no se pisa con la pantalla de "ABIERTO"). Se irán añadiendo por puzzle.
+export const ON_SOLVE_NOTICE: Record<string, string> = {
+  "hub-almacen#0": "Habéis obtenido el Sobre 15. Podéis abrirlo.", // Puzzle 1 (acertijo del TIEMPO): el candado abre la caja; dentro, el parte de horas
+};

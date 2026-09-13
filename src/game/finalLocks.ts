@@ -53,7 +53,10 @@ export const FINAL_LOCKS: FinalLock[] = [
     combo: [1, 2, 5, 4], mecanismo: true, revelaSi: REVEAL },
 ];
 
-// FLAG DE TESTING: en true, TODOS los candados finales se ven ya (ignora `revelaSi`). En producción -> false.
+// INTERRUPTOR GENERAL de la capa final: en false NO se muestra NINGÚN geometryLock final (ni el del Despacho),
+// para no estorbar mientras se cablean las salas normales. Ponlo en true para reactivar la fase final.
+export const FINAL_LOCKS_ENABLED = false;
+// FLAG DE TESTING (solo aplica si FINAL_LOCKS_ENABLED): en true se ven TODOS ya (ignora `revelaSi`); si no, según el trigger.
 export const SHOW_FINAL_LOCKS = true;
 
 // los cuatro MECANISMOS (el Despacho no cuenta)
@@ -63,6 +66,7 @@ export const RED_KEY_ITEM = "llave-maestra";
 
 // ¿es visible este candado con el estado actual? (Despacho siempre; mecanismos según revelaSi, o todos en testing)
 export function finalLockVisible(lock: FinalLock, gs: GameState | null): boolean {
+  if (!FINAL_LOCKS_ENABLED) return false; // capa final APAGADA: ningún geometryLock final visible
   if (!lock.revelaSi) return true;   // el Despacho (trigger): siempre visible
   if (SHOW_FINAL_LOCKS) return true; // testing: forzar todos visibles
   return gs ? triggerMet(lock.revelaSi, gs) : false;

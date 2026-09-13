@@ -1,8 +1,8 @@
 import type { ComponentType, RefAttributes } from "react";
 import type { ScreenHandle, ScreenServices } from "./types";
 import Home from "./Home";
-import Terminal from "./Terminal";
-import Placeholder from "./Placeholder";
+// import Terminal from "./Terminal"; // MVP: NeoTerminal2 fuera de momento (comentado, no borrado)
+// import Placeholder from "./Placeholder"; // MVP: solo lo usaba la Tienda (comentada abajo)
 import Minimap from "./Minimap";
 import Fax from "./Fax";
 import Notas from "./Notas";
@@ -20,8 +20,8 @@ export interface ScreenDef {
 
 export const SCREENS = {
   home: { label: "Home", Component: Home },
-  terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", Component: Terminal },
-  tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet-sm.png", Component: Placeholder },
+  // terminal: { label: "Terminal", title: "santasochova-term.exe", icon: "/icons/term.png", Component: Terminal }, // MVP: NeoTerminal2 fuera de momento (comentado, no borrado)
+  // tienda: { label: "Tienda", title: "Tienda - Internet Explorer", icon: "/icons/internet-sm.png", Component: Placeholder }, // MVP: Tienda fuera de momento (comentada, no borrada)
   notas: { label: "Notas", title: "Notas", icon: "/icons/notepad-sm.png", Component: Notas },
   registro: { label: "Fax Electrónico", title: "Fax Electrónico", icon: "/icons/printer-sm.png", Component: Fax },
   fases: { label: "Libro de Juego", title: "Libro de Juego", icon: "/icons/fases-sm.png", Component: Minimap }, // PROVISIONAL: cuelgo aquí el minimapa para verlo; ya decidiremos su sitio

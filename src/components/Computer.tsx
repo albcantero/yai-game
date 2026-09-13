@@ -14,6 +14,8 @@ import Notice from "./Notice";
 import { startGameState, useGameState } from "../lib/gameState";
 import { despachoSolved } from "../game/finalLocks";
 import { unlockedCount } from "../game/fax";
+import { unlockedNotes } from "../game/notas";
+import { ON_SOLVE_NOTICE } from "../game/content";
 
 // Warp CRT (abombado 3D via filtro SVG).
 const WARP_ENABLED = true;
@@ -39,7 +41,10 @@ export default function Computer() {
   const [shiftMode, setShiftMode] = useState<ShiftMode>("off"); // off=minús, shift=1 letra, caps=bloqueo
   const [numMode, setNumMode] = useState(false);
   const [view, setView] = useState<ScreenId>("home"); // pantalla activa; arranca en "home" (todas son screens del registro)
-  const [notice, setNotice] = useState<string | null>(null); // aviso informativo transitorio (nuevos puzzles / mensaje del Fax); mismo diálogo msg_information
+  const [notice, setNotice] = useState<string | null>(null); // aviso VISIBLE ahora (diálogo msg_information)
+  const [noticeQueue, setNoticeQueue] = useState<string[]>([]); // avisos en cola: esperan a que se cierre el actual y a que la pantalla no esté ocupada
+  const [screenBusy, setScreenBusy] = useState(false); // la pantalla activa está OCUPADA (p. ej. el Fax tecleando): no interrumpir con avisos
+  const notify = (text: string) => setNoticeQueue((q) => [...q, text]); // pedir un aviso: se encola y sale en cuanto se pueda
   const gs = useGameState(); // estado compartido (para disparar el aviso de nuevos puzzles)
 
   const shiftModeRef = useRef<ShiftMode>("off");
@@ -103,13 +108,22 @@ export default function Computer() {
   // salen con los datos (sin el parpadeo de estado vacío -> cargado). Idempotente.
   useEffect(() => { startGameState(); }, []);
 
+  // Cola de avisos: muestra el siguiente cuando NO hay ninguno visible Y la pantalla activa no está ocupada
+  // (p. ej. el Fax tecleando). Así un aviso nunca interrumpe los mensajes de Miquela a medio escribir.
+  useEffect(() => {
+    if (notice !== null || screenBusy || lock !== null || read !== null || confirmClose || noticeQueue.length === 0) return;
+    setNotice(noticeQueue[0]);
+    setNoticeQueue((q) => q.slice(1));
+  }, [notice, screenBusy, lock, read, confirmClose, noticeQueue]);
+
   // AVISO "Han aparecido nuevos puzzles": al resolver el mecanismo del Despacho (r6#final) se destapan los cuatro
   // mecanismos. Se detecta la TRANSICIÓN (no-resuelto -> resuelto) para dispararlo una vez, no en cada carga.
   const prevDespachoRef = useRef<boolean | null>(null);
   useEffect(() => {
+    if (!gs) return; // aún sin estado cargado: NO fijar línea base con el null inicial (si no, dispara en cada recarga)
     const now = despachoSolved(gs);
-    if (prevDespachoRef.current === null) { prevDespachoRef.current = now; return; } // línea base al cargar (no dispara)
-    if (now && !prevDespachoRef.current) setNotice("Han aparecido nuevos puzzles");
+    if (prevDespachoRef.current === null) { prevDespachoRef.current = now; return; } // línea base con el estado YA cargado de la DB
+    if (now && !prevDespachoRef.current) notify("Han aparecido nuevos puzzles");
     prevDespachoRef.current = now;
   }, [gs]);
 
@@ -117,10 +131,33 @@ export default function Computer() {
   // disponibles. Se detecta el INCREMENTO para avisar una vez (además del badge "!" del menú).
   const prevFaxCountRef = useRef<number | null>(null);
   useEffect(() => {
-    const n = gs ? unlockedCount(gs) : 0;
-    if (prevFaxCountRef.current === null) { prevFaxCountRef.current = n; return; } // línea base al cargar (no dispara)
-    if (n > prevFaxCountRef.current) setNotice("En la bandeja de entrada del Fax hay una notificación nueva.");
+    if (!gs) return; // aún sin estado cargado: NO fijar línea base con el null inicial (si no, 0 -> 1 dispara en cada recarga)
+    const n = unlockedCount(gs);
+    if (prevFaxCountRef.current === null) { prevFaxCountRef.current = n; return; } // línea base con el estado YA cargado de la DB
+    if (n > prevFaxCountRef.current) notify("En la bandeja de entrada del Fax hay una notificación nueva.");
     prevFaxCountRef.current = n;
+  }, [gs]);
+
+  // AVISO de NOTA nueva: cuando aparece una nota en el bloc (sube el nº de notas desbloqueadas). Texto base común
+  // a TODAS las notas. Misma línea base (esperar a que el estado cargue) para no dispararlo en cada recarga.
+  const prevNotesRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!gs) return;
+    const n = unlockedNotes(gs).length;
+    if (prevNotesRef.current === null) { prevNotesRef.current = n; return; }
+    if (n > prevNotesRef.current) notify("Habéis tomado nota sobre esto.");
+    prevNotesRef.current = n;
+  }, [gs]);
+
+  // AVISO al RESOLVER un puzzle con notificación asociada (ON_SOLVE_NOTICE, p. ej. el TIEMPO -> "Abrir Sobre 15").
+  // Detecta los puzzles que aparecen NUEVOS en solved[]. El aviso se encola y sale al cerrar el candado.
+  const prevSolvedRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!gs) return;
+    const solved = new Set(gs.solved ?? []);
+    if (prevSolvedRef.current === null) { prevSolvedRef.current = solved; return; } // línea base (no dispara en recarga)
+    for (const id of solved) if (!prevSolvedRef.current.has(id) && ON_SOLVE_NOTICE[id]) notify(ON_SOLVE_NOTICE[id]);
+    prevSolvedRef.current = solved;
   }, [gs]);
 
   // Botones del monitor (flechas/OK): suenan a botón, no a tecla. SIEMPRE funcionan (inputs independientes,
@@ -145,7 +182,7 @@ export default function Computer() {
   const startHold = (k: string) => {
     dispatchKey(k); // primer toque (con sonido)
     stopHold();
-    const repeatable = view === "terminal" && (k === "Backspace" || k.length === 1);
+    const repeatable = (view as string) === "terminal" && (k === "Backspace" || k.length === 1); // (cast: "terminal" está comentado del registro por ahora; la repetición vuelve sola al reactivarlo)
     if (!repeatable) return;
     holdTimerRef.current = window.setTimeout(() => {
       const startedAt = performance.now();
@@ -266,6 +303,7 @@ export default function Computer() {
             openLock={openLock}
             openRead={openRead}
             openNotice={openNotice}
+            setBusy={setScreenBusy}
           />
           {/* CANDADO: oscurece la pantalla interior (menos el header) y muestra el candado centrado. Mismo
               proceso que la "X" (oscurecer + pausa). Va ANTES de los diálogos de X/Información para que estos

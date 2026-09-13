@@ -24,25 +24,44 @@ type Entry = { kind: "them"; text: string } | { kind: "pick"; a: string; b: stri
 const sameArr = (a: number[], b: number[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 const progressOf = (g: GameState): Record<string, number[]> => (g.fax_progress ?? {}) as Record<string, number[]>;
 
-// Recorre un bloque aplicando sus elecciones: historial (mensajes + picks) + nodo actual pendiente.
+// Recorre un bloque aplicando sus elecciones: historial (mensajes + picks) + nodo actual pendiente. Sigue las
+// cadenas de `next` (auto-avance SIN botones), que NO consumen pick. Guard anti-bucle por si hubiera un ciclo.
 function traceBlock(block: FaxBlock, picks: number[], gs: GameState | null): { entries: Entry[]; curId: string | null } {
   const entries: Entry[] = [];
   let id: string | null = block.start;
-  for (let i = 0; i < picks.length; i++) {
-    if (id === null) break;
+  let p = 0, guard = 0;
+  while (id !== null && guard++ < 500) {
     const node: FaxNode | undefined = block.nodes[id];
     if (!node) { id = null; break; }
     for (const t of node.incoming) entries.push({ kind: "them", text: resolveTokens(t, gs) });
-    const sel: 0 | 1 = picks[i] === 1 ? 1 : 0;
-    entries.push({ kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel });
-    id = (sel === 0 ? node.a?.next : node.b?.next) ?? null;
-  }
-  if (id !== null) {
-    const node: FaxNode | undefined = block.nodes[id];
-    if (node) for (const t of node.incoming) entries.push({ kind: "them", text: resolveTokens(t, gs) });
-    else id = null;
+    if (node.a || node.b) {                                   // nodo de decisión (dos respuestas)
+      if (p >= picks.length) return { entries, curId: id };   // decisión pendiente (aún sin elegir)
+      const sel: 0 | 1 = picks[p] === 1 ? 1 : 0; p++;
+      entries.push({ kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel });
+      id = (sel === 0 ? node.a?.next : node.b?.next) ?? null;
+      continue;
+    }
+    if (node.next) { id = node.next; continue; }              // auto-avance: sin botones, al siguiente nodo
+    id = null;                                                // terminal (sin a/b y sin next)
   }
   return { entries, curId: id };
+}
+
+// Sigue la cadena de mensajes por `next` desde startId, para la ENTREGA EN VIVO tras una respuesta: junta todos
+// los mensajes hasta un nodo de decisión (para y lo devuelve como curId) o el final del bloque (curId null).
+function collectChain(block: FaxBlock, startId: string | null, gs: GameState | null): { messages: string[]; curId: string | null } {
+  const messages: string[] = [];
+  let id: string | null = startId;
+  let guard = 0;
+  while (id !== null && guard++ < 500) {
+    const node: FaxNode | undefined = block.nodes[id];
+    if (!node) { id = null; break; }
+    for (const t of node.incoming) messages.push(resolveTokens(t, gs));
+    if (node.a || node.b) break;                             // decisión: parar (es el nodo pendiente)
+    if (node.next) { id = node.next; continue; }             // auto-avance
+    id = null;                                               // terminal
+  }
+  return { messages, curId: id };
 }
 
 // Sesión = al abrir: bloques desbloqueados EN ORDEN; los completos van al historial; el primer incompleto es el
@@ -64,7 +83,7 @@ function computeSession(g: GameState | null): Session {
   return { history, block: null, picks: [], entries: [], curId: null };
 }
 
-const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, ref) {
+const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx, setBusy }, ref) {
   const gs = useGameState();                           // estado compartido (ya cargado al abrir la app)
   const bootRef = useRef<Session>(computeSession(getGameState())); // sesión fijada al MONTAR
   const boot = bootRef.current;
@@ -159,11 +178,11 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     setShown((s) => [...s, { kind: "pick", a: node.a?.text ?? "", b: node.b?.text ?? "", sel }]); // bloquea los recuadros
     const stepIdx = renderedRef.current.length;
     renderedRef.current = [...renderedRef.current, sel];
-    const nextId = chosen.next;
-    curIdRef.current = nextId; setCurId(nextId);
+    const nextId = chosen.next ?? null;
+    const chain = collectChain(b, nextId, getGameState()); // sigue la cadena de `next` (auto-avance sin botones)
+    curIdRef.current = chain.curId; setCurId(chain.curId);
     persistChoice(b.id, stepIdx, sel);
-    const nextNode = nextId !== null ? b.nodes[nextId] : null;
-    if (nextNode) startLive(nextNode.incoming.map((t) => resolveTokens(t, getGameState()))); else finishStep(); // ella responde con "..." + typewriter (o fin del bloque)
+    if (chain.messages.length > 0) startLive(chain.messages); else finishStep(); // ella responde con "..." + typewriter (o fin del bloque)
   };
 
   // carga inicial (si gs llegó tras montar) y reconciliación del BLOQUE ACTIVO (avance remoto / reset). Los
@@ -197,6 +216,11 @@ const Fax = forwardRef<ScreenHandle, ScreenServices>(function Fax({ playSfx }, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gs]);
   useEffect(() => () => clearTimer(), []); // limpia el timer de typing al salir
+
+  // Reporta al armazón si el Fax está OCUPADO (entregando/tecleando mensajes): mientras tanto, los avisos
+  // (nota nueva, etc.) esperan en cola y NO interrumpen los mensajes de Miquela a medio escribir.
+  useEffect(() => { setBusy(delivering); }, [delivering, setBusy]);
+  useEffect(() => () => setBusy(false), [setBusy]); // al salir del Fax, liberar la ocupación
 
   // auto-scroll al fondo con cada cambio
   useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [shown, live, typing]);

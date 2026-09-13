@@ -9,10 +9,10 @@ import { faxUnread } from "../../game/fax";
 // conserva como defensa por si en el futuro alguna opción se muestra antes de tener pantalla.
 const OPEN_DELAY = 250; // ms que la opción se queda en AZUL antes de abrir el programa (para que se vea la selección)
 const HOME_OPTS: { label: string; target?: string; icon: string }[] = [
-  { label: "Tienda", target: "tienda", icon: "/icons/internet.png" },      // tienda online del juego (icono html)
+  // { label: "Tienda", target: "tienda", icon: "/icons/internet.png" },      // MVP: Tienda fuera de momento (comentada, no borrada)
   { label: "Notas", target: "notas", icon: "/icons/notepad.png" },
   { label: "Fax Electrónico", target: "registro", icon: "/icons/printer.png" }, // chat con el informante (tipo Lifeline)
-  { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" },
+  // { label: "NeoTerminal2", target: "terminal", icon: "/icons/terminal.png" }, // MVP: NeoTerminal2 fuera de momento (comentado, no borrado)
   { label: "Libro de Juego", target: "fases", icon: "/icons/fases.png" },  // icono helpbook
 ];
 

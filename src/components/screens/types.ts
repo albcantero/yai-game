@@ -19,6 +19,7 @@ export interface ScreenServices {
   openLock: (config: LockConfig) => void; // abrir el candado (oscurece + pausa la pantalla, MISMO proceso que la "X")
   openRead: (text: string) => void; // abrir el panel de LECTURA ("Leer" de un puzzle): mismo marco/animación que un candado
   openNotice: (text: string) => void; // mostrar una NOTIFICACIÓN (diálogo "Información" con "Cerrar"); texto por parámetro
+  setBusy: (busy: boolean) => void; // la pantalla avisa de que está OCUPADA (p. ej. el Fax tecleando): el armazón no lanza avisos encima
 }
 
 // Formulario TUI (login, y el compose del chat): campos + acción (Enviar/Conectar) + Salir, navegable

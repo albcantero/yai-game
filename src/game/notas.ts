@@ -17,8 +17,13 @@ export type Note = { id: string; trigger: GameTrigger; texto: string };
 // El token {contacto} se sustituye al pintar por "???" o "Miquela Quirós" según la flag de revelación (ver fax.ts).
 export const NOTES: Note[] = [
   // ── ÍNDICE de notas: cada objeto es UNA nota (una entrada). Se irán añadiendo más con sus triggers. ──
-  { id: "encierro", trigger: { type: "start" },
+  // Nota 1: aparece al TERMINAR el bloque intro del Fax (la llamada de Miquela). Ver trigger faxDone en fax.ts.
+  { id: "encierro", trigger: { type: "faxDone", block: "intro" },
     texto: "Nos han encerrado en el almacén. {contacto} nos ha llamado: puede sacarnos a cambio de un libro, y dice que la única salida son las salas ocultas de la librería." },
+
+  // Nota 2: al resolver la "puerta cerrada" de la Biblioteca (r3#1). Datos del contrato de construcción (Sobre 12).
+  { id: "construccion", trigger: { type: "solved", puzzle: "r3#1" },
+    texto: "La librería se construyó en 1996 y las obras duraron hasta 1998; costaron 100.000 euros." },
 
   // Aparece al resolver el mecanismo del Despacho (r6#final): destapa los cuatro mecanismos ocultos y sus salas.
   { id: "mecanismos", trigger: { type: "solved", puzzle: "r6#final" },
